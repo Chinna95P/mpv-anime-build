@@ -1,3 +1,7 @@
+MPV Anime Build is an anime-aware MPV configuration that automatically switches Anime4K, NNEDI, and SD/HD pipelines based on content. It keeps anime and live-action fully isolated, avoids manual profile switching, and includes clean OSD feedback with full PDF documentation.
+
+
+
 \# 🎬 MPV Custom Build – Anime-Aware, Profile-Driven Setup
 
 
