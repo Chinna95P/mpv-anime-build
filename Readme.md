@@ -1,432 +1,182 @@
-MPV Anime Build is an anime-aware MPV configuration that automatically switches Anime4K, NNEDI, and SD/HD pipelines based on content. It keeps anime and live-action fully isolated, avoids manual profile switching, and includes clean OSD feedback with full PDF documentation.
+# 🎬 MPV Anime Build
+
+> **Anime-aware MPV configuration with automatic Anime4K, NNEDI, and SD/HD pipelines — zero manual profile switching.**
+
+This project is a **fully automated MPV configuration** designed primarily for **anime playback**, while keeping **live-action and non-anime content fully isolated** and optimized.
+
+The goal is simple:  
+**MPV decides the correct profile automatically — you only fine-tune when you want to.**
+
+---
+
+## 📌 Key Features
+
+- 🎯 Automatic **anime vs non-anime detection**
+- 🧠 Global **Anime Mode** (AUTO / ON / OFF)
+- 🖌️ Anime-only **Anime4K** (Fast & HQ, multiple modes)
+- 📺 Resolution-aware **SD / HD / NNEDI** pipelines
+- 🧼 Clean, **non-persistent OSD**
+- 💾 Persistent settings across restarts
+- 🎞️ **SVP-compatible**
+- 📄 Full illustrated **PDF manual + cheat sheet**
+
+---
+
+## 👤 Who This Is For
+
+✔ Anime watchers  
+✔ Mixed anime + live-action libraries  
+✔ Users who hate manual profile switching  
+✔ Power users who still want full control  
+
+❌ Not intended for very low-end GPUs
+
+---
+
+## ⚡ Quick Start
+
+1. Copy the files into:
+C:\Users<YourName>\AppData\Roaming\mpv\
+
+2. Open any video in MPV
+3. Anime is detected automatically
+4. Press **K** to see the active profile (2 seconds)
+5. Use shortcuts only if you want to fine-tune
+
+That’s it.
+
+---
+
+## 🔹 Anime Mode (Global Control)
+
+Anime Mode decides **when anime shaders are allowed to run**.
+
+| Shortcut | Mode | Behavior |
+|-------|------|--------|
+| `CTRL + L` | AUTO | Anime shaders only if anime is detected |
+| `CTRL + ;` | ON | Force anime shaders for all content |
+| `CTRL + '` | OFF | Disable anime shaders completely |
+
+**AUTO is the recommended default.**
+
+---
+
+## 🔹 Anime4K System (Anime-Only)
+
+Anime4K is applied **only when anime shaders are active**.  
+It never affects live-action or non-anime files.
+
+### Anime4K Quality Toggle
+L → Toggle Anime4K FAST ↔ HQ
 
 
+### Anime4K Modes
 
-\# 🎬 MPV Custom Build – Anime-Aware, Profile-Driven Setup
+CTRL + 1 → Mode A (balanced)
+CTRL + 2 → Mode B (soft)
+CTRL + 3 → Mode C (denoise)
+CTRL + 4 → Mode A+A
+CTRL + 5 → Mode B+B
+CTRL + 6 → Mode C+A
 
 
+### Recommended Usage
+- **TV anime / weekly episodes** → FAST
+- **Blu-ray / high-quality anime** → HQ
+- **Old / noisy anime** → Mode C or C+A
 
-This MPV build is designed to \*\*automatically choose the best video profile\*\* while still giving you \*\*full manual control\*\* when needed — especially for anime playback.
+---
+
+## 🔹 Non-Anime Video Pipeline
+
+Non-anime content uses a **completely separate processing path**.
+
+| Resolution | Pipeline |
+|---------|---------|
+| `< 720p` | HQ-SD (Clean / Texture) |
+| `576p – <1080p` | HQ-HD-NNEDI (Auto) |
+| `≥ 1080p` | High-Quality |
+
+### SD Mode Toggle
+
+CTRL + Q → SD Clean ↔ Texture
 
 
+### NNEDI Control
 
-It combines:
-
-\- Smart Anime / Non-Anime detection
-
-\- Anime4K (Fast \& HQ) with multiple modes
-
-\- Separate SD / HD / NNEDI pipelines
-
-\- Clean, non-persistent on-screen feedback
-
-\- Persistent settings across files and restarts
-
+Q → Force NNEDI
+W → Return to Auto NNEDI
 
 
 ---
 
+## ℹ️ OSD & Information
 
+| Shortcut | Action |
+|-------|------|
+| `K` | Show current profile (2 seconds) |
 
-\## 🔹 Core Concepts
-
-
-
-\### Automatic Anime Detection
-
-Anime is detected using:
-
-\- Folder name (`/anime/`)
-
-\- Filename patterns
-
-\- Live-action exclusions (`live action`, `drama`, etc.)
-
-
-
-Based on detection:
-
-\- \*\*Anime → `anime-shaders` profile\*\*
-
-\- \*\*Non-Anime → High-Quality / SD / NNEDI profiles\*\*
-
-
-
-Anime shaders never leak into non-anime content.
-
-
+OSD messages:
+- Never persist
+- Never loop
+- Show only when something changes or is requested
 
 ---
 
+## 🔊 Audio Enhancements
 
+| Shortcut | Function |
+|-------|---------|
+| `M` | 7.1 virtual surround |
+| `A` | Dynamic audio normalization |
 
-\## 🔹 Anime Mode (Global Control)
+---
 
+## 🛡️ Design Guarantees
 
+- Anime shaders **never leak** into non-anime
+- Shader chains are cleared safely before switching
+- No profile reapplication loops
+- No persistent OSD clutter
+- No background services required
+- Works with or without SVP
 
-Anime Mode decides \*when\* anime shaders are applied.
+---
 
+## 📄 Documentation
 
+- 📘 **Full Illustrated Manual (PDF)**  
+  `docs/MPV_Full_Readme_Illustrated.pdf`
+- ⚡ **Quick Cheat Sheet (PDF)**  
+  `docs/MPV_CheatSheet_Illustrated.pdf`
+- 📥 **Beginner Install Guide**  
+  `docs/INSTALL.md`
+- 🧾 **Changelog**  
+  `docs/CHANGELOG.md`
 
-| Mode | Behavior |
+---
 
-|----|----|
+## 🔮 Roadmap (v1.1)
 
-| \*\*AUTO\*\* (default) | Apply anime shaders only for detected anime |
+Planned improvements:
+- Smarter anime detection heuristics
+- Optional per-anime Anime4K presets
+- Performance optimizations for low-end GPUs
+- Optional modular install (lite / full)
 
-| \*\*ON\*\* | Force anime shaders for all videos |
+No breaking changes planned.
 
-| \*\*OFF\*\* | Disable anime shaders completely |
+---
 
+## 📜 License
 
+MIT License  
+© 2026 Rohith Polamreddy
 
-Anime Mode is \*\*persistent across restarts\*\*.
+---
 
+## ⭐ If This Helped You
 
-
-\### Anime Mode Shortcuts
-
-```text
-
-CTRL + L   → Anime Mode: AUTO
-
-CTRL + ;   → Anime Mode: ON
-
-CTRL + '   → Anime Mode: OFF
-
-
-
-🔹 Anime4K System (Anime-Only)
-
-
-
-Anime4K is strictly limited to anime playback.
-
-It activates only when the anime-shaders profile is active.
-
-
-
-It never affects:
-
-
-
-Live-action
-
-
-
-TV shows
-
-
-
-Movies
-
-
-
-Non-anime content
-
-
-
-Anime4K Quality
-
-Quality	Description
-
-FAST	Lower GPU load, smoother playback
-
-HQ	Maximum quality, higher GPU usage
-
-
-
-The selected quality is remembered across anime files.
-
-
-
-L → Toggle Anime4K Quality (FAST ↔ HQ)
-
-
-
-Anime4K Modes
-
-
-
-Anime4K modes control restoration strength, denoise behavior, and line emphasis.
-
-
-
-Shortcut	Mode
-
-CTRL + 1	A
-
-CTRL + 2	B
-
-CTRL + 3	C
-
-CTRL + 4	AA
-
-CTRL + 5	BB
-
-CTRL + 6	CA
-
-
-
-Important behavior
-
-
-
-These shortcuts work only during anime playback
-
-
-
-Pressing them during non-anime playback is ignored
-
-
-
-Mode selection is persistent for future anime
-
-
-
-🔹 Recommended Anime4K Modes
-
-Modern Digital Anime (BD / Web / 1080p+)
-
-
-
-FAST: Mode A
-
-
-
-HQ: Mode A or AA
-
-
-
-Best balance of sharpness and stability.
-
-
-
-Older Anime / DVD / Soft Masters
-
-
-
-FAST: Mode B
-
-
-
-HQ: Mode BB
-
-
-
-Avoids ringing and over-sharpening.
-
-
-
-Grainy / Noisy Anime
-
-
-
-FAST: Mode C
-
-
-
-HQ: Mode CA
-
-
-
-Better noise handling and cleaner edges.
-
-
-
-Highly Stylized / Heavy Line Art
-
-
-
-FAST: Mode AA
-
-
-
-HQ: Mode AA
-
-
-
-Stronger line reinforcement.
-
-
-
-🔹 Non-Anime Video Pipeline
-
-
-
-Non-anime content uses a completely separate processing path.
-
-
-
-Resolution-Based Profiles
-
-Resolution	Profile Used
-
-< 720p	HQ-SD-Clean / HQ-SD-Texture
-
-576p – <1080p	HQ-HD-NNEDI (Auto)
-
-≥1080p	High-Quality
-
-SD Profile Toggle
-
-CTRL + Q → Toggle HQ-SD Clean ↔ Texture
-
-
-
-NNEDI Control (HD Content Only)
-
-Q → Force HQ-HD-NNEDI (Manual)
-
-W → Return NNEDI to Auto
-
-
-
-🔹 On-Screen Display (OSD) \& Information
-
-Show Current Status
-
-K → Show current profile \& mode (2 seconds)
-
-
-
-
-
-Example messages:
-
-
-
-Anime: AUTO | Anime4K: FAST (A)
-
-Anime: ON | Anime4K: HQ (AA)
-
-Anime: OFF | High-Quality
-
-Anime: AUTO | HQ-HD-NNEDI
-
-
-
-Startup Message
-
-
-
-Shown once when a file loads
-
-
-
-Non-persistent
-
-
-
-Always reflects the actual active profile
-
-
-
-🔹 Audio Enhancements
-
-M → Toggle 7.1 Virtual Surround + LFE Boost
-
-A → Toggle Dynamic Audio Normalization
-
-
-
-🔹 Design Guarantees
-
-
-
-Anime4K never applies to non-anime
-
-
-
-Shader chains are cleared automatically when switching profiles
-
-
-
-No permanent OSD clutter
-
-
-
-Safe coexistence with SVP
-
-
-
-Manual overrides are always reversible
-
-
-
-No hidden background re-application loops
-
-
-
-🔹 Mental Model
-
-
-
-MPV decides the profile → You fine-tune only when needed
-
-
-
-AUTO mode handles most cases.
-
-Manual controls are precise, predictable, and safe.
-
-
-
-🔹 Build Versioning
-
-MPV Anime Build v1.0
-
-Status: Stable
-
-
-
-
-
-Recommended to update version when:
-
-
-
-Changing shaders
-
-
-
-Modifying profile logic
-
-
-
-Adding/removing shortcuts
-
-
-
-🔹 Backup Recommendation
-
-
-
-Zip the entire MPV folder:
-
-
-
-mpv-anime-build-v1.0.zip
-
-
-
-
-
-Or use Git:
-
-
-
-git init
-
-git add .
-
-git commit -m "MPV Anime Build v1.0 – stable"
-
-git tag v1.0
-
-
-
-
-
-Enjoy your MPV setup — it is now a clean, modular, TV-class playback system.
-
+- Star ⭐ the repository
+- Share it with other MPV users
+- Open issues or suggestions — feedback is welcome
