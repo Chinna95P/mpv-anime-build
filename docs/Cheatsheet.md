@@ -1,8 +1,10 @@
-
+---
 
 ## 2. `CHEATSHEET.md`
 
 ```markdown
+---
+
 # ⚡ MPV Anime Build – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands available in this build.
