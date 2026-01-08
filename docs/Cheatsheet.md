@@ -7,7 +7,7 @@
 
 A complete reference for all keyboard shortcuts and commands available in this build.
 
-
+---
 
 ## 🎨 Global Profile Controls
 
@@ -18,7 +18,7 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`CTRL + ;`** | **Anime Mode: ON** | Forces Anime4K shaders on all videos. |
 | **`CTRL + '`** | **Anime Mode: OFF** | Disables anime shaders completely (uses Live Action pipeline). |
 
-
+---
 
 ## 🖌️ Anime Pipeline (Anime4K)
 *Only active when Anime Mode is engaged.*
@@ -33,7 +33,7 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`CTRL + 5`** | **Mode B+B** | Ultra-Soft. Double pass blur reduction. |
 | **`CTRL + 6`** | **Mode C+A** | Denoise + Sharp. Restores old/noisy anime. |
 
-
+---
 
 ## 📺 Live-Action Pipeline ("Modern TV")
 *Active for movies, TV shows, and when Anime Mode is OFF.*
@@ -44,7 +44,7 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`Q`** | **Force NNEDI3** | Manually enables NNEDI3 upscaling regardless of resolution. |
 | **`W`** | **Reset to Auto** | Returns Live-Action logic to automatic resolution detection. |
 
-
+---
 
 ## 🔊 Audio & Subtitles
 
@@ -57,7 +57,7 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`[` / `]`** | **Sub Delay** | Adjusts subtitle delay (-0.1s / +0.1s). |
 | **`CTRL + Up/Down`** | **Sub Position** | Moves subtitles up or down vertically. |
 
-
+---
 
 ## ⏯️ Playback & Navigation
 
@@ -72,7 +72,7 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`I`** | **Stats** | Toggle playback statistics overlay. |
 | **`Screenshot`** | **`s`** | Take a screenshot (saved to Desktop). |
 
-
+---
 
 ## 🛠️ Image Adjustments
 
