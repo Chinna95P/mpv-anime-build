@@ -230,6 +230,32 @@ end)
 -------------------------------------------------
 -- FILE LOAD
 -------------------------------------------------
+-------------------------------------------------
+-- MANUAL TOGGLES (MISSING HANDLERS)
+-------------------------------------------------
+
+-- CTRL+q: Toggle SD Mode (Clean <-> Texture)
+mp.register_script_message("toggle-hq-sd", function()
+    sd_mode = (sd_mode == "clean") and "texture" or "clean"
+    evaluate()
+    show_temp_osd("SD Mode: " .. sd_mode:upper(), 2)
+end)
+
+-- Q: Toggle HD Strategy (NNEDI <-> FSRCNNX/High-Quality)
+mp.register_script_message("toggle-hq-hd-nnedi", function()
+    hd_manual_override = not hd_manual_override
+    evaluate()
+    local mode = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
+    show_temp_osd("HD Logic: " .. mode, 2)
+end)
+
+-- W: Reset HD Override to Auto
+mp.register_script_message("hq-hd-return-auto", function()
+    hd_manual_override = false
+    evaluate()
+    show_temp_osd("HD Logic: Auto (Reset)", 2)
+end)
+
 mp.register_event("file-loaded", function()
     load_anime_mode()
     load_anime4k()
