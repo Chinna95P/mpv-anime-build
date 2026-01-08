@@ -1,49 +1,33 @@
-# 🎬 MPV Anime Build
+# 🎬 MPV Anime Build v1.1
 
-> **Anime-aware MPV configuration with automatic Anime4K, NNEDI, and SD/HD pipelines — zero manual profile switching.**
+> **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
 
 This project is a **fully automated MPV configuration** designed primarily for **anime playback**, while keeping **live-action and non-anime content fully isolated** and optimized.
 
-The goal is simple:  
+The goal is simple:
 **MPV decides the correct profile automatically — you only fine-tune when you want to.**
 
 ---
 
-## 📌 Key Features
+## 📌 Key Features (v1.1)
 
-- 🎯 Automatic **anime vs non-anime detection**
-- 🧠 Global **Anime Mode** (AUTO / ON / OFF)
-- 🖌️ Anime-only **Anime4K** (Fast & HQ, multiple modes)
-- 📺 Resolution-aware **SD / HD / NNEDI** pipelines
-- 🧼 Clean, **non-persistent OSD**
-- 💾 Persistent settings across restarts
-- 🎞️ **SVP-compatible**
-- 📄 Full illustrated **PDF manual + cheat sheet**
-
----
-
-## 👤 Who This Is For
-
-✔ Anime watchers  
-✔ Mixed anime + live-action libraries  
-✔ Users who hate manual profile switching  
-✔ Power users who still want full control  
-
-❌ Not intended for very low-end GPUs
+- 🎯 **Smart Detection:** Automatic anime vs. live-action isolation
+- 🧠 **Global Anime Mode:** AUTO / ON / OFF
+- 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes)
+- 📺 **Live-Action Pipeline:** New **"Modern TV"** style upscaling (Sony/Samsung emulation)
+- ⚡ **Adaptive Sharpening:** Custom shaders for 480p, 720p, and 1080p
+- 🧼 **Clean OSD:** Non-intrusive status messages
+- 💾 **Persistent:** Settings save across restarts
+- 🎞️ **SVP-Compatible:** Works alongside Smooth Video Project
 
 ---
 
 ## ⚡ Quick Start
 
-1. Copy the files into:
-C:\Users<YourName>\AppData\Roaming\mpv\
-
+1. Copy the files into: `C:\Users\<YourName>\AppData\Roaming\mpv\`
 2. Open any video in MPV
 3. Anime is detected automatically
 4. Press **K** to see the active profile (2 seconds)
-5. Use shortcuts only if you want to fine-tune
-
-That’s it.
 
 ---
 
@@ -52,131 +36,56 @@ That’s it.
 Anime Mode decides **when anime shaders are allowed to run**.
 
 | Shortcut | Mode | Behavior |
-|-------|------|--------|
-| `CTRL + L` | AUTO | Anime shaders only if anime is detected |
-| `CTRL + ;` | ON | Force anime shaders for all content |
-| `CTRL + '` | OFF | Disable anime shaders completely |
-
-**AUTO is the recommended default.**
+| :--- | :--- | :--- |
+| `CTRL + L` | **AUTO** | Anime shaders only if anime is detected (Default) |
+| `CTRL + ;` | **ON** | Force anime shaders for all content |
+| `CTRL + '` | **OFF** | Disable anime shaders completely |
 
 ---
 
-## 🔹 Anime4K System (Anime-Only)
+## 🔹 Anime Pipeline (Anime4K)
 
-Anime4K is applied **only when anime shaders are active**.  
-It never affects live-action or non-anime files.
+Anime4K is applied **only when anime shaders are active**. It never affects live-action files.
 
-### Anime4K Quality Toggle
-L → Toggle Anime4K FAST ↔ HQ
-
-
-### Anime4K Modes
-
-CTRL + 1 → Mode A (balanced)
-CTRL + 2 → Mode B (soft)
-CTRL + 3 → Mode C (denoise)
-CTRL + 4 → Mode A+A
-CTRL + 5 → Mode B+B
-CTRL + 6 → Mode C+A
-
-
-### Recommended Usage
-- **TV anime / weekly episodes** → FAST
-- **Blu-ray / high-quality anime** → HQ
-- **Old / noisy anime** → Mode C or C+A
+### 🎮 Controls
+| Shortcut | Function |
+| :--- | :--- |
+| `L` | Toggle Anime4K **FAST** ↔ **HQ** |
+| `CTRL + 1` | Mode A (Balanced) |
+| `CTRL + 2` | Mode B (Soft) |
+| `CTRL + 3` | Mode C (Denoise) |
+| `CTRL + 4` | Mode A+A (Ultra Sharp) |
 
 ---
 
-## 🔹 Non-Anime Video Pipeline
+## 🔹 Live-Action Pipeline (New in v1.1)
 
-Non-anime content uses a **completely separate processing path**.
+Non-anime content uses a **completely separate processing path** featuring new "Modern TV" adaptive sharpening.
 
-| Resolution | Pipeline |
-|---------|---------|
-| `< 720p` | HQ-SD (Clean / Texture) |
-| `576p – <1080p` | HQ-HD-NNEDI (Auto) |
-| `≥ 1080p` | High-Quality |
+| Resolution | Profile | Technology |
+| :--- | :--- | :--- |
+| **< 720p** | `HQ-SD` | SSimSuperRes + Adaptive Sharpen (SD Tuned) |
+| **720p – <1080p** | `HQ-HD` | NNEDI3 + KrigBilateral + Adaptive Sharpen (HD Tuned) |
+| **≥ 1080p** | `High-Quality` | FSRCNNX + Film Grain + "Modern TV" Sharpening |
 
-### SD Mode Toggle
-
-CTRL + Q → SD Clean ↔ Texture
-
-
-### NNEDI Control
-
-Q → Force NNEDI
-W → Return to Auto NNEDI
-
+### 🛠️ Live-Action Controls
+| Shortcut | Function |
+| :--- | :--- |
+| `CTRL + Q` | Toggle **SD Mode** (Clean ↔ Texture Masking) |
+| `Q` | Force **NNEDI3** Upscaling |
+| `W` | Return to **Auto** Logic |
 
 ---
 
 ## ℹ️ OSD & Information
 
 | Shortcut | Action |
-|-------|------|
-| `K` | Show current profile (2 seconds) |
-
-OSD messages:
-- Never persist
-- Never loop
-- Show only when something changes or is requested
-
----
-
-## 🔊 Audio Enhancements
-
-| Shortcut | Function |
-|-------|---------|
-| `M` | 7.1 virtual surround |
-| `A` | Dynamic audio normalization |
-
----
-
-## 🛡️ Design Guarantees
-
-- Anime shaders **never leak** into non-anime
-- Shader chains are cleared safely before switching
-- No profile reapplication loops
-- No persistent OSD clutter
-- No background services required
-- Works with or without SVP
-
----
-
-## 📄 Documentation
-
-- 📘 **Full Illustrated Manual (PDF)**  
-  `docs/MPV_Full_Readme_Illustrated.pdf`
-- ⚡ **Quick Cheat Sheet (PDF)**  
-  `docs/MPV_CheatSheet_Illustrated.pdf`
-- 📥 **Beginner Install Guide**  
-  `docs/INSTALL.md`
-- 🧾 **Changelog**  
-  `docs/CHANGELOG.md`
-
----
-
-## 🔮 Roadmap (v1.1)
-
-Planned improvements:
-- Smarter anime detection heuristics
-- Optional per-anime Anime4K presets
-- Performance optimizations for low-end GPUs
-- Optional modular install (lite / full)
-
-No breaking changes planned.
+| :--- | :--- |
+| `K` | Show current profile status |
 
 ---
 
 ## 📜 License
 
-MIT License  
+MIT License
 © 2026 Rohith Polamreddy
-
----
-
-## ⭐ If This Helped You
-
-- Star ⭐ the repository
-- Share it with other MPV users
-- Open issues or suggestions — feedback is welcome
