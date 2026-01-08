@@ -1,8 +1,3 @@
----
-
-
-```markdown
-
 
 ---
 ## 2. `CHEATSHEET.md`
@@ -86,4 +81,4 @@ A complete reference for all keyboard shortcuts and commands available in this b
 | **`3` / `4`** | Brightness - / + |
 | **`5` / `6`** | Gamma - / + |
 | **`7` / `8`** | Saturation - / + |
-```
+
