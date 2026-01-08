@@ -54,7 +54,7 @@ Anime Mode decides **when anime shaders are allowed to run**.
 
 | Shortcut | Mode | Behavior | OSD Color |
 | :--- | :--- | :--- | :--- |
-| `CTRL + L` | **AUTO** | Anime shaders only if anime is detected (Default) | **GREEN** |
+| `CTRL + l` | **AUTO** | Anime shaders only if anime is detected (Default) | **GREEN** |
 | `CTRL + ;` | **ON** | Force anime shaders for all content | **BLUE** |
 | `CTRL + '` | **OFF** | Disable anime shaders completely | **RED** |
 
@@ -72,6 +72,8 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 | `CTRL + 2` | Mode B (Soft) |
 | `CTRL + 3` | Mode C (Denoise) |
 | `CTRL + 4` | Mode A+A (Ultra Sharp) |
+| `CTRL + 5` | Mode B+B (Ultra Soft) |
+| `CTRL + 6` | Mode C+A (Denoise + Restore) |
 
 ---
 
@@ -88,7 +90,7 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 ### 🛠️ Live-Action Controls
 | Shortcut | Function | OSD Color |
 | :--- | :--- | :--- |
-| `CTRL + Q` | Toggle **SD Mode** (Clean ↔ Texture) | **ORANGE** |
+| `CTRL + q` | Toggle **SD Mode** (Clean ↔ Texture) | **ORANGE** |
 | `Q` | Force **NNEDI3** Upscaling | **GOLD** |
 | `W` | Return to **Auto** Logic | **GREEN** |
 
