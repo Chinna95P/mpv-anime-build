@@ -4,6 +4,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.2] – The "Color Update" & Modernization
+
+### ✨ New Features
+- **Professional OSD Overlay:** Completely rewrote the OSD backend (`anime_profile_controller.lua` v1.6) using the `mp.create_osd_overlay` API.
+  - **Color-Coded Status:**
+    - **Anime Mode:** Auto (Green), On (Blue), Off (Red).
+    - **Live Action:** High-Quality (Cyan), NNEDI3 (Gold), SD (Orange).
+    - **Anime4K:** Magenta.
+- **ModernZ Skin:** Integrated the "ModernZ" skin for a cleaner, modern player interface.
+- **SVP 4 Pro Support:** Verified compatibility and safety with Smooth Video Project (SVP 4).
+- **System Requirements:** Added official minimum and recommended specs to the documentation.
+
+### 🐛 Fixed
+- **OSD White Text Bug:** Fixed an issue where manual toggles (`Q`, `W`, `Ctrl+Q`) displayed plain white text instead of color codes.
+- **Pattern Matching Error:** Fixed a Lua bug where profiles containing hyphens (e.g., `HQ-SD-Clean`) were not being colored correctly in the status message.
+- **Input Conflicts:** Resolved conflicts where `input.conf` text commands were overriding the script's graphical overlay.
+
+---
+
 ## [v1.1] – Visual Refinement Update
 
 ### ✨ New Features

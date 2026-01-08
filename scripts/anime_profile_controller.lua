@@ -1,3 +1,14 @@
+-- [[ 
+--    FILENAME: anime_profile_controller.lua
+--    VERSION:  v1.6 (Hyphen Pattern Fix)
+--    UPDATED:  2026-01-08
+--    
+--    CHANGES:
+--    - Fixed Lua pattern matching bug: 'HQ-HD' was failing because '-' is a special char.
+--    - Changed: 'W' (Reset) OSD text color is now Green (was White).
+--    - Verified: 'K' Status now correctly colors HQ-HD (Gold) and HQ-SD (Orange).
+-- ]]
+
 local mp = require("mp")
 
 -------------------------------------------------
@@ -15,7 +26,6 @@ local anime4k_opts_path = mp.command_native({
 -------------------------------------------------
 local anime_mode = "auto"
 local current_profile = ""
-
 local sd_mode = "clean"
 local hd_manual_override = false
 
@@ -23,31 +33,76 @@ local hd_manual_override = false
 local anime4k_quality = "fast"   -- fast | hq
 local anime4k_mode = "A"         -- A B C AA BB CA
 
-local clear_timer = nil
+-------------------------------------------------
+-- COLORS (BGR Hex)
+-------------------------------------------------
+-- BGR Format: &HBBGGRR&
+local C = {
+    YELLOW  = "{\\c&H00FFFF&}",
+    WHITE   = "{\\c&HFFFFFF&}",
+    GREEN   = "{\\c&H00FF00&}", -- Auto / Success
+    BLUE    = "{\\c&HFF0000&}", -- On
+    RED     = "{\\c&H0000FF&}", -- Off
+    CYAN    = "{\\c&HFFFF00&}", -- High-Quality (Premium)
+    GOLD    = "{\\c&H00D7FF&}", -- NNEDI (Mid-High)
+    ORANGE  = "{\\c&H0080FF&}", -- SD (Standard)
+    MAGENTA = "{\\c&HFF00FF&}"  -- Anime4K (Special)
+}
 
 -------------------------------------------------
--- OSD (NON-PERSISTENT)
+-- OSD OVERLAY SYSTEM (Pro API)
 -------------------------------------------------
+local osd_overlay = mp.create_osd_overlay("ass-events")
+local osd_timer = nil
+
+local function hide_osd()
+    osd_overlay:remove()
+end
+
 local function show_temp_osd(text, duration)
     duration = duration or 2
-    mp.osd_message(text, duration)
-    if clear_timer then clear_timer:kill() end
-    clear_timer = mp.add_timeout(duration, function()
-        mp.osd_message("", 0)
-    end)
+    
+    -- {\an7} Top-Left, {\fs32} Font Size 32, {\q1} Outline Quality
+    osd_overlay.data = "{\\an7}{\\fs32}{\\q1}" .. text
+    osd_overlay:update()
+    
+    if osd_timer then osd_timer:kill() end
+    osd_timer = mp.add_timeout(duration, hide_osd)
 end
 
 -------------------------------------------------
--- PROFILE MESSAGE
+-- PROFILE MESSAGE (Status Info)
 -------------------------------------------------
 local function profile_message()
+    -- 1. Anime Mode Section
+    local mode_color = C.GREEN -- Default Auto
+    if anime_mode == "on" then mode_color = C.BLUE
+    elseif anime_mode == "off" then mode_color = C.RED end
+    
+    local part1 = C.YELLOW .. "{\\b1}Anime Mode:{\\b0} " .. C.WHITE .. mode_color .. anime_mode:upper()
+    
+    -- Separator
+    local sep = C.WHITE .. " | "
+    
+    -- 2. Profile / Anime4K Section (COLORIZED)
+    local part2 = ""
+    
     if current_profile == "anime-shaders" then
-        return "Anime: " .. anime_mode:upper()
-            .. " | Anime4K: "
-            .. anime4k_quality:upper()
-            .. " (" .. anime4k_mode .. ")"
+        local a4k_str = anime4k_quality:upper() .. " (" .. anime4k_mode .. ")"
+        part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.WHITE .. C.MAGENTA .. a4k_str
+    else
+        -- Logic to colorize the Live Action profile names
+        -- FIX: Escaped hyphens (%-) so Lua finds the string correctly
+        local prof_color = C.WHITE
+        if current_profile == "High-Quality" then prof_color = C.CYAN
+        elseif current_profile:find("HQ%-HD") then prof_color = C.GOLD
+        elseif current_profile:find("HQ%-SD") then prof_color = C.ORANGE
+        end
+        
+        part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.WHITE .. prof_color .. current_profile
     end
-    return "Anime: " .. anime_mode:upper() .. " | " .. current_profile
+    
+    return part1 .. sep .. part2
 end
 
 -------------------------------------------------
@@ -121,7 +176,7 @@ local function apply_profile(p)
 end
 
 -------------------------------------------------
--- ANIME4K SHADERS (UNCHANGED)
+-- ANIME4K SHADERS
 -------------------------------------------------
 local A4K = {
     fast = {
@@ -180,7 +235,7 @@ local function evaluate()
 end
 
 -------------------------------------------------
--- SCRIPT-BINDINGS (MATCH input.conf)
+-- SCRIPT-BINDINGS
 -------------------------------------------------
 mp.add_key_binding(nil, "anime-mode-auto", function()
     anime_mode = "auto"
@@ -215,9 +270,6 @@ mp.add_key_binding(nil, "show-profile-info", function()
     show_temp_osd(profile_message(), 2)
 end)
 
--------------------------------------------------
--- SCRIPT MESSAGES (CTRL+1..6)
--------------------------------------------------
 mp.register_script_message("anime4k-mode", function(mode)
     if current_profile ~= "anime-shaders" then return end
     if not A4K[anime4k_quality][mode] then return end
@@ -228,32 +280,33 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 -------------------------------------------------
--- FILE LOAD
--------------------------------------------------
--------------------------------------------------
--- MANUAL TOGGLES (MISSING HANDLERS)
+-- MANUAL TOGGLES (NOW COLORED)
 -------------------------------------------------
 
 -- CTRL+q: Toggle SD Mode (Clean <-> Texture)
 mp.register_script_message("toggle-hq-sd", function()
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
     evaluate()
-    show_temp_osd("SD Mode: " .. sd_mode:upper(), 2)
+    show_temp_osd(C.YELLOW .. "{\\b1}SD Mode:{\\b0} " .. C.ORANGE .. sd_mode:upper(), 2)
 end)
 
 -- Q: Toggle HD Strategy (NNEDI <-> FSRCNNX/High-Quality)
 mp.register_script_message("toggle-hq-hd-nnedi", function()
     hd_manual_override = not hd_manual_override
     evaluate()
-    local mode = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
-    show_temp_osd("HD Logic: " .. mode, 2)
+    
+    local mode_name = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
+    local mode_color = hd_manual_override and C.CYAN or C.GOLD
+    
+    show_temp_osd(C.YELLOW .. "{\\b1}HD Logic:{\\b0} " .. mode_color .. mode_name, 2)
 end)
 
 -- W: Reset HD Override to Auto
 mp.register_script_message("hq-hd-return-auto", function()
     hd_manual_override = false
     evaluate()
-    show_temp_osd("HD Logic: Auto (Reset)", 2)
+    -- FIX: Changed C.WHITE to C.GREEN to make "Auto (Reset)" visible/positive
+    show_temp_osd(C.YELLOW .. "{\\b1}HD Logic:{\\b0} " .. C.GREEN .. "Auto (Reset)", 2)
 end)
 
 mp.register_event("file-loaded", function()
