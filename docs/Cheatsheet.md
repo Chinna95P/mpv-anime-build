@@ -1,6 +1,6 @@
 ---
 
-### 2. `CHEATSHEET.md`
+## 2. `CHEATSHEET.md`
 
 ```markdown
 # ⚡ MPV Anime Build – Cheat Sheet
