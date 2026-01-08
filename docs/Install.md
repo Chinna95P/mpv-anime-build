@@ -1,6 +1,4 @@
-Here is the complete, repaired **`INSTALL.md`** file.
 
-```markdown
 # 📥 MPV Anime Build – Installation Guide
 
 This guide is designed for users who are **new to MPV** or just want a **simple copy-paste setup** for high-quality anime and movie playback.
