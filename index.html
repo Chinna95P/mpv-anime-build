@@ -5,7 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MPV Anime Build v1.3 | Automated Upscaling</title>
     <meta name="description" content="Automated High-Quality Upscaling for Anime & Live Action using MPV, Anime4K, and NNEDI3.">
+    
     <meta name="google-site-verification" content="-b34UEuV_TSu0alUSUY-xI03FbCL1JBURzYQMp7uT7Q" />
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
+    <meta property="og:title" content="MPV Anime Build v1.3">
+    <meta property="og:description" content="Automated High-Quality Upscaling for Anime & Live Action. Interactive Comparisons inside.">
+    <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:title" content="MPV Anime Build v1.3">
+    <meta property="twitter:description" content="Automated High-Quality Upscaling for Anime & Live Action.">
+    <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <style>
         /* --- CORE VARIABLES --- */
@@ -35,121 +47,99 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease-out;
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
 
         /* --- LAYOUT UTILS --- */
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
         .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: white;
-            background-color: var(--accent-green);
-            border-radius: 6px;
-            text-decoration: none;
-            transition: transform 0.2s, background-color 0.2s;
+            display: inline-block; padding: 12px 30px; font-size: 1.1rem; font-weight: 600;
+            color: white; background-color: var(--accent-green); border-radius: 6px;
+            text-decoration: none; transition: transform 0.2s, background-color 0.2s;
         }
-        .btn:hover {
-            background-color: var(--accent-green-hover);
-            transform: translateY(-2px);
-        }
+        .btn:hover { background-color: var(--accent-green-hover); transform: translateY(-2px); }
 
         /* --- HERO SECTION --- */
         header {
-            height: 90vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            height: 90vh; display: flex; align-items: center; justify-content: center; text-align: center;
             background: radial-gradient(circle at top right, #1f2428 0%, #0d1117 60%);
         }
         .hero-content h1 {
-            font-size: 4rem;
-            font-weight: 800;
+            font-size: 4rem; font-weight: 800;
             background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            animation: fadeIn 1s ease-out;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem; animation: fadeIn 1s ease-out;
         }
         .hero-content p {
-            font-size: 1.5rem;
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
+            font-size: 1.5rem; color: var(--text-muted); margin-bottom: 2.5rem;
             animation: fadeIn 1s ease-out 0.3s backwards;
         }
-        .hero-buttons {
-            animation: fadeIn 1s ease-out 0.6s backwards;
-        }
+        .hero-buttons { animation: fadeIn 1s ease-out 0.6s backwards; }
         .hero-sublink {
+            display: block; margin-top: 15px; color: var(--accent-blue);
+            text-decoration: none; font-size: 0.9rem;
+        }
+
+        /* --- SLIDER CSS --- */
+        .slider-section { padding: 60px 0; background-color: #12161c; }
+        .slider-title { text-align: center; font-size: 2rem; margin-bottom: 40px; color: #fff; }
+        
+        .comp-container {
+            position: relative; width: 100%; max-width: 900px; height: 500px; /* Fixed height for consistency */
+            margin: 0 auto 60px auto; overflow: hidden; border-radius: 12px;
+            border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .comp-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;
+        }
+        .comp-img img {
+            width: 100%; height: 100%; object-fit: cover; /* Ensures images fill the box */
             display: block;
-            margin-top: 15px;
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-size: 0.9rem;
+        }
+        .comp-img.overlay {
+            width: 50%; /* Start at 50% */
+            border-right: 2px solid var(--accent-blue);
+            z-index: 2;
+        }
+        .slider-handle {
+            position: absolute; top: 50%; left: 50%;
+            width: 40px; height: 40px; background: var(--accent-blue);
+            border-radius: 50%; transform: translate(-50%, -50%);
+            cursor: ew-resize; z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .slider-handle::after {
+            content: "↔"; color: white; font-weight: bold; font-size: 1.2rem;
+        }
+        .slider-labels {
+            position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-between;
+            padding: 0 20px; pointer-events: none; z-index: 5;
+        }
+        .badge {
+            background: rgba(0,0,0,0.7); color: white; padding: 5px 12px;
+            border-radius: 4px; font-size: 0.9rem; font-weight: bold;
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
         /* --- FEATURES GRID --- */
-        .features { padding: 100px 0; }
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
+        .features { padding: 80px 0; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 2rem;
-            border-radius: 12px;
-            transition: transform 0.3s, border-color 0.3s;
+            background: var(--card-bg); border: 1px solid var(--border-color);
+            padding: 2rem; border-radius: 12px; transition: transform 0.3s, border-color 0.3s;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-blue);
-        }
-        .card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #fff;
-        }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-blue); }
+        .card h3 { font-size: 1.5rem; margin-bottom: 1rem; color: #fff; }
         .card p { color: var(--text-muted); }
-        .icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
+        .icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
 
         /* --- FOOTER --- */
-        footer {
-            text-align: center;
-            padding: 40px;
-            border-top: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+        footer { text-align: center; padding: 40px; border-top: 1px solid var(--border-color); color: var(--text-muted); }
         
-        /* --- MOBILE TWEAKS --- */
         @media (max-width: 768px) {
             .hero-content h1 { font-size: 2.5rem; }
-            .hero-content p { font-size: 1.1rem; }
+            .comp-container { height: 300px; } 
         }
     </style>
 </head>
@@ -166,46 +156,74 @@
         </div>
     </header>
 
+    <section class="slider-section">
+        <div class="container">
+            <h2 class="slider-title reveal">Visual Comparisons</h2>
+
+            <div class="reveal">
+                <h3 style="text-align:center; color:var(--text-muted); margin-bottom:15px;">Anime Detection Logic</h3>
+                <div class="comp-container" id="slider1">
+                    <div class="comp-img">
+                        <img src="screenshots/anime-off.jpg" alt="Live Action Mode">
+                    </div>
+                    <div class="comp-img overlay">
+                        <img src="screenshots/anime-on.jpg" alt="Anime Mode">
+                    </div>
+                    <div class="slider-handle"></div>
+                    <div class="slider-labels">
+                        <span class="badge" style="background: #aa0000;">OFF (Red)</span>
+                        <span class="badge" style="background: #00aa00;">AUTO (Green)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <h3 style="text-align:center; color:var(--text-muted); margin-bottom:15px; margin-top:50px;">Live Action HD (576p - 1080p)</h3>
+                <div class="comp-container" id="slider2">
+                    <div class="comp-img">
+                        <img src="screenshots/hd-nnedi.jpg" alt="NNEDI3">
+                    </div>
+                    <div class="comp-img overlay">
+                        <img src="screenshots/hd-fsrcnnx.jpg" alt="FSRCNNX">
+                    </div>
+                    <div class="slider-handle"></div>
+                    <div class="slider-labels">
+                        <span class="badge" style="color: gold;">NNEDI3 (Auto)</span>
+                        <span class="badge" style="color: cyan;">FSRCNNX (Manual)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <h3 style="text-align:center; color:var(--text-muted); margin-bottom:15px; margin-top:50px;">Live Action SD (< 576p)</h3>
+                <div class="comp-container" id="slider3">
+                    <div class="comp-img">
+                        <img src="screenshots/sd-clean.jpg" alt="Clean Mode">
+                    </div>
+                    <div class="comp-img overlay">
+                        <img src="screenshots/sd-texture.jpg" alt="Texture Mode">
+                    </div>
+                    <div class="slider-handle"></div>
+                    <div class="slider-labels">
+                        <span class="badge">Clean Mode</span>
+                        <span class="badge" style="background: #0080ff;">Texture Mode</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
     <section class="features">
         <div class="container">
-            <h2 class="section-title reveal">Why This Build?</h2>
-            
+            <h2 class="slider-title reveal">Key Features</h2>
             <div class="grid">
-                <div class="card reveal">
-                    <span class="icon">🧠</span>
-                    <h3>Logic Lockdown</h3>
-                    <p>Zero manual switching. The build detects resolution (SD/HD/FHD) and content type to apply the perfect shader profile automatically.</p>
-                </div>
-
-                <div class="card reveal">
-                    <span class="icon">✨</span>
-                    <h3>Anime4K Pipeline</h3>
-                    <p>Integrated Anime4K v4.0 suite. Upscale 1080p anime to 4K with restoration, or clean up old 480p DVDs instantly.</p>
-                </div>
-
-                <div class="card reveal">
-                    <span class="icon">📺</span>
-                    <h3>Modern TV Mode</h3>
-                    <p>Watching Live Action? We switch to NNEDI3 and Adaptive Sharpen to mimic high-end Sony/Samsung TV processing.</p>
-                </div>
-                
-                <div class="card reveal">
-                    <span class="icon">🎨</span>
-                    <h3>ModernZ Interface</h3>
-                    <p>Forget the command line. Includes a sleek, modern on-screen controller and a color-coded status overlay.</p>
-                </div>
-
-                <div class="card reveal">
-                    <span class="icon">🚀</span>
-                    <h3>Performance First</h3>
-                    <p>Optimized for Windows. Supports SVP 4 Pro motion interpolation and includes Thumbfast for instant seeking.</p>
-                </div>
-
-                <div class="card reveal">
-                    <span class="icon">🔧</span>
-                    <h3>Strict Gates</h3>
-                    <p>New in v1.3: strict resolution gates prevent accidental upscaling of high-res content, preserving native fidelity.</p>
-                </div>
+                <div class="card reveal"><span class="icon">🧠</span><h3>Logic Lockdown</h3><p>Strict resolution gates (SD/HD/FHD) apply the perfect shader profile automatically.</p></div>
+                <div class="card reveal"><span class="icon">✨</span><h3>Anime4K Pipeline</h3><p>Upscale 1080p anime to 4K with restoration, or clean up old 480p DVDs.</p></div>
+                <div class="card reveal"><span class="icon">📺</span><h3>Modern TV Mode</h3><p>Live Action uses NNEDI3 and Adaptive Sharpen to mimic Sony/Samsung TV processing.</p></div>
+                <div class="card reveal"><span class="icon">🎨</span><h3>ModernZ Interface</h3><p>Sleek, modern on-screen controller with color-coded status overlay.</p></div>
+                <div class="card reveal"><span class="icon">🚀</span><h3>Performance First</h3><p>Supports SVP 4 Pro motion interpolation and Thumbfast for instant seeking.</p></div>
+                <div class="card reveal"><span class="icon">🔧</span><h3>Strict Gates</h3><p>Prevents accidental upscaling of high-res content, preserving fidelity.</p></div>
             </div>
         </div>
     </section>
@@ -216,17 +234,70 @@
     </footer>
 
     <script>
-        // Simple Intersection Observer to fade elements in on scroll
+        // --- SCROLL ANIMATION ---
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                }
+                if (entry.isIntersecting) entry.target.classList.add('active');
             });
         }, { threshold: 0.1 });
-
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    </script>
 
+        // --- SLIDER LOGIC ---
+        function initComparisons() {
+            var x, i;
+            x = document.getElementsByClassName("comp-container");
+            for (i = 0; i < x.length; i++) {
+                compareImages(x[i]);
+            }
+            function compareImages(container) {
+                var slider, img, clicked = 0, w, h;
+                img = container.querySelector(".overlay");
+                slider = container.querySelector(".slider-handle");
+                w = container.offsetWidth;
+                h = container.offsetHeight;
+                
+                // Center initially
+                img.style.width = (w / 2) + "px";
+
+                // Mouse events
+                slider.addEventListener("mousedown", slideReady);
+                window.addEventListener("mouseup", slideFinish);
+                // Touch events
+                slider.addEventListener("touchstart", slideReady);
+                window.addEventListener("touchend", slideFinish);
+
+                function slideReady(e) {
+                    e.preventDefault();
+                    clicked = 1;
+                    window.addEventListener("mousemove", slideMove);
+                    window.addEventListener("touchmove", slideMove);
+                }
+                function slideFinish() {
+                    clicked = 0;
+                }
+                function slideMove(e) {
+                    var pos;
+                    if (clicked == 0) return false;
+                    pos = getCursorPos(e);
+                    if (pos < 0) pos = 0;
+                    if (pos > w) pos = w;
+                    slide(pos);
+                }
+                function getCursorPos(e) {
+                    var a, x = 0;
+                    e = (e.changedTouches) ? e.changedTouches[0] : e;
+                    a = container.getBoundingClientRect();
+                    x = e.pageX - a.left;
+                    return x - window.pageXOffset;
+                }
+                function slide(x) {
+                    img.style.width = x + "px";
+                    slider.style.left = x + "px"; // Move handle
+                }
+            }
+        }
+        // Initialize after load
+        window.addEventListener('load', initComparisons);
+    </script>
 </body>
 </html>

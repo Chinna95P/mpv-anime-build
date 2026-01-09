@@ -11,6 +11,65 @@ The goal is simple:
 
 ---
 
+## 📸 Gallery & Visual Comparisons
+
+### 🔹 Anime Pipeline (Automated)
+Left: **Standard Playback (Red OSD)** | Right: **Anime Mode Active (Green OSD)**
+*Logic detects Anime content and applies Anime4K upscaling & restoration.*
+
+| **Live Action Mode (Anime OFF)** | **Anime Mode (Anime4K ON)** |
+| :---: | :---: |
+| ![Anime Off](screenshots/anime-off.jpg) | ![Anime On](screenshots/anime-on.jpg) |
+
+### 🔹 Live Action Pipeline (HD Content)
+Comparison of the two high-quality upscaling engines for 720p/1080p content.
+
+| **NNEDI3 (Auto Default)** | **FSRCNNX (Manual HQ)** |
+| :---: | :---: |
+| ![HD NNEDI3](screenshots/hd-nnedi.jpg) | ![HD FSRCNNX](screenshots/hd-fsrcnnx.jpg) |
+| *Best for general viewing & speed* | *Best for maximum texture fidelity* |
+
+### 🔹 Live Action Pipeline (SD Content)
+Comparison of restoration modes for DVD-quality (<576p) content.
+
+| **Clean Mode** | **Texture Mode** |
+| :---: | :---: |
+| ![SD Clean](screenshots/sd-clean.jpg) | ![SD Texture](screenshots/sd-texture.jpg) |
+| *Cleans artifacts & noise* | *Preserves original film grain* |
+
+---
+
+## 🤓 Technical Verification (Shaders Info)
+
+Click below to see the active shader chains for each mode (Proof of Logic).
+
+<details>
+<summary><b>🔻 Click to View Shader Chains</b></summary>
+
+### Anime Mode
+| Auto (Default) | Manual Off |
+| :---: | :---: |
+| ![Info Auto](screenshots/shaders-info-anime-mode-auto.jpg) | ![Info Off](screenshots/shaders-info-anime-mode-off.jpg) |
+
+### Live Action (HD)
+| NNEDI3 Chain | FSRCNNX Chain |
+| :---: | :---: |
+| ![Info NNEDI](screenshots/shaders-info-live-action-hd-nnedi-auto.jpg) | ![Info FSRCNNX](screenshots/shaders-info-live-action-hd-fsrcnnx-auto.jpg) |
+
+### Live Action (SD)
+| Clean Chain | Texture Chain |
+| :---: | :---: |
+| ![Info Clean](screenshots/shaders-info-live-action-sd-clean-auto.jpg) | ![Info Texture](screenshots/shaders-info-live-action-sd-texture-auto.jpg) |
+
+### 4K Content (Native)
+| 4K Native Pipeline |
+| :---: |
+| ![Info 4K](screenshots/shaders-info-live-action-4k-auto.jpg) |
+
+</details>
+
+---
+
 ## 📌 Key Features (v1.3)
 
 - 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
