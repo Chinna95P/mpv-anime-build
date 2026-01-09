@@ -57,8 +57,8 @@ Controls whether the build treats the file as Anime or Live-Action.
 
 | Shortcut | Mode | Description | OSD Color |
 | :--- | :--- | :--- | :--- |
-| `CTRL + ;` | **AUTO** | Detects based on folder path & keywords (Default) | **GREEN** |
-| `CTRL + :` | **ON** | Force anime shaders for all content | **BLUE** |
+| `CTRL + l` | **AUTO** | Detects based on folder path & keywords (Default) | **GREEN** |
+| `CTRL + ;` | **ON** | Force anime shaders for all content | **BLUE** |
 | `CTRL + '` | **OFF** | Disable anime shaders completely | **RED** |
 
 ---
@@ -94,10 +94,10 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 ### 🎮 Controls
 | Shortcut | Context | Function |
 | :--- | :--- | :--- |
-| `CTRL + Q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Texture mode preserves grain/noise for older DVDs)* |
+| `CTRL + q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Texture mode preserves grain/noise for older DVDs)* |
 | `Q` | **HD Only** | Toggle **NNEDI3 (Auto)** ↔ **FSRCNNX (Manual High-Quality)**. <br>*(Switches logic between Geometry-focused and Texture-focused upscaling)* |
 
-> **Note:** The shortcuts `Q` and `Ctrl+Q` are **smart**. They will not activate if you are playing content that doesn't match their resolution tier.
+> **Note:** The shortcuts `Q` and `Ctrl+q` are **smart**. They will not activate if you are playing content that doesn't match their resolution tier.
 
 ---
 
