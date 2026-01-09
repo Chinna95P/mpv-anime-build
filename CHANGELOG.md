@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.3] – Logic Lockdown & Stability Update
+
+### ✨ New Features
+* **Strict Resolution Gates:** Updated the core detection logic to adhere to strict broadcast standards:
+    * **SD:** Strictly `< 576p` (activates `HQ-SD` profiles).
+    * **HD:** `≥ 576p` and `< 1080p` (activates `HQ-HD` profiles).
+    * **FHD+:** `≥ 1080p` (activates `High-Quality` native profiles).
+* **Subtitle Correction Suite:**
+    * **Text Subs:** Added `sub-ass-vsfilter-aspect-compat=no` to prevent `.ass` subtitles from stretching on anamorphic video.
+    * **Image Subs:** Added `stretch-image-subs-to-screen=no` to fix distorted PGS/VobSub streams (toggleable with `y`).
+* **Profile Isolation:** Manual toggles (`Q`, `Ctrl+Q`) are now context-aware. They will strictly refuse to execute if the playing video does not match their specific resolution tier, preventing accidental logic breaks.
+
+### 🐛 Fixed
+* **Thumbfast Subprocess Error:** Fixed intermittent `[thumbfast] subprocess create failed` errors on Windows by optimizing the socket pipe configuration and disabling `spawn_first`.
+* **Logic Loophole (576p Conflict):** Fixed a bug where 576p-719p content was correctly detected as "SD" by the autoloader but incorrectly allowed "HD" manual toggles to fire, causing OSD conflicts.
+* **Ghost Toggles:** Fixed an issue where the `Q` key would trigger "HD Logic" messages even when playing 1080p+ content.
+
+### 🗑️ Removed
+* **'W' Keybinding:** Removed the "Reset HD Logic" command. It is no longer needed as the `Q` key now functions as a smart toggle (Auto ↔ Manual), and logic automatically resets on file load.
+
+---
+
 ## [v1.2] – The "Color Update" & Modernization
 
 ### ✨ New Features
@@ -34,20 +56,3 @@ All notable changes to this project are documented here.
 - **Shader Compilation Errors:** Fixed `HOOKED : undeclared identifier` errors in `adaptive-sharpen-soft.glsl` by correcting the header definitions.
 - **Logic Gaps:** Fixed an issue where shortcuts `Q`, `W`, and `Ctrl+Q` would not trigger their respective profiles in the Lua controller.
 - **MPV Config:** Optimized `video-sync` and `interpolation` settings for smoother frame pacing on Windows 11.
-
----
-
-## [v1.0] – Initial Stable Release
-
-### Added
-- Anime vs non-anime automatic detection
-- Anime Mode: AUTO / ON / OFF
-- Anime4K Fast & HQ pipelines (anime-only)
-- NNEDI auto + manual modes
-- SD Clean / Texture profiles
-- Clean, non-persistent OSD system
-
-### Fixed
-- Persistent OSD messages
-- Profile reapplication loops
-- Anime4K leaking into non-anime content

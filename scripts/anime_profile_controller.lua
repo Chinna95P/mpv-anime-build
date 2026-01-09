@@ -1,12 +1,13 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.6 (Hyphen Pattern Fix)
---    UPDATED:  2026-01-08
+--    VERSION:  v2.1 (576p Threshold Update)
+--    UPDATED:  2026-01-09
 --    
 --    CHANGES:
---    - Fixed Lua pattern matching bug: 'HQ-HD' was failing because '-' is a special char.
---    - Changed: 'W' (Reset) OSD text color is now Green (was White).
---    - Verified: 'K' Status now correctly colors HQ-HD (Gold) and HQ-SD (Orange).
+--    - Updated Logic Thresholds based on user request:
+--         * SD is now strictly < 576p (was 720p).
+--         * HD is now >= 576p and < 1080p.
+--    - Updated 'Q' Toggle restriction to match the new 576p start point.
 -- ]]
 
 local mp = require("mp")
@@ -92,11 +93,10 @@ local function profile_message()
         part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.WHITE .. C.MAGENTA .. a4k_str
     else
         -- Logic to colorize the Live Action profile names
-        -- FIX: Escaped hyphens (%-) so Lua finds the string correctly
         local prof_color = C.WHITE
         if current_profile == "High-Quality" then prof_color = C.CYAN
-        elseif current_profile:find("HQ%-HD") then prof_color = C.GOLD
-        elseif current_profile:find("HQ%-SD") then prof_color = C.ORANGE
+        elseif current_profile and current_profile:find("HQ%-HD") then prof_color = C.GOLD
+        elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
         end
         
         part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.WHITE .. prof_color .. current_profile
@@ -222,14 +222,18 @@ local function evaluate()
     -- leaving anime: clear Anime4K shaders
     mp.commandv("change-list", "glsl-shaders", "clear", "")
 
-    if h > 0 and h < 720 then
+    -- SD LOGIC (UPDATED): Anything strictly below 576p
+    if h > 0 and h < 576 then
         apply_profile(sd_mode == "texture" and "HQ-SD-Texture" or "HQ-SD-Clean")
         return
     end
 
-    if not hd_manual_override and h >= 576 and h < 1080 then
+    -- HD LOGIC (UPDATED): 576p <= h < 1080p
+    -- We removed the redundant check because if h >= 576, it passes the block above.
+    if not hd_manual_override and h < 1080 then
         apply_profile("HQ-HD-NNEDI")
     else
+        -- Fallback for >= 1080p OR Manual Override
         apply_profile("High-Quality")
     end
 end
@@ -280,18 +284,32 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 -------------------------------------------------
--- MANUAL TOGGLES (NOW COLORED)
+-- MANUAL TOGGLES (STRICT RESOLUTION CHECK)
 -------------------------------------------------
 
 -- CTRL+q: Toggle SD Mode (Clean <-> Texture)
+-- RESTRICTION: Only works if profile name contains "HQ-SD" (Resolution < 576p)
 mp.register_script_message("toggle-hq-sd", function()
+    if not current_profile or not string.find(current_profile, "HQ%-SD") then
+        return 
+    end
+
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
     evaluate()
     show_temp_osd(C.YELLOW .. "{\\b1}SD Mode:{\\b0} " .. C.ORANGE .. sd_mode:upper(), 2)
 end)
 
 -- Q: Toggle HD Strategy (NNEDI <-> FSRCNNX/High-Quality)
+-- RESTRICTION: Only works for Non-Anime AND Video Height (>= 576 AND < 1080)
 mp.register_script_message("toggle-hq-hd-nnedi", function()
+    local h = tonumber(mp.get_property("height")) or 0
+    
+    -- STRICT CHECK: Updated to match your 576p rule.
+    -- Now runs if video is >= 576p and < 1080p.
+    if h < 576 or h >= 1080 or current_profile == "anime-shaders" then
+        return 
+    end
+
     hd_manual_override = not hd_manual_override
     evaluate()
     
@@ -299,14 +317,6 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
     local mode_color = hd_manual_override and C.CYAN or C.GOLD
     
     show_temp_osd(C.YELLOW .. "{\\b1}HD Logic:{\\b0} " .. mode_color .. mode_name, 2)
-end)
-
--- W: Reset HD Override to Auto
-mp.register_script_message("hq-hd-return-auto", function()
-    hd_manual_override = false
-    evaluate()
-    -- FIX: Changed C.WHITE to C.GREEN to make "Auto (Reset)" visible/positive
-    show_temp_osd(C.YELLOW .. "{\\b1}HD Logic:{\\b0} " .. C.GREEN .. "Auto (Reset)", 2)
 end)
 
 mp.register_event("file-loaded", function()

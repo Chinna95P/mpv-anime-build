@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.2
+# 🎬 MPV Anime Build v1.3
 
 > **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
 
@@ -11,51 +11,54 @@ The goal is simple:
 
 ---
 
-## 📌 Key Features (v1.2)
+## 📌 Key Features (v1.3)
 
-- 🎯 **Smart Detection:** Automatic anime vs. live-action isolation
-- 🎨 **Professional OSD:** New color-coded status overlay (Green/Blue/Red indicators)
-- 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin for a sleek look
-- 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes)
-- 📺 **Live-Action Pipeline:** "Modern TV" style upscaling (Sony/Samsung emulation)
-- 💾 **SVP 4 Pro Support:** Fully compatible with Smooth Video Project
-- ⚡ **Adaptive Sharpening:** Custom shaders for 480p, 720p, and 1080p
-- 🧼 **Clean OSD:** Non-intrusive status messages using the Overlay API
+- 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
+- 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red) via `anime_profile_controller`.
+- 🧠 **Logic Lockdown:** Strict resolution gates prevent profiles from firing on the wrong content (SD is strictly < 576p).
+- 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin for a sleek look.
+- 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes).
+- 📺 **Live-Action Pipeline:** "Modern TV" style upscaling (Sony/Samsung emulation).
+- 🧩 **Subtitle Correction:** Automatic anti-stretching logic for `.ass` (text) and `.sup` (image) subtitles.
+- 💾 **SVP 4 Pro Support:** Verified compatibility with Smooth Video Project.
+- ⚡ **Thumbfast Stability:** Optimized thumbnail generation with improved socket handling.
 
 ---
 
 ## 💻 System Requirements
 
-This build scales based on your hardware, but high-quality upscaling (NNEDI3/FSRCNNX) is demanding.
+This build scales based on your hardware, but high-quality upscaling requires a decent GPU.
 
-| Component | Minimum (1080p Playback) | Recommended (4K / High-Quality Upscaling) |
-| :--- | :--- | :--- |
-| **OS** | Windows 10 / 11 | Windows 10 / 11 |
-| **GPU** | Intel UHD 630 / AMD Vega 8<br>*(Use Low-Quality Profile)* | **NVIDIA GTX 1060 / AMD RX 580** or better<br>*(Required for Anime4K HQ & FSRCNNX)* |
-| **CPU** | Modern Quad-Core | Modern Hex-Core (Ryzen 5 / i5) |
-| **RAM** | 8 GB | 16 GB |
+### **Minimum (1080p Playback)**
+- **GPU:** NVIDIA GTX 960 / AMD RX 560 or better (2GB+ VRAM)
+- **CPU:** Quad-core Intel/AMD CPU
+- **RAM:** 8GB
+- **Storage:** SATA SSD
 
-> **Note:** If you experience stuttering, switch to the "Low-Quality" profile in `mpv.conf`.
-
----
-
-## ⚡ Quick Start
-
-1. Copy the files into: `C:\Users\<YourName>\AppData\Roaming\mpv\`
-2. Open any video in MPV.
-3. Anime is detected automatically.
-4. Press **K** to see the active profile (Displays for 2 seconds).
+### **Recommended (4K Upscaling + SVP)**
+- **GPU:** NVIDIA RTX 3060 / AMD RX 6600 or better (6GB+ VRAM)
+- **CPU:** Modern 6-core CPU (Ryzen 5 3600 / Intel i5-10400 or newer)
+- **RAM:** 16GB
+- **Storage:** NVMe SSD
 
 ---
 
-## 🔹 Anime Mode (Global Control)
+## 🎮 Controls & Shortcuts
 
-Anime Mode decides **when anime shaders are allowed to run**.
+### 🔹 Global Controls
+| Shortcut | Function |
+| :--- | :--- |
+| `K` | **Show Profile Info** (Displays current Mode, Profile, and Active Shaders) |
+| `I` | **Show Tech Stats** (Bitrate, Dropped Frames, Logic Status) |
+| `y` | **Toggle Image Sub Stretch** (Fixes stretched PGS/VobSub subtitles) |
 
-| Shortcut | Mode | Behavior | OSD Color |
+### 🔹 Anime Mode (Master Switch)
+Controls whether the build treats the file as Anime or Live-Action.
+
+| Shortcut | Mode | Description | OSD Color |
 | :--- | :--- | :--- | :--- |
-| `CTRL + l` | **AUTO** | Anime shaders only if anime is detected (Default) | **GREEN** |
-| `CTRL + ;` | **ON** | Force anime shaders for all content | **BLUE** |
+| `CTRL + ;` | **AUTO** | Detects based on folder path & keywords (Default) | **GREEN** |
+| `CTRL + :` | **ON** | Force anime shaders for all content | **BLUE** |
 | `CTRL + '` | **OFF** | Disable anime shaders completely | **RED** |
 
 ---
@@ -81,30 +84,32 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 
 Non-anime content uses a **completely separate processing path** featuring "Modern TV" adaptive sharpening.
 
+### Resolution Tiers (v1.3 Logic)
 | Resolution | Profile | Technology |
 | :--- | :--- | :--- |
-| **< 720p** | `HQ-SD` | SSimSuperRes + Adaptive Sharpen (SD Tuned) |
-| **720p – <1080p** | `HQ-HD` | NNEDI3 + KrigBilateral + Adaptive Sharpen (HD Tuned) |
-| **≥ 1080p** | `High-Quality` | FSRCNNX + Film Grain + "Modern TV" Sharpening |
+| **< 576p** | `HQ-SD` | SSimSuperRes + Adaptive Sharpen (SD Tuned) |
+| **576p – <1080p** | `HQ-HD` | NNEDI3 + KrigBilateral + Adaptive Sharpen (HD Tuned) |
+| **≥ 1080p** | `High-Quality` | Native + Adaptive Sharpen + Glaze (Film Grain) |
 
-### 🛠️ Live-Action Controls
-| Shortcut | Function | OSD Color |
+### 🎮 Controls
+| Shortcut | Context | Function |
 | :--- | :--- | :--- |
-| `CTRL + q` | Toggle **SD Mode** (Clean ↔ Texture) | **ORANGE** |
-| `Q` | Force **NNEDI3** Upscaling | **GOLD** |
-| `W` | Return to **Auto** Logic | **GREEN** |
+| `CTRL + Q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Texture mode preserves grain/noise for older DVDs)* |
+| `Q` | **HD Only** | Toggle **NNEDI3 (Auto)** ↔ **FSRCNNX (Manual High-Quality)**. <br>*(Switches logic between Geometry-focused and Texture-focused upscaling)* |
+
+> **Note:** The shortcuts `Q` and `Ctrl+Q` are **smart**. They will not activate if you are playing content that doesn't match their resolution tier.
 
 ---
 
-## ℹ️ OSD & Information
+## 🔧 Installation
 
-| Shortcut | Action |
-| :--- | :--- |
-| `K` | Show current profile status |
+1. **Install MPV:** Download the latest 64-bit version of MPV (shinchiro builds recommended).
+2. **Install SVP 4 Pro:** (Optional) Ensure SVP is installed and running if you want motion interpolation.
+3. **Copy Files:** Extract the contents of this build into your `%APPDATA%/mpv/` folder.
+4. **Font Installation:** Install `Source Sans Pro` (included) to ensure the Stats overlay renders correctly.
 
----
-
-## 📜 License
-
-MIT License
-© 2026 Rohith Polamreddy
+## 📝 Credits
+- **Anime4K:** bloc97
+- **ModernZ Skin:** Samillion
+- **Thumbfast:** po5
+- **Config & Logic:** Customized for MPV Anime Build v1.3
