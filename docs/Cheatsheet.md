@@ -1,84 +1,87 @@
-
----
-## 2. `CHEATSHEET.md`
-
-# ⚡ MPV Anime Build – Cheat Sheet
+# ⚡ MPV Anime Build v1.3 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands available in this build.
 
 ---
 
-## 🎨 Global Profile Controls
-
-| Shortcut | Function | Description |
+## 🖱️ Mouse Controls
+| Key | Function | Description |
 | :--- | :--- | :--- |
-| **`K`** | **Show Status** | Displays active Profile, Anime Mode, and Shaders for 2 seconds. |
-| **`CTRL + L`** | **Anime Mode: AUTO** | (Default) Applies anime shaders only if anime is detected. |
-| **`CTRL + ;`** | **Anime Mode: ON** | Forces Anime4K shaders on all videos. |
-| **`CTRL + '`** | **Anime Mode: OFF** | Disables anime shaders completely (uses Live Action pipeline). |
+| **`MOUSE_BTN0`** | **Pause** | Toggle playback pause. |
+| **`MOUSE_BTN0_DBL`** | **Fullscreen** | Toggle fullscreen mode. |
+| **`MOUSE_BTN5`** | **Prev Chapter** | Go to the previous chapter. |
+| **`MOUSE_BTN6`** | **Next Chapter** | Go to the next chapter. |
 
 ---
 
-## 🖌️ Anime Pipeline (Anime4K)
-*Only active when Anime Mode is engaged.*
-
-| Shortcut | Function | Description |
+## ⏯️ Navigation & Seeking
+| Key | Function | Description |
 | :--- | :--- | :--- |
-| **`L`** | **Toggle Quality** | Switches between **Fast** (1080p+) and **HQ** (720p/480p) presets. |
-| **`CTRL + 1`** | **Mode A** | Balanced (Restore + Upscale). Good for most content. |
-| **`CTRL + 2`** | **Mode B** | Soft. Good for older anime with aliasing. |
-| **`CTRL + 3`** | **Mode C** | Denoise. Heavy reconstruction for grainy video. |
-| **`CTRL + 4`** | **Mode A+A** | Ultra-Sharp. Double pass for very clean sources. |
-| **`CTRL + 5`** | **Mode B+B** | Ultra-Soft. Double pass blur reduction. |
-| **`CTRL + 6`** | **Mode C+A** | Denoise + Sharp. Restores old/noisy anime. |
-
----
-
-## 📺 Live-Action Pipeline ("Modern TV")
-*Active for movies, TV shows, and when Anime Mode is OFF.*
-
-| Shortcut | Function | Description |
-| :--- | :--- | :--- |
-| **`CTRL + Q`** | **SD Mode Toggle** | Switch between **Clean** (Standard) and **Texture** (Masking for low-bitrate). |
-| **`Q`** | **Force NNEDI3** | Manually enables NNEDI3 upscaling regardless of resolution. |
-| **`W`** | **Reset to Auto** | Returns Live-Action logic to automatic resolution detection. |
+| **`RIGHT`** | **Seek +5s** | Seek forward 5 seconds (Keyframes). |
+| **`LEFT`** | **Seek -5s** | Seek backward 5 seconds (Keyframes). |
+| **`SHIFT+RIGHT`** | **Seek +1s** | Exact seek forward 1 second. |
+| **`SHIFT+LEFT`** | **Seek -1s** | Exact seek backward 1 second. |
+| **`SHIFT+UP`** | **Seek +2m** | Seek forward 120 seconds (Keyframes). |
+| **`SHIFT+DOWN`** | **Seek -2m** | Seek backward 120 seconds (Keyframes). |
+| **`CTRL+RIGHT`** | **Frame Step** | Advance one frame forward. |
+| **`CTRL+LEFT`** | **Frame Back** | Go back one frame. |
+| **`r`** | **Playlist Next** | Play next file and show playlist position. |
 
 ---
 
 ## 🔊 Audio & Subtitles
-
-| Shortcut | Function | Description |
+| Key | Function | Description |
 | :--- | :--- | :--- |
-| **`M`** | **7.1 Surround** | Toggles virtual 7.1 upmixing with Bass Boost. |
-| **`A`** | **Normalization** | Toggles Dynamic Audio Normalization (loudness equalization). |
-| **`CTRL + A`** | **Audio Device** | Auto-toggles audio output device. |
-| **`ALT + Left/Right`** | **Sub Seek** | Seeks to the previous/next subtitle line. |
-| **`[` / `]`** | **Sub Delay** | Adjusts subtitle delay (-0.1s / +0.1s). |
-| **`CTRL + Up/Down`** | **Sub Position** | Moves subtitles up or down vertically. |
+| **`UP`** | **Vol +** | Increase volume. |
+| **`DOWN`** | **Vol -** | Decrease volume. |
+| **`s`** | **Cycle Sub** | Switch subtitle track. |
+| **`S`** | **Sub Visibility** | Toggle subtitle visibility. |
+| **`CTRL+s`** | **Secondary Sub** | Cycle secondary subtitle track. |
+| **`CTRL+UP`** | **Sub Pos -** | Move subtitles Up. |
+| **`CTRL+DOWN`** | **Sub Pos +** | Move subtitles Down. |
+| **`ALT+RIGHT`** | **Sub Seek +** | Seek to next subtitle line. |
+| **`ALT+LEFT`** | **Sub Seek -** | Seek to previous subtitle line. |
+| **`[`** | **Sub Delay -** | Decrease subtitle delay (-0.1s). |
+| **`]`** | **Sub Delay +** | Increase subtitle delay (+0.1s). |
+| **`t`** | **Sub Margins** | Toggle subtitles in black bars (`sub-use-margins`). |
+| **`T`** | **Force Margins** | Toggle forcing subtitles to screen bottom (`ass-force-margins`). |
+| **`CTRL+t`** | **Blend Subs** | Toggle subtitle blending (Fixes some rendering issues). |
+| **`y`** | **Stretch Image Subs**| Toggle stretching for PGS/VobSub (`stretch-image-subs-to-screen`). |
 
 ---
 
-## ⏯️ Playback & Navigation
-
-| Shortcut | Function | Description |
+## 📺 Video & Display
+| Key | Function | Description |
 | :--- | :--- | :--- |
-| **`Right` / `Left`** | **Seek** | Seek ±5 seconds. |
-| **`Shift` + `Right/Left`** | **Exact Seek** | Seek ±1 second (Exact). |
-| **`Up` / `Down`** | **Volume** | Adjust Volume. |
-| **`[` / `]`** | **Sub Delay** | Adjust subtitle timing. |
-| **`G`** | **Interpolation** | Toggles Motion Interpolation (Smooth Motion) ON/OFF. |
-| **`H`** | **HDR Mode** | Toggles HDR Tone Mapping (Clip / Mobius). |
-| **`I`** | **Stats** | Toggle playback statistics overlay. |
-| **`Screenshot`** | **`s`** | Take a screenshot (saved to Desktop). |
+| **`f`** | **Fullscreen** | Toggle fullscreen. |
+| **`p`** | **Rotate** | Rotate video (90 / 180 / 270 / 0). |
+| **`P`** | **Aspect Ratio** | Cycle Aspect Ratio (16:9, 4:3, 2.35:1, etc). |
+| **`g`** | **Interpolation** | Toggle Motion Interpolation (Sync/Resample). |
+| **`G`** | **Tscale Mode** | Cycle interpolation filters (linear, catmull_rom, mitchell, etc). |
+| **`h`** | **Deinterlace** | Toggle deinterlacing. |
+| **`H`** | **HDR Mode** | Cycle Tone Mapping (clip/mobius) & HWDec. |
 
 ---
 
-## 🛠️ Image Adjustments
+## 📊 Stats & Info
+| Key | Function | Description |
+| :--- | :--- | :--- |
+| **`i`** | **Stats (Quick)** | Show playback statistics temporarily. |
+| **`I`** | **Stats (Toggle)** | Toggle persistent playback statistics. |
+| **`k`** | **Tech Info** | Show Audio Filters, Video Filters, and Shaders. |
+| **`o`** | **OSD Level** | Cycle On-Screen Display level (1 / 3). |
 
-| Shortcut | Function |
-| :--- | :--- |
-| **`1` / `2`** | Contrast - / + |
-| **`3` / `4`** | Brightness - / + |
-| **`5` / `6`** | Gamma - / + |
-| **`7` / `8`** | Saturation - / + |
+---
 
+## 🚀 Anime Build Shortcuts (Script Logic)
+*Note: These keys are defined by the Anime Build scripts, not input.conf directly.*
+
+| Key | Function | Description |
+| :--- | :--- | :--- |
+| **`K`** | **Build Status** | Show current Profile, Anime Mode, and Active Shaders. |
+| **`CTRL+L`** | **Anime Mode: Auto** | Enable automatic detection. |
+| **`CTRL+;`** | **Anime Mode: On** | Force Anime shaders On. |
+| **`CTRL+'`** | **Anime Mode: Off** | Force Anime shaders Off. |
+| **`L`** | **Anime4K Quality** | Toggle **Fast** ↔ **HQ** (Anime Mode only). |
+| **`Q`** | **HD Toggle** | Toggle **NNEDI3** ↔ **FSRCNNX** (HD Non-Anime only). |
+| **`CTRL+Q`** | **SD Toggle** | Toggle **Clean** ↔ **Texture** (SD Non-Anime only). |
