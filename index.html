@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPV Anime Build v1.3 | Automated Upscaling</title>
+    <meta name="description" content="Automated High-Quality Upscaling for Anime & Live Action using MPV, Anime4K, and NNEDI3.">
+    <meta name="google-site-verification" content="-b34UEuV_TSu0alUSUY-xI03FbCL1JBURzYQMp7uT7Q" />
+
+    <style>
+        /* --- CORE VARIABLES --- */
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-green: #238636;
+            --accent-green-hover: #2ea043;
+            --accent-blue: #58a6ff;
+            --border-color: #30363d;
+        }
+
+        /* --- RESET & TYPOGRAPHY --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- LAYOUT UTILS --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            background-color: var(--accent-green);
+            border-radius: 6px;
+            text-decoration: none;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: var(--accent-green-hover);
+            transform: translateY(-2px);
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: radial-gradient(circle at top right, #1f2428 0%, #0d1117 60%);
+        }
+        .hero-content h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            animation: fadeIn 1s ease-out;
+        }
+        .hero-content p {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            animation: fadeIn 1s ease-out 0.3s backwards;
+        }
+        .hero-buttons {
+            animation: fadeIn 1s ease-out 0.6s backwards;
+        }
+        .hero-sublink {
+            display: block;
+            margin-top: 15px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        /* --- FEATURES GRID --- */
+        .features { padding: 100px 0; }
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            border-radius: 12px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+        }
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        .card p { color: var(--text-muted); }
+        .icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 768px) {
+            .hero-content h1 { font-size: 2.5rem; }
+            .hero-content p { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container hero-content">
+            <h1>MPV Anime Build v1.3</h1>
+            <p>Automated High-Quality Upscaling for Anime & Live Action.</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn">Download v1.3 Release</a>
+                <a href="https://github.com/Chinna95P/mpv-anime-build" class="hero-sublink">View Source Code on GitHub</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title reveal">Why This Build?</h2>
+            
+            <div class="grid">
+                <div class="card reveal">
+                    <span class="icon">🧠</span>
+                    <h3>Logic Lockdown</h3>
+                    <p>Zero manual switching. The build detects resolution (SD/HD/FHD) and content type to apply the perfect shader profile automatically.</p>
+                </div>
+
+                <div class="card reveal">
+                    <span class="icon">✨</span>
+                    <h3>Anime4K Pipeline</h3>
+                    <p>Integrated Anime4K v4.0 suite. Upscale 1080p anime to 4K with restoration, or clean up old 480p DVDs instantly.</p>
+                </div>
+
+                <div class="card reveal">
+                    <span class="icon">📺</span>
+                    <h3>Modern TV Mode</h3>
+                    <p>Watching Live Action? We switch to NNEDI3 and Adaptive Sharpen to mimic high-end Sony/Samsung TV processing.</p>
+                </div>
+                
+                <div class="card reveal">
+                    <span class="icon">🎨</span>
+                    <h3>ModernZ Interface</h3>
+                    <p>Forget the command line. Includes a sleek, modern on-screen controller and a color-coded status overlay.</p>
+                </div>
+
+                <div class="card reveal">
+                    <span class="icon">🚀</span>
+                    <h3>Performance First</h3>
+                    <p>Optimized for Windows. Supports SVP 4 Pro motion interpolation and includes Thumbfast for instant seeking.</p>
+                </div>
+
+                <div class="card reveal">
+                    <span class="icon">🔧</span>
+                    <h3>Strict Gates</h3>
+                    <p>New in v1.3: strict resolution gates prevent accidental upscaling of high-res content, preserving native fidelity.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>MPV Anime Build v1.3 • Maintained by Chinna95P</p>
+        <p>Credits: bloc97 (Anime4K), Samillion (ModernZ), po5 (Thumbfast)</p>
+    </footer>
+
+    <script>
+        // Simple Intersection Observer to fade elements in on scroll
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>
