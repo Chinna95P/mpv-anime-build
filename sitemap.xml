@@ -1,9 +1,9 @@
-xml version=1.0 encoding=UTF-8
-urlset xmlns=httpwww.sitemaps.orgschemassitemap0.9
-   url
-      lochttpschinna95p.github.iompv-anime-buildloc
-      lastmod2026-01-09lastmod
-      changefreqmonthlychangefreq
-      priority1.0priority
-   url
-urlset
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+   <url>
+      <loc>https://chinna95p.github.io/mpv-anime-build/</loc>
+      <lastmod>2026-01-10</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority>1.0</priority>
+   </url>
+</urlset>
