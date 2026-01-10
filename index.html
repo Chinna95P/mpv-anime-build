@@ -21,6 +21,8 @@
     
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23161b22' stroke='%2330363d' stroke-width='2' d='M32 2 L59 17 V47 L32 62 L5 47 V17 Z'/%3E%3Cpath fill='url(%23grad1)' d='M26 20 L46 32 L26 44 Z'/%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23238636;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2358a6ff;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E">
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         /* --- CORE VARIABLES --- */
         :root {
@@ -30,7 +32,8 @@
             --text-muted: #8b949e;
             --accent-green: #238636;
             --accent-green-hover: #2ea043;
-            --accent-blue: #58a6ff;
+            --accent-blue: #1f6feb;
+            --accent-blue-hover: #388bfd;
             --border-color: #30363d;
         }
 
@@ -54,16 +57,25 @@
 
         /* --- LAYOUT UTILS --- */
         .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        
         .btn {
             display: inline-block; padding: 12px 30px; font-size: 1.1rem; font-weight: 600;
             color: white; background-color: var(--accent-green); border-radius: 6px;
             text-decoration: none; transition: transform 0.2s, background-color 0.2s;
+            border: none; cursor: pointer;
         }
         .btn:hover { background-color: var(--accent-green-hover); transform: translateY(-2px); }
 
+        .btn-blue {
+            background-color: var(--accent-blue);
+            margin-left: 10px;
+        }
+        .btn-blue:hover { background-color: var(--accent-blue-hover); }
+
         /* --- HERO SECTION --- */
         header {
-            height: 90vh; display: flex; align-items: center; justify-content: center; text-align: center;
+            padding: 100px 0 60px 0; /* Reduced height to fit doc links */
+            text-align: center;
             background: radial-gradient(circle at top right, #1f2428 0%, #0d1117 60%);
         }
         .hero-content h1 {
@@ -76,10 +88,30 @@
             font-size: 1.5rem; color: var(--text-muted); margin-bottom: 2.5rem;
             animation: fadeIn 1s ease-out 0.3s backwards;
         }
-        .hero-buttons { animation: fadeIn 1s ease-out 0.6s backwards; }
-        .hero-sublink {
-            display: block; margin-top: 15px; color: var(--accent-blue);
-            text-decoration: none; font-size: 0.9rem;
+        .hero-buttons { animation: fadeIn 1s ease-out 0.6s backwards; margin-bottom: 40px;}
+
+        /* --- DOCS NAV --- */
+        .docs-nav {
+            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+            margin-top: 30px; animation: fadeIn 1s ease-out 0.9s backwards;
+        }
+        .doc-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .doc-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            color: #fff;
         }
 
         /* --- PREMIUM SLIDER CSS --- */
@@ -89,112 +121,31 @@
         .c-compare {
             --handle-width: 50px;
             --handle-color: #fff;
-            position: relative;
-            width: 100%;
-            max-width: 900px;
-            height: 500px; /* Fixed height for consistent comparison */
-            margin: 0 auto 80px auto;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            user-select: none;
+            position: relative; width: 100%; max-width: 900px; height: 500px; 
+            margin: 0 auto 80px auto; border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.6); user-select: none;
         }
-
-        /* The two images */
-        .c-compare__left, .c-compare__right {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            overflow: hidden;
-        }
-        
-        /* Background Image (Right / After) */
+        .c-compare__left, .c-compare__right { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
         .c-compare__right { z-index: 1; }
-        
-        /* Foreground Image (Left / Before) - This is the one we clip */
-        .c-compare__left { 
-            z-index: 2; 
-            width: 50%; /* Initial split */
-            border-right: 2px solid rgba(255,255,255,0.8); /* Vertical divider line */
-            box-shadow: 5px 0 20px rgba(0,0,0,0.5); /* Shadow for depth */
-        }
-
-        /* Image styling */
-        .c-compare__image {
-            position: absolute;
-            top: 0; left: 0;
-            height: 100%;
-            object-fit: cover;
-            /* CRITICAL: This ensures the image doesn't squish */
-            width: 100%; 
-            max-width: none; 
-            pointer-events: none;
-        }
-
-        /* The Handle Button */
+        .c-compare__left { z-index: 2; width: 50%; border-right: 2px solid rgba(255,255,255,0.8); box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+        .c-compare__image { position: absolute; top: 0; left: 0; height: 100%; object-fit: cover; width: 100%; max-width: none; pointer-events: none; }
         .c-compare__handle {
-            position: absolute;
-            top: 50%;
-            left: 50%; /* JS will move this */
-            width: var(--handle-width);
-            height: var(--handle-width);
-            background: var(--handle-color);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 3;
-            cursor: col-resize;
-            box-shadow: 0 0 15px rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.1s;
+            position: absolute; top: 50%; left: 50%; width: var(--handle-width); height: var(--handle-width);
+            background: var(--handle-color); border-radius: 50%; transform: translate(-50%, -50%);
+            z-index: 3; cursor: col-resize; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center; transition: transform 0.1s;
         }
-        
-        /* Hover Effect for Handle */
         .c-compare__handle:hover { transform: translate(-50%, -50%) scale(1.1); }
-        
-        /* Arrow Icons inside Handle */
-        .c-compare__handle::after {
-            content: '';
-            display: block;
-            width: 12px; height: 12px;
-            border-top: 3px solid #333;
-            border-right: 3px solid #333;
-            transform: rotate(45deg);
-            margin-left: -4px;
-        }
-        .c-compare__handle::before {
-            content: '';
-            display: block;
-            width: 12px; height: 12px;
-            border-bottom: 3px solid #333;
-            border-left: 3px solid #333;
-            transform: rotate(45deg);
-            margin-right: -4px;
-        }
-
-        /* Labels (Badge Style) */
+        .c-compare__handle::after { content: ''; display: block; width: 12px; height: 12px; border-top: 3px solid #333; border-right: 3px solid #333; transform: rotate(45deg); margin-left: -4px; }
+        .c-compare__handle::before { content: ''; display: block; width: 12px; height: 12px; border-bottom: 3px solid #333; border-left: 3px solid #333; transform: rotate(45deg); margin-right: -4px; }
         .c-label {
-            position: absolute; bottom: 20px;
-            padding: 6px 14px;
-            background: rgba(0,0,0,0.7);
-            color: #fff;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border-radius: 20px;
-            z-index: 4;
-            pointer-events: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: opacity 0.3s;
+            position: absolute; bottom: 20px; padding: 6px 14px; background: rgba(0,0,0,0.7);
+            color: #fff; font-weight: bold; font-size: 0.9rem; border-radius: 20px; z-index: 4;
+            pointer-events: none; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.3s;
         }
-        .c-label--left { left: 20px; color: #ff6b6b; /* Red tint */ }
-        .c-label--right { right: 20px; color: #4ade80; /* Green tint */ }
-        
-        /* Hide labels when interacting */
+        .c-label--left { left: 20px; color: #ff6b6b; }
+        .c-label--right { right: 20px; color: #4ade80; }
         .c-compare.interacting .c-label { opacity: 0.2; }
-
 
         /* --- FEATURES GRID --- */
         .features { padding: 80px 0; }
@@ -208,12 +159,69 @@
         .card p { color: var(--text-muted); }
         .icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
 
+        /* --- MODAL SYSTEM --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .modal-content {
+            background: #0d1117; width: 90%; max-width: 900px; height: 85vh;
+            border-radius: 12px; border: 1px solid var(--border-color);
+            display: flex; flex-direction: column;
+            transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .modal-header {
+            padding: 15px 25px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            background: #161b22; border-radius: 12px 12px 0 0;
+        }
+        .modal-title { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        .modal-actions { display: flex; align-items: center; gap: 15px; }
+        
+        .btn-source {
+            font-size: 0.8rem; padding: 6px 12px; background: rgba(56, 139, 253, 0.15);
+            color: #58a6ff; text-decoration: none; border-radius: 6px; border: 1px solid rgba(56, 139, 253, 0.4);
+            transition: all 0.2s;
+        }
+        .btn-source:hover { background: rgba(56, 139, 253, 0.3); }
+
+        .close-btn {
+            background: none; border: none; color: #8b949e; font-size: 2rem;
+            cursor: pointer; line-height: 1; transition: color 0.2s;
+        }
+        .close-btn:hover { color: #fff; }
+
+        .modal-body {
+            flex: 1; padding: 40px; overflow-y: auto; color: var(--text-main);
+            font-size: 1rem; line-height: 1.7;
+        }
+        
+        /* Markdown Styles Inside Modal */
+        .modal-body h1, .modal-body h2, .modal-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: #fff; border-bottom: 1px solid #30363d; padding-bottom: 0.3em; }
+        .modal-body h1 { font-size: 2rem; border-bottom: none; }
+        .modal-body code { background: rgba(110,118,129,0.4); padding: 0.2em 0.4em; border-radius: 6px; font-family: monospace; }
+        .modal-body pre { background: #161b22; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 1em 0; border: 1px solid #30363d; }
+        .modal-body pre code { background: none; padding: 0; }
+        .modal-body a { color: var(--accent-blue); text-decoration: none; }
+        .modal-body blockquote { border-left: 4px solid var(--accent-blue); padding-left: 1em; color: var(--text-muted); margin: 1em 0; }
+        .modal-body table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+        .modal-body th, .modal-body td { border: 1px solid #30363d; padding: 8px; text-align: left; }
+        .modal-body img { max-width: 100%; border-radius: 8px; border: 1px solid #30363d; }
+
         /* --- FOOTER --- */
         footer { text-align: center; padding: 40px; border-top: 1px solid var(--border-color); color: var(--text-muted); }
         
         @media (max-width: 768px) {
             .hero-content h1 { font-size: 2.5rem; }
             .c-compare { height: 300px; } 
+            .modal-content { width: 100%; height: 100%; border-radius: 0; }
         }
     </style>
 	
@@ -245,9 +253,25 @@
         <div class="container hero-content">
             <h1>MPV Anime Build v1.3</h1>
             <p>Automated High-Quality Upscaling for Anime & Live Action.</p>
+            
             <div class="hero-buttons">
                 <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn">Download v1.3 Release</a>
-                <a href="https://github.com/Chinna95P/mpv-anime-build" class="hero-sublink">View Source Code on GitHub</a>
+                <a href="https://github.com/Chinna95P/mpv-anime-build" class="btn btn-blue">Source GitHub Page</a>
+            </div>
+
+            <div class="docs-nav">
+                <button class="doc-btn" onclick="openDoc('Readme.md', 'https://github.com/Chinna95P/mpv-anime-build/blob/main/Readme.md')">
+                    📄 Readme
+                </button>
+                <button class="doc-btn" onclick="openDoc('CHANGELOG.md', 'https://github.com/Chinna95P/mpv-anime-build/blob/main/CHANGELOG.md')">
+                    📜 Changelog
+                </button>
+                <button class="doc-btn" onclick="openDoc('docs/Install.md', 'https://github.com/Chinna95P/mpv-anime-build/blob/main/docs/Install.md')">
+                    🔧 Instructions
+                </button>
+                <button class="doc-btn" onclick="openDoc('docs/Cheatsheet.md', 'https://github.com/Chinna95P/mpv-anime-build/blob/main/docs/Cheatsheet.md')">
+                    ⌨️ Cheatsheet
+                </button>
             </div>
         </div>
     </header>
@@ -323,6 +347,21 @@
         <p>Credits: bloc97 (Anime4K), Samillion (ModernZ), po5 (Thumbfast)</p>
     </footer>
 
+    <div id="doc-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Documentation</div>
+                <div class="modal-actions">
+                    <a id="modal-source-btn" href="#" target="_blank" class="btn-source">View on GitHub ↗</a>
+                    <button class="close-btn" onclick="closeDoc()">&times;</button>
+                </div>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <p style="text-align: center; color: #8b949e;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- SCROLL ANIMATION ---
         const observer = new IntersectionObserver((entries) => {
@@ -335,75 +374,101 @@
         // --- ROBUST SLIDER LOGIC ---
         function initComparisons() {
             const containers = document.querySelectorAll('.c-compare');
-
             containers.forEach(container => {
                 const leftLayer = container.querySelector('.c-compare__left');
-                const leftImage = leftLayer.querySelector('.c-compare__image'); // The image inside the clipped layer
+                const leftImage = leftLayer.querySelector('.c-compare__image');
                 const handle = container.querySelector('.c-compare__handle');
                 let isDragging = false;
-
-                // Sync image width to container width (The "Fixed Position" Fix)
                 function syncWidth() {
                     const w = container.offsetWidth;
-                    leftImage.style.width = w + 'px'; // Forces image to match full container width
+                    leftImage.style.width = w + 'px';
                 }
-
-                // Initial sync & Resize listener
                 syncWidth();
                 window.addEventListener('resize', syncWidth);
-
-                // Movement Logic
                 function move(x) {
                     const rect = container.getBoundingClientRect();
                     let pos = x - rect.left;
-                    
-                    // Clamp
                     if (pos < 0) pos = 0;
                     if (pos > rect.width) pos = rect.width;
-
-                    // Update DOM
                     leftLayer.style.width = pos + 'px';
                     handle.style.left = pos + 'px';
                 }
-
-                // Events
                 function onInteractStart(e) {
-                    e.preventDefault();
-                    isDragging = true;
-                    container.classList.add('interacting');
+                    e.preventDefault(); isDragging = true; container.classList.add('interacting');
                 }
-                
                 function onInteractEnd() {
-                    isDragging = false;
-                    container.classList.remove('interacting');
+                    isDragging = false; container.classList.remove('interacting');
                 }
-
                 function onInteractMove(e) {
                     if (!isDragging) return;
-                    // Support touch or mouse
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     move(clientX);
                 }
-
-                // Mouse
                 handle.addEventListener('mousedown', onInteractStart);
                 window.addEventListener('mouseup', onInteractEnd);
                 window.addEventListener('mousemove', onInteractMove);
-
-                // Touch
                 handle.addEventListener('touchstart', onInteractStart);
                 window.addEventListener('touchend', onInteractEnd);
                 window.addEventListener('touchmove', onInteractMove);
-                
-                // Click to jump (Optional UX improvement)
                 container.addEventListener('click', (e) => {
-                    if (e.target === handle) return; // Don't jump if clicking handle
+                    if (e.target === handle) return;
                     move(e.clientX);
                 });
             });
         }
-        
         window.addEventListener('load', initComparisons);
+
+        // --- DOCS POPUP LOGIC ---
+        const modal = document.getElementById('doc-modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalTitle = document.getElementById('modal-title');
+        const modalSourceBtn = document.getElementById('modal-source-btn');
+
+        async function openDoc(filePath, sourceUrl) {
+            // 1. Show Modal immediately with Loading state
+            modal.classList.add('active');
+            modalBody.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;"><p>Loading documentation...</p></div>';
+            modalTitle.innerText = filePath.split('/').pop(); // "Readme.md"
+            modalSourceBtn.href = sourceUrl;
+
+            try {
+                // 2. Fetch RAW content from GitHub
+                const rawUrl = `https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/${filePath}`;
+                const response = await fetch(rawUrl);
+                
+                if (!response.ok) throw new Error("Failed to load file.");
+                
+                const markdownText = await response.text();
+
+                // 3. Convert Markdown to HTML using marked.js
+                // We fix image paths so screenshots work inside the modal
+                const htmlContent = marked.parse(markdownText);
+                
+                // Fix relative image paths in Markdown (e.g. "screenshots/img.jpg" -> full raw url)
+                const fixedHtml = htmlContent.replace(/src="screenshots\//g, 'src="https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/screenshots/');
+
+                modalBody.innerHTML = fixedHtml;
+
+            } catch (error) {
+                modalBody.innerHTML = `<p style="color: #ff6b6b;">Error loading document. Please view on GitHub.</p>`;
+            }
+        }
+
+        function closeDoc() {
+            modal.classList.remove('active');
+        }
+
+        // Close modal if clicking outside the content box
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeDoc();
+        });
+        
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && modal.classList.contains('active')) {
+                closeDoc();
+            }
+        });
     </script>
 </body>
 </html>
