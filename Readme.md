@@ -2,6 +2,15 @@
 
 > **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
 
+### ⚠️ Important: How Automatic Detection Works
+For the auto-switching logic to function correctly, your files must follow these simple naming rules:
+1.  **Anime:** The file path or folder name MUST contain the keyword **`anime`** (case-insensitive).
+    * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
+2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
+3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
 This project is a **fully automated MPV configuration** designed primarily for **anime playback**, while keeping **live-action and non-anime content fully isolated** and optimized.
 
 It features a beautiful **ModernZ** skin interface and complete support for **SVP 4 Pro** motion interpolation.

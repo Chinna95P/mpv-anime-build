@@ -3,6 +3,10 @@
 
 This guide is designed for users who are **new to MPV** or just want a **simple copy-paste setup** for high-quality anime and movie playback.
 
+> **⚠️ Critical: Folder Naming for Auto-Detection**
+> * **Anime:** Folder path MUST contain **`anime`**.
+> * **Live Action:** Folder path must NOT contain 'anime' (or must contain `live action`/`drama` if inside an anime folder).
+
 ---
 
 ## ✅ Requirements
