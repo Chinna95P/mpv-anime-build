@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.3
+# 🎬 MPV Anime Build v1.3.1
 
 > **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
 
@@ -79,7 +79,7 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 
 ---
 
-## 📌 Key Features (v1.3)
+## 📌 Key Features (v1.3.1)
 
 - 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
 - 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red) via `anime_profile_controller`.
@@ -152,7 +152,7 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 
 Non-anime content uses a **completely separate processing path** featuring "Modern TV" adaptive sharpening.
 
-### Resolution Tiers (v1.3 Logic)
+### Resolution Tiers (v1.3.1 Logic)
 | Resolution | Profile | Technology |
 | :--- | :--- | :--- |
 | **< 576p** | `HQ-SD` | SSimSuperRes + Adaptive Sharpen (SD Tuned) |
@@ -180,4 +180,4 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **ModernZ Skin:** Samillion
 - **Thumbfast:** po5
-- **Config & Logic:** Customized for MPV Anime Build v1.3
+- **Config & Logic:** Customized for MPV Anime Build v1.3.1

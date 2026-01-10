@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.3.1] – Universal GPU Support Hotfix
+
+### 🐛 Fixed
+* **Universal Hardware Decoding:** Changed `hwdec` from `nvdec-copy` (NVIDIA specific) to `auto-copy`.
+    * **Impact:** This restores proper hardware acceleration for **AMD and Intel GPU** users, who were previously forced into CPU decoding (laggy) because the config was hardcoded for NVIDIA.
+    * **Note:** NVIDIA users are unaffected and will still use the best decoding method automatically.
+
+---
+
 ## [v1.3] – Logic Lockdown & Stability Update
 
 ### ✨ New Features
