@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.3.2] – Subtitle Logic Hotfix
+
+### 🐛 Fixed
+* **Deprecated Command Replacement:** Replaced the non-functional `stretch-image-subs-to-screen` command (deprecated in newer MPV builds) with the modern `sub-ass-use-video-data` property.
+    * **New 'y' Shortcut Behavior:** The `y` key now cycles between `none` → `aspect-ratio` → `all`.
+    * **Impact:** Restores the ability to fix stretched or misaligned subtitles on the latest MPV versions where the old command was ignored.
+
+---
+
 ## [v1.3.1] – Universal GPU Support Hotfix
 
 ### 🐛 Fixed
@@ -22,7 +31,7 @@ All notable changes to this project are documented here.
     * **FHD+:** `≥ 1080p` (activates `High-Quality` native profiles).
 * **Subtitle Correction Suite:**
     * **Text Subs:** Added `sub-ass-vsfilter-aspect-compat=no` to prevent `.ass` subtitles from stretching on anamorphic video.
-    * **Image Subs:** Added `stretch-image-subs-to-screen=no` to fix distorted PGS/VobSub streams (toggleable with `y`).
+    * **Image Subs:** Updated handling to fix distorted PGS/VobSub streams (toggleable with `y`).
 * **Profile Isolation:** Manual toggles (`Q`, `Ctrl+Q`) are now context-aware. They will strictly refuse to execute if the playing video does not match their specific resolution tier, preventing accidental logic breaks.
 
 ### 🐛 Fixed

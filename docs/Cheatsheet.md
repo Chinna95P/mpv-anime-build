@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v1.3 – Cheat Sheet
+# ⚡ MPV Anime Build v1.3.2 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
@@ -60,7 +60,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`t`** | **Sub Margins** | Toggle subtitles in black bars (`sub-use-margins`). |
 | **`T`** | **Force Margins** | Force subtitles to screen bottom (`ass-force-margins`). |
 | **`CTRL+t`** | **Blend Subs** | Toggle subtitle blending (Fixes rendering issues). |
-| **`y`** | **Stretch Subs** | Toggle stretching for image subs (PGS/VobSub). |
+| **`y`** | **Sub Video Data** | Cycle how subs use video data (None / Aspect / All). |
 
 ---
 

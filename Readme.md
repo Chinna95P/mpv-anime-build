@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.3.1
+# 🎬 MPV Anime Build v1.3.2
 
 > **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
 
@@ -79,7 +79,7 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 
 ---
 
-## 📌 Key Features (v1.3.1)
+## 📌 Key Features (v1.3.2)
 
 - 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
 - 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red) via `anime_profile_controller`.
@@ -87,7 +87,7 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 - 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin for a sleek look.
 - 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes).
 - 📺 **Live-Action Pipeline:** "Modern TV" style upscaling (Sony/Samsung emulation).
-- 🧩 **Subtitle Correction:** Automatic anti-stretching logic for `.ass` (text) and `.sup` (image) subtitles.
+- 🧩 **Subtitle Correction:** Updated manual correction toggle (`y`) to use modern `sub-ass-use-video-data` for reliable aspect ratio handling.
 - 💾 **SVP 4 Pro Support:** Verified compatibility with Smooth Video Project.
 - ⚡ **Thumbfast Stability:** Optimized thumbnail generation with improved socket handling.
 
@@ -118,7 +118,7 @@ This build scales based on your hardware, but high-quality upscaling requires a 
 | :--- | :--- |
 | `K` | **Show Profile Info** (Displays current Mode, Profile, and Active Shaders) |
 | `I` | **Show Tech Stats** (Bitrate, Dropped Frames, Logic Status) |
-| `y` | **Toggle Image Sub Stretch** (Fixes stretched PGS/VobSub subtitles) |
+| `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues |
 
 ### 🔹 Anime Mode (Master Switch)
 Controls whether the build treats the file as Anime or Live-Action.
@@ -180,4 +180,4 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **ModernZ Skin:** Samillion
 - **Thumbfast:** po5
-- **Config & Logic:** Customized for MPV Anime Build v1.3.1
+- **Config & Logic:** Customized for MPV Anime Build v1.3.2
