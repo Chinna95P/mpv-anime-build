@@ -1,5 +1,7 @@
 # 🎬 MPV Anime Build v1.4
 
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
+
 > **Anime-aware MPV configuration with automatic Anime4K, Nvidia VSR, and Universal HDR support — zero manual profile switching.**
 
 ### ⚠️ Important: How Automatic Detection Works
