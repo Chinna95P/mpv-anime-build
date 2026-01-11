@@ -4,6 +4,32 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.4] – The "Universal HDR & VSR" Update
+
+### ✨ New Features
+* **Universal HDR Automation:** Introduced `hdr_detect.lua` to automatically sync MPV with Windows.
+    * **Windows HDR ON:** MPV switches to **Passthrough Mode** (sends metadata to TV).
+    * **Windows HDR OFF:** MPV switches to **High-Quality Tone Mapping** (optimizes for SDR screens).
+    * **Manual Override:** Added the **`H`** key to manually force Passthrough or Tone Mapping mode if the auto-detection fails.
+* **Nvidia VSR Smart Lock:** Added `vsr_auto.lua` for RTX users.
+    * **Manual Toggle:** Press **`V`** to enable/disable VSR. The script automatically handles safety checks.
+    * **Smart Bit-Depth:** Automatically selects `p010` (10-bit) for HDR/Anime to prevent banding, and `nv12` (8-bit) for standard web content.
+    * **Safety Check:** Prevents VSR activation on unsupported GPUs (Intel/AMD/GTX).
+* **Dolby Vision Hybrid Fallback:**
+    * If your display supports Dolby Vision, it passes through (via Windows HDR).
+    * If not supported, it **automatically falls back to the HDR10 Base Layer**, ensuring perfect colors instead of a purple/green mess.
+* **Manual Audio Bitstream:** Replaced unstable auto-detection with a manual "Panic Toggle" (**`A`** key).
+    * **Default:** Internal Decoding + 7.1 Upmix (Best for headphones/analog).
+    * **Passthrough:** Sends raw Bitstream (TrueHD/DTS-X) to AVR/Soundbar.
+
+### 🐛 Fixed
+* **SDR Stuttering:** Fixed micro-stutters on SDR monitors by disabling `target-colorspace-hint` by default. It now only activates when an HDR signal is detected from the OS.
+* **Dolby Vision Error Spam:** Silenced harmless `ffmpeg/video` errors (Missing Slice / Invalid NALU) caused by Profile 7 Enhancement Layers.
+* **4K Bottlenecks:** Forced `hwdec=d3d11va` (Native Zero-Copy) for HDR and VSR profiles to eliminate bus bandwidth issues on high-bitrate files.
+* **Global Dithering:** Standardized on `dither=fruit` globally to save GPU headroom for VSR/Upscaling.
+
+---
+
 ## [v1.3.2] – Subtitle Logic Hotfix
 
 ### 🐛 Fixed

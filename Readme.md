@@ -1,6 +1,6 @@
-# 🎬 MPV Anime Build v1.3.2
+# 🎬 MPV Anime Build v1.4
 
-> **Anime-aware MPV configuration with automatic Anime4K, NNEDI3, and "Modern TV" upscaling — zero manual profile switching.**
+> **Anime-aware MPV configuration with automatic Anime4K, Nvidia VSR, and Universal HDR support — zero manual profile switching.**
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
@@ -11,12 +11,20 @@ For the auto-switching logic to function correctly, your files must follow these
 
 ---
 
-This project is a **fully automated MPV configuration** designed primarily for **anime playback**, while keeping **live-action and non-anime content fully isolated** and optimized.
+## 🌟 New in v1.4: Universal HDR & VSR
 
-It features a beautiful **ModernZ** skin interface and complete support for **SVP 4 Pro** motion interpolation.
+### 📺 Universal HDR/Dolby Vision Support
+This build now automatically detects your monitor's capabilities via Windows.
 
-The goal is simple:
-**MPV decides the correct profile automatically — you only fine-tune when you want to.**
+* **For HDR/OLED TVs:** Enable **"Use HDR"** in Windows Display Settings. MPV will detect this and automatically switch to **Passthrough Mode** (sending the raw HDR signal to your TV).
+* **For SDR Monitors:** Leave Windows HDR **OFF**. MPV will apply high-quality **HDR-to-SDR Tone Mapping** (Spline) to make colors look correct and vibrant on standard screens.
+* **Manual Override:** Press **`H`** at any time to toggle between Passthrough (TV) and Tone Mapping (SDR) manually when playing HDR.
+* **Dolby Vision:** Plays correctly on all devices. If your display does not support Dolby Vision, MPV automatically **falls back to the HDR10 Base Layer**.
+
+### 🚀 Nvidia VSR Automation (RTX Only)
+Press **`V`** to toggle **Nvidia Video Super Resolution**. The build uses a smart script to prevent color banding:
+* **10-bit Video (Anime/HDR):** Uses `P010` format to preserve high-precision colors.
+* **8-bit Video (Web/YouTube):** Uses `NV12` format for maximum compatibility.
 
 ---
 
@@ -79,17 +87,17 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 
 ---
 
-## 📌 Key Features (v1.3.2)
+## 📌 Key Features (v1.4)
 
 - 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
-- 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red) via `anime_profile_controller`.
-- 🧠 **Logic Lockdown:** Strict resolution gates prevent profiles from firing on the wrong content (SD is strictly < 576p).
-- 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin for a sleek look.
+- 🌈 **Universal HDR:** Auto-switching between Passthrough and Tone Mapping (Manual Toggle: **`H`**).
+- 🚀 **Nvidia VSR:** Smart automation with bit-depth protection (Manual Toggle: **`V`**).
+- 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red).
+- 🧠 **Logic Lockdown:** Strict resolution gates prevent profiles from firing on the wrong content.
+- 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin.
 - 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes).
 - 📺 **Live-Action Pipeline:** "Modern TV" style upscaling (Sony/Samsung emulation).
-- 🧩 **Subtitle Correction:** Updated manual correction toggle (`y`) to use modern `sub-ass-use-video-data` for reliable aspect ratio handling.
-- 💾 **SVP 4 Pro Support:** Verified compatibility with Smooth Video Project.
-- ⚡ **Thumbfast Stability:** Optimized thumbnail generation with improved socket handling.
+- 🔊 **Smart Audio:** Manual toggle for 7.1 Upmix vs. TrueHD/DTS-X Passthrough (Toggle: **`A`**).
 
 ---
 
@@ -111,13 +119,14 @@ This build scales based on your hardware, but high-quality upscaling requires a 
 
 ---
 
-## 🎮 Controls & Shortcuts
-
 ### 🔹 Global Controls
 | Shortcut | Function |
 | :--- | :--- |
 | `K` | **Show Profile Info** (Displays current Mode, Profile, and Active Shaders) |
 | `I` | **Show Tech Stats** (Bitrate, Dropped Frames, Logic Status) |
+| `A` | **Audio Mode** (Toggle between **7.1 Upmix** and **Passthrough/Bitstream**) |
+| `H` | **HDR Mode** (Manual Override: Force Passthrough vs Tone Mapping) |
+| `V` | **Nvidia VSR** (Toggle RTX Video Super Resolution) |
 | `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues |
 
 ### 🔹 Anime Mode (Master Switch)
