@@ -1,9 +1,12 @@
 -- vsr_auto.lua
--- Toggles Nvidia VSR with colorized OSD status messages using the Overlay API.
-
+-- v1.5: Toggles Nvidia VSR with Smart State Restoration & Linux Safety
 local mp = require 'mp'
 local vsr_active = false
+
+-- State Memory
 local original_hwdec = "auto-copy"
+local stored_shaders = nil
+local stored_deband = nil
 
 -- Create an OSD Overlay (Professional rendering)
 local overlay = mp.create_osd_overlay("ass-events")
@@ -16,20 +19,25 @@ local C_RED    = "{\\c&H0000FF&}"  -- Red
 local C_WHITE  = "{\\c&HFFFFFF&}"  -- White (Reset)
 
 function show_vsr_osd(text)
-    -- Align text to top-left or use standard OSD position (alignment 7 = top-left)
     overlay.data = "{\\an7}{\\fs26}" .. text
     overlay:update()
-    
-    -- Auto-hide after 3 seconds
     if timer then timer:kill() end
     timer = mp.add_timeout(3, function() overlay:remove() end)
 end
 
 function toggle_vsr()
+    -- 0. OS Safety Check (New)
+    -- VSR depends on D3D11 (DirectX), which is Windows-only.
+    local platform = mp.get_property("platform")
+    if platform ~= "windows" then
+        show_vsr_osd(C_RED .. "VSR Error: Windows Only (D3D11)")
+        return
+    end
+
     -- 1. Check for RTX GPU
     local renderer = mp.get_property("gpu-renderer-string", ""):upper()
     if not renderer:find("RTX") and not renderer:find("NVIDIA") then
-        show_vsr_osd(C_RED .. "VSR Error: No Nvidia GPU detected.")
+        show_vsr_osd(C_RED .. "VSR Error: No Nvidia RTX GPU detected.")
         return
     end
 
@@ -38,13 +46,28 @@ function toggle_vsr()
         mp.command('vf clr ""') 
         mp.set_property("hwdec", original_hwdec)
         
+        -- SMART RESTORE: Re-apply the shaders/deband we saved earlier
+        if stored_shaders then
+            mp.set_property_native("glsl-shaders", stored_shaders)
+        end
+        if stored_deband then
+            mp.set_property("deband", stored_deband)
+        end
+
         -- Message: Yellow text
-        show_vsr_osd(C_YELLOW .. "Nvidia VSR: Disabled " .. C_WHITE .. "(Restored " .. original_hwdec .. ")")
+        show_vsr_osd(C_YELLOW .. "Nvidia VSR: Disabled " .. C_WHITE .. "(Restored Previous Config)")
         vsr_active = false
     else
         -- ENABLE VSR
+        -- 1. Snapshot current state (Memory)
         original_hwdec = mp.get_property("hwdec") or "auto-copy"
+        stored_shaders = mp.get_property_native("glsl-shaders")
+        stored_deband  = mp.get_property("deband")
+
+        -- 2. Apply VSR Profile
         mp.command("apply-profile Nvidia-VSR")
+        
+        -- 3. Clear Shaders (VSR handles scaling now)
         mp.command('no-osd change-list glsl-shaders clr ""')
 
         local pixel_format = mp.get_property("video-params/pixelformat", "")

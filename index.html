@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>MPV Anime Upscaling Config v1.4.1 | 4K Anime4K & NNEDI3 Automated Resolution Adaptive Upscaling</title>
+    <title>MPV Anime Upscaling Config v1.5 | 4K Anime4K & NNEDI3 Automated Resolution Adaptive Upscaling</title>
     
     <meta name="description" content="Automated MPV configuration for real-time 4K anime upscaling. Restores old anime using Anime4K v4.0 and enhances live-action using resolution adaptive sharpening.">
     
@@ -12,12 +12,12 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
-    <meta property="og:title" content="MPV Anime Upscaling Config v1.4.1">
+    <meta property="og:title" content="MPV Anime Upscaling Config v1.5">
     <meta property="og:description" content="Automated MPV configuration for real-time 4K anime upscaling. Restores old anime using Anime4K v4.0 and enhances live-action using resolution adaptive sharpening.">
     <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="MPV Anime Upscaling Config v1.4.1">
+    <meta property="twitter:title" content="MPV Anime Upscaling Config v1.5">
     <meta property="twitter:description" content="Automated MPV configuration for real-time 4K anime upscaling. Restores old anime using Anime4K v4.0 and enhances live-action using resolution adaptive sharpening.">
     <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
     
@@ -149,6 +149,32 @@
         .c-label--right { right: 20px; color: #4ade80; }
         .c-compare.interacting .c-label { opacity: 0.2; }
 
+        /* --- HDR TABLE STYLES --- */
+        .hdr-table-container {
+            max-width: 900px; margin: 0 auto; overflow-x: auto;
+            border: 1px solid var(--border-color); border-radius: 12px;
+            background: var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .hdr-table {
+            width: 100%; border-collapse: collapse; font-size: 0.95rem; text-align: left;
+        }
+        .hdr-table th {
+            background-color: #21262d; color: #fff; padding: 15px; font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .hdr-table td {
+            padding: 15px; border-bottom: 1px solid var(--border-color); color: var(--text-muted);
+        }
+        .hdr-table tr:last-child td { border-bottom: none; }
+        .hdr-table tr:hover td { background-color: rgba(255,255,255,0.02); }
+        
+        .badge {
+            display: inline-block; padding: 4px 10px; border-radius: 12px;
+            font-size: 0.8rem; font-weight: bold;
+        }
+        .badge-green { background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
+        .badge-blue { background: rgba(56, 139, 253, 0.15); color: #58a6ff; border: 1px solid rgba(56, 139, 253, 0.4); }
+
         /* --- FEATURES GRID --- */
         .features { padding: 80px 0; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
@@ -224,6 +250,7 @@
             .hero-content h1 { font-size: 2.5rem; }
             .c-compare { height: 300px; } 
             .modal-content { width: 100%; height: 100%; border-radius: 0; }
+            .hdr-table th, .hdr-table td { padding: 10px; font-size: 0.85rem; }
         }
     </style>
 	
@@ -245,7 +272,7 @@
         "name": "Chinna95P"
       },
       "downloadUrl": "https://github.com/Chinna95P/mpv-anime-build/releases",
-      "softwareVersion": "1.3"
+      "softwareVersion": "1.5"
     }
     </script>
 </head>
@@ -253,11 +280,11 @@
 
     <header>
         <div class="container hero-content">
-            <h1>MPV Anime Build v1.4.1</h1>
+            <h1>MPV Anime Build v1.5</h1>
             <p>Automated High-Quality Upscaling for Anime & Live Action.</p>
             
             <div class="hero-buttons">
-                <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn">Download v1.4.1 Release</a>
+                <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn">Download v1.5 Release</a>
                 <a href="https://github.com/Chinna95P/mpv-anime-build" class="btn btn-blue">Source GitHub Page</a>
                 
                 <a href="https://discord.gg/Pvf3huxFvU" class="btn" style="background-color: #5865F2; margin-left: 10px;">Join Discord</a>
@@ -333,6 +360,54 @@
                     <div class="c-compare__handle"></div>
                 </div>
             </div>
+            
+            <div class="reveal">
+                <h3 style="text-align:center; color:var(--text-muted); margin-bottom:20px; margin-top:60px;">HDR Tone Mapping & Passthrough Tests</h3>
+                <div class="hdr-table-container">
+                    <table class="hdr-table">
+                        <thead>
+                            <tr>
+                                <th>Test Format</th>
+                                <th>Source Type</th>
+                                <th>MPV Behavior</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>HDR10</strong></td>
+                                <td>HEVC 10-bit / PQ / BT.2020</td>
+                                <td>Passthrough to Display (Auto-trigger)</td>
+                                <td><span class="badge badge-green">Pass</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dolby Vision P5</strong></td>
+                                <td>HEVC 10-bit / DoVi / Streaming</td>
+                                <td>Correct Tone Mapping (Fixes Purple Tint)</td>
+                                <td><span class="badge badge-blue">Optimized</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dolby Vision P8</strong></td>
+                                <td>HEVC 10-bit / DoVi / Hybrid</td>
+                                <td>Dynamic Tone Mapping to HDR10</td>
+                                <td><span class="badge badge-green">Pass</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>HLG</strong></td>
+                                <td>VP9 / HLG / Broadcast</td>
+                                <td>Correct Gamma / Brightness Map</td>
+                                <td><span class="badge badge-green">Pass</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>MaxCLL/FALL</strong></td>
+                                <td>Static Metadata</td>
+                                <td>Metadata Passed to GPU Driver</td>
+                                <td><span class="badge badge-green">Pass</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
         </div>
     </section>
@@ -387,7 +462,7 @@
     </section>
 	
     <footer>
-        <p>MPV Anime Build v1.4.1 • Maintained by Chinna95P</p>
+        <p>MPV Anime Build v1.5 • Maintained by Chinna95P</p>
         <p>Credits: bloc97 (Anime4K), Samillion (ModernZ), po5 (Thumbfast)</p>
     </footer>
 

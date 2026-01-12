@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.4.1
+# 🎬 MPV Anime Build v1.5
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -12,6 +12,25 @@ For the auto-switching logic to function correctly, your files must follow these
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
 
 ---
+
+
+## [v1.5] – The "Universal & SVP" Update
+
+### ✨ New Features
+* **Universal Linux Support:** The build is now 100% compatible with Linux (Wayland/X11).
+    * **Dual-OS Config:** `mpv.conf` now automatically detects your OS. It loads `d3d11` for Windows and `vulkan` for Linux without needing manual edits.
+    * **Script Safety:** `vsr_auto.lua` and `hdr_detect.lua` now include OS-checks to prevent Windows-only commands (like VSR) from crashing Linux.
+    * **Universal Paths:** Updated all shader paths and script logic to work with both Windows (`%APPDATA%`) and Linux (`~/.config/mpv`) directory structures.
+* **SVP 4 Pro Compatibility Mode:**
+    * **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
+    * **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
+
+### 🐛 Fixed
+* **Shader Syntax:** Replaced `glsl-shaders-set="..."` with `glsl-shaders-append`. This fixes a critical bug where Linux would fail to parse multiple shaders if they were separated by semicolons (`;`).
+* **VSR Logic:** Updated `vsr_auto.lua` to smartly restore your previous specific shader profile (Anime vs Live Action) when disabled, instead of just resetting to default.
+
+---
+
 
 ## 🌟 New in v1.4: Universal HDR & VSR
 
@@ -86,6 +105,37 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 | ![Info 4K](screenshots/shaders-info-live-action-4k-auto.jpg) |
 
 </details>
+
+---
+
+## 🧪 HDR Behavior & Test Cases (v1.5)
+
+This build features a robust **Auto-Detection System** (`hdr_detect.lua`) that changes behavior based on your monitor's capabilities. Below are the verified test results.
+
+### 1. SDR Display Behavior
+*Scenario: Windows HDR is **OFF** (Standard Monitor).*
+
+| Video Content | MPV Action (Auto) | OSD Message | Visual Result |
+| :--- | :--- | :--- | :--- |
+| **SDR Video** | **Standard Mode** | *(None)* | **Normal Playback.** |
+| **HDR Video** | **TONE MAPPING** | `HDR Mode: Tone Mapping` | **Correct Colors.** MPV compresses HDR colors to standard range. Image is vibrant, not washed out. |
+
+### 2. HDR Display Behavior
+*Scenario: Windows HDR is **ON** (HDR TV / OLED Monitor).*
+
+| Video Content | MPV Action (Auto) | OSD Message | Visual Result |
+| :--- | :--- | :--- | :--- |
+| **SDR Video** | **Standard Mode** | *(None)* | **Normal Playback.** Windows handles the container. |
+| **HDR Video** | **PASSTHROUGH** | `HDR Mode: Passthrough` | **True HDR.** Metadata is sent to the TV. Highlights are bright and correct. |
+
+### 3. Manual Toggle ('H') Behavior
+*Use the `H` (`Shift+h`) shortcut to override the auto-logic.*
+
+| Current State | Toggle Action | Resulting Mode | What Happens? |
+| :--- | :--- | :--- | :--- |
+| **Any** (SDR Content) | Press `H` | **ERROR** | **Safety Block.** Prevents accidental tone-mapping of non-HDR content. |
+| **Passthrough** | Press `H` | **Force TONE MAP** | **Simulated SDR.** Stops sending metadata. Useful if your TV's native HDR processing looks dark or buggy. |
+| **Tone Mapping** | Press `H` | **Force PASSTHROUGH** | **Force HDR Output.** <br>• On HDR Screens: Activates max brightness.<br>• On SDR Screens: **Washed Out Colors** (Grey/Foggy look). |
 
 ---
 

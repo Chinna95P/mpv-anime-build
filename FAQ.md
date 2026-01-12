@@ -109,6 +109,24 @@ Toggle between them using the **`A`** (`Shift+a`) key:
 ## 🔧 Troubleshooting & Setup
 
 <details>
+<summary><b>Does this build work on Linux?</b></summary>
+
+**Yes! (New in v1.5)**
+The build is now fully universal.
+* **Config:** `mpv.conf` automatically switches to `vulkan` backend on Linux for best performance.
+* **Shaders:** Anime4K and High-Quality shaders work perfectly.
+* **Limitations:** Nvidia VSR (Key: `V`) is disabled on Linux because it requires DirectX 11.
+</details>
+
+<details>
+<summary><b>SVP 4 Pro isn't working / "No active playback"</b></summary>
+
+This is usually caused by the "Native Hardware Decoding" conflict.
+* **The Fix:** We fixed this in v1.5 by setting `hwdec=auto-copy`.
+* **Verify:** Press `Shift+I` and check `HW:`. It must say `d3d11va-copy` (or `nvdec-copy`). If it says just `d3d11va`, SVP cannot "see" the video frames to interpolate them.
+</details>
+
+<details>
 <summary><b>Why does pressing 'Q' or 'Ctrl+Q' do nothing?</b></summary>
 
 This is the **Logic Lockdown** feature protecting your video quality.

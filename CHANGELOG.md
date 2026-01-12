@@ -4,6 +4,23 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.5] – The "Universal & SVP" Update
+
+### ✨ New Features
+* **Universal Linux Support:** The build is now 100% compatible with Linux (Wayland/X11).
+    * **Dual-OS Config:** `mpv.conf` now automatically detects your OS. It loads `d3d11` for Windows and `vulkan` for Linux without needing manual edits.
+    * **Script Safety:** `vsr_auto.lua` and `hdr_detect.lua` now include OS-checks to prevent Windows-only commands (like VSR) from crashing Linux.
+    * **Universal Paths:** Updated all shader paths and script logic to work with both Windows (`%APPDATA%`) and Linux (`~/.config/mpv`) directory structures.
+* **SVP 4 Pro Compatibility Mode:**
+    * **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
+    * **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
+
+### 🐛 Fixed
+* **Shader Syntax:** Replaced `glsl-shaders-set="..."` with `glsl-shaders-append`. This fixes a critical bug where Linux would fail to parse multiple shaders if they were separated by semicolons (`;`).
+* **VSR Logic:** Updated `vsr_auto.lua` to smartly restore your previous specific shader profile (Anime vs Live Action) when disabled, instead of just resetting to default.
+
+---
+
 ## [v1.4.1] – HDR Auto-Detection Hotfix
 
 ### 🐛 Fixed
