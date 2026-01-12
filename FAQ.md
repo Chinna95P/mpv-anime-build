@@ -1,11 +1,11 @@
-# 答 Frequently Asked Questions
+# ❓ Frequently Asked Questions
 
 > **⚠️ Important Note on Shortcuts:** > Whenever a shortcut is listed in **Capital Letters** (e.g., `V`, `H`, `A`), it means you must press **`Shift + key`** (e.g., `Shift+v`).  
 > Shortcuts shown in lowercase (e.g., `y`) should be pressed directly without Shift.
 
 <br>
 
-## 噫 Nvidia VSR (Video Super Resolution)
+## 🚀 Nvidia VSR (Video Super Resolution)
 *Exclusive to RTX 3000/4000 (2000 Series should also work) series users.*
 
 <details>
@@ -47,7 +47,7 @@ This usually happens if your GPU drivers are outdated or unstable.
 
 <br>
 
-## 銅 HDR & Dolby Vision
+## 📺 HDR & Dolby Vision
 *Universal support for TVs and Monitors.*
 
 <details>
@@ -86,7 +86,7 @@ This happens if MPV thinks you are in HDR mode when you aren't (or vice versa).
 
 <br>
 
-## 矧 Audio & Surround Sound
+## 🔊 Audio & Surround Sound
 
 <details>
 <summary><b>I hear silence when playing TrueHD / DTS-X files!</b></summary>
@@ -106,7 +106,7 @@ Toggle between them using the **`A`** (`Shift+a`) key:
 
 <br>
 
-## 屏ｸTroubleshooting & Setup
+## 🔧 Troubleshooting & Setup
 
 <details>
 <summary><b>Why does pressing 'Q' or 'Ctrl+Q' do nothing?</b></summary>
@@ -158,6 +158,6 @@ The build looks at your folder names and file paths.
 
 ---
 
-### 菅 Found a Bug?
+### 📮 Found a Bug?
 If you are still facing issues that aren't listed here or want to Request a New Feature, please raise a New Issue or create a Feature Request:
 **[Issues Page](https://github.com/Chinna95P/mpv-anime-build/issues)**
