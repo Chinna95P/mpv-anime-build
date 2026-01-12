@@ -1,6 +1,4 @@
-Here is the updated `Install.md` file, expanded to include clear instructions for both **Windows** and **Linux** users while maintaining the original structure.
 
-```markdown
 # 📥 MPV Anime Build – Installation Guide
 
 This guide is designed for users who are **new to MPV** or just want a **simple copy-paste setup** for high-quality anime and movie playback.
