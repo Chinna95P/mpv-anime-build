@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.4.1] – HDR Auto-Detection Hotfix
+
+### 🐛 Fixed
+* **HDR Auto-Detection Logic:** Rewrote `hdr_detect.lua` to safely handle generic SDR displays that report `nil` display parameters.
+    * **SDR Users:** Fixed an issue where the script could fail silently or report errors on standard sRGB monitors.
+    * **HDR Users:** Improved detection accuracy for Windows HDR mode by adding checks for `dci-p3` primaries and `hybrid-log-gamma`.
+* **Startup Reliability:** Added a `vo-configured` listener to ensure HDR state is checked only after the video output is fully initialized.
+
+---
+
 ## [v1.4] – The "Universal HDR & VSR" Update
 
 ### ✨ New Features

@@ -1,23 +1,16 @@
 -- scripts/hdr_detect.lua
--- Automatically enables HDR Passthrough if Windows HDR is active.
--- Falls back to high-quality Tone Mapping if Windows HDR is OFF.
--- Includes Manual Toggle with Safety Checks.
--- UPDATE: Added State Tracking to prevent OSD spam.
-
+-- v1.4.1: Robust Detection & Debugging Hotfix
 local mp = require 'mp'
-
--- Create an OSD Overlay
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
-local last_auto_state = nil -- Tracks the last applied mode to prevent spam
+local last_auto_state = nil 
 
--- Color Codes (ASS Format: &HBBGGRR&)
-local C_GREEN  = "{\\c&H00FF00&}"  -- Bright Green (Passthrough)
-local C_BLUE   = "{\\c&HFFFF00&}"  -- Cyan/Blue (Tone Mapping)
-local C_RED    = "{\\c&H0000FF&}"  -- Red (Error)
-local C_WHITE  = "{\\c&HFFFFFF&}"  -- White (Reset)
+-- Colors
+local C_GREEN  = "{\\c&H00FF00&}" 
+local C_BLUE   = "{\\c&HFFFF00&}"
+local C_RED    = "{\\c&H0000FF&}"
+local C_WHITE  = "{\\c&HFFFFFF&}"
 
--- Helper: Show OSD Message (Top-Right)
 function show_hdr_osd(text)
     overlay.data = "{\\an9}{\\fs26}" .. text
     overlay:update()
@@ -25,24 +18,31 @@ function show_hdr_osd(text)
     timer = mp.add_timeout(3, function() overlay:remove() end)
 end
 
--- Helper: Check Windows HDR Status (Returns true/false)
 function is_windows_hdr_active()
-    local display_params = mp.get_property_native("display-params")
-    if not display_params then return false end
+    local d = mp.get_property_native("display-params")
     
-    if display_params.primaries == "bt.2020" or display_params.gamma == "pq" or display_params.gamma == "st2084" then
-        return true
+    -- SAFETY FIX: If Windows sends nothing (SDR displays), return false immediately.
+    if not d then 
+        return false 
     end
+    
+    -- Debugging (Optional: View in console with `)
+    print(string.format("[HDR-Detect] Monitor reports -> Primaries: %s | Gamma: %s", 
+        d.primaries or "N/A", d.gamma or "N/A"))
+
+    -- Expanded checks for HDR
+    if (d.primaries == "bt.2020" or d.primaries == "dci-p3") then return true end
+    if (d.gamma == "pq" or d.gamma == "st2084" or d.gamma == "hybrid-log-gamma") then return true end
+
     return false
 end
 
--- 1. AUTOMATIC DETECTION (Runs on file load / OS switch)
 function check_hdr_state()
     local is_windows_hdr = is_windows_hdr_active()
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     local is_hdr_video = video_peak > 1
 
-    -- Determine the target mode based on current conditions
+    -- Decide State
     local target_state = "sdr"
     if is_hdr_video and is_windows_hdr then
         target_state = "passthrough"
@@ -50,36 +50,32 @@ function check_hdr_state()
         target_state = "tonemap"
     end
 
-    -- DEDUP CHECK: If the mode hasn't changed, do nothing (prevents OSD spam)
-    if target_state == last_auto_state then
-        return
-    end
-    
-    -- Update state tracker
+    if target_state == last_auto_state then return end
     last_auto_state = target_state
 
-    -- Apply Mode & Show OSD
+    -- Apply State
     if target_state == "passthrough" then
+        print("[HDR-Detect] Enabling PASSTHROUGH")
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
-        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Windows HDR Detected)")
+        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Auto)")
         
     elseif target_state == "tonemap" then
+        print("[HDR-Detect] Enabling TONE MAPPING")
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
         show_hdr_osd(C_BLUE .. "HDR Mode: Tone Mapping " .. C_WHITE .. "(Windows HDR OFF)")
         
     else
-        -- SDR Mode (Silent, no OSD)
+        -- SDR Mode: Ensure Passthrough is off to prevent washed out colors
         mp.set_property("target-colorspace-hint", "no")
     end
 end
 
--- 2. MANUAL TOGGLE (Runs when you press 'H')
+-- Manual Toggle
 function toggle_hdr_manual()
-    -- SAFETY CHECK 1: Is this video even HDR?
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     if video_peak <= 1 then
         show_hdr_osd(C_RED .. "Error: Not an HDR Video")
@@ -87,35 +83,23 @@ function toggle_hdr_manual()
     end
 
     local current_mode = mp.get_property("target-colorspace-hint")
-    
     if current_mode == "yes" then
-        -- Manual Switch: OFF Passthrough
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
-        show_hdr_osd(C_BLUE .. "HDR Mode: Tone Mapping " .. C_WHITE .. "(Manual Override)")
-        
-        -- Update state tracker so auto-logic doesn't immediately revert it
+        show_hdr_osd(C_BLUE .. "HDR Mode: Tone Mapping " .. C_WHITE .. "(Forced)")
         last_auto_state = "tonemap"
     else
-        -- Manual Switch: ON Passthrough
-        -- SAFETY CHECK 2: Is Windows HDR actually on?
-        if not is_windows_hdr_active() then
-            show_hdr_osd(C_RED .. "Error: Enable HDR in Windows Display Settings for Passthrough")
-            return
-        end
-        
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
-        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Manual Override)")
-        
-        -- Update state tracker
+        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Forced)")
         last_auto_state = "passthrough"
     end
 end
 
--- Bindings and Observers
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
 mp.observe_property("display-params", "native", check_hdr_state)
 mp.observe_property("video-params", "native", check_hdr_state)
+-- NEW: Listener ensures we check again once the VO window is fully created
+mp.observe_property("vo-configured", "bool", function(name, val) if val then check_hdr_state() end end)
