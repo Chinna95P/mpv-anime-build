@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v1.3.2 – Cheat Sheet
+# ⚡ MPV Anime Build v1.5.1 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
@@ -7,10 +7,10 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 ## 🖱️ Mouse Controls
 | Key | Function | Description |
 | :--- | :--- | :--- |
-| **`MOUSE_BTN0`** | **Pause** | Cycle pause/play. |
-| **`MOUSE_BTN0_DBL`** | **Fullscreen** | Cycle fullscreen. |
-| **`MOUSE_BTN5`** | **Prev Chapter** | Go to previous chapter. |
-| **`MOUSE_BTN6`** | **Next Chapter** | Go to next chapter. |
+| **`Left Click`** | **Pause** | Cycle pause/play. |
+| **`Double Click`** | **Fullscreen** | Cycle fullscreen. |
+| **`Back Thumb Btn`** | **Prev Chapter** | Go to previous chapter. |
+| **`Fwd Thumb Btn`** | **Next Chapter** | Go to next chapter. |
 
 ---
 
@@ -43,7 +43,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`9`** | **Vol --** | Decrease volume (-2). |
 | **`0`** | **Vol ++** | Increase volume (+2). |
 | **`a`** | **Cycle Audio** | Switch audio track. |
-| **`A`** | **Normalization** | Toggle Dynamic Audio Normalization. |
+| **`A`** | **Bitstream Toggle** | Toggle between PCM (Upmix) and Passthrough. |
 | **`m`** | **7.1 Upmix** | Toggle 7.1 Surround Upmix with Bass Boost. |
 | **`CTRL+a`** | **Audio Device** | Toggle auto-switching audio device. |
 | **`[`** | **Sub Delay -** | Decrease subtitle delay (-0.1s). |
@@ -82,9 +82,10 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`g`** | **Interpolation** | Toggle Motion Interpolation. |
 | **`G`** | **Tscale Mode** | Cycle interpolation filters (linear/catmull_rom/etc). |
 | **`h`** | **Deinterlace** | Toggle deinterlacing. |
-| **`H`** | **HDR Mode** | Cycle Tone Mapping (clip/mobius) & HWDec. |
+| **`H`** | **HDR Mode** | Manual Toggle: Passthrough ↔ Tone Mapping. |
+| **`V`** | **Nvidia VSR** | Toggle Video Super Resolution (Shift+v). |
 | **`j`** | **Deband** | Cycle debanding filter. |
-| **`u`** | **HW Dec** | Cycle Hardware Decoding (nvdec-copy / no). |
+| **`u`** | **HW Dec** | Cycle Hardware Decoding (auto-copy / no). |
 
 ---
 
@@ -115,5 +116,5 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+5`** | **Mode BB** | Anime4K Mode B+B (Ultra Soft). |
 | **`CTRL+6`** | **Mode CA** | Anime4K Mode C+A (Denoise+Restore). |
 | **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
-| **`CTRL+q`** | **SD Toggle** | Toggle SD Texture/Clean mode (Non-Anime <576p). |
-| **`Q`** | **HD Toggle** | Toggle HD Auto/Manual mode (Non-Anime ≥576p). |
+| **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
+| **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD). |

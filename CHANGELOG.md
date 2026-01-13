@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here.
 
+---
+
+## [v1.5.1] – The "Sharp SD" Update
+
+### ✨ New Features
+* **Unified 'Q' Toggle:** The **`Q`** key is now the universal "Master Upscaler Toggle" for all resolutions below 1080p.
+    * **HD (Default):** Toggles between NNEDI3 (Smooth) and FSRCNNX (Sharp).
+    * **SD (New):** Now toggles between NNEDI3 (Default) and FSRCNNX (New Sharp Mode). Previously, 'Q' did nothing for SD files.
+* **Smart NNEDI3 Optimization:**
+    * **SD (<576p):** Now uses **`nns256`** (Max Quality). Since SD files have fewer pixels, we allocate maximum neural power to reconstruct details and fix artifacts.
+    * **HD (≥576p):** Now uses **`nns64`** (Balanced). This provides perfectly smooth lines for 720p/1080p content without the massive GPU cost of nns256, ensuring smooth playback.
+* **New Profile:** Added `[HQ-SD-FSRCNNX]` to `mpv.conf`. This applies the high-end FSRCNNX scaler to high-quality SD content (like DVD rips) that doesn't require heavy noise reduction.
+
+### 🛡️ Logic & Safety
+* **Safety Lock:** Added a smart lock to `CTRL+Q` (Clean/Texture).
+    * If you switch SD to **FSRCNNX (Sharp Mode)**, the `CTRL+Q` toggle is temporarily locked.
+    * *Reasoning:* FSRCNNX is designed for sharpness; applying the heavy "Texture" mask on top of it contradicts the upscaler's purpose. Switch back to NNEDI3 (Press 'Q') to unlock it.
+
+---
+
 🚀 Performance & Logic
 
 Fixed: Native 4K (2160p) content is no longer processed by FSRCNNX/NNEDI3. Previously, the logic treated 4K as "High Quality" and attempted to upscale it further.

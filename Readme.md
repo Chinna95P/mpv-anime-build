@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.5
+# 🎬 MPV Anime Build v1.5.1
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -229,20 +229,20 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 
 Non-anime content uses a **completely separate processing path** featuring "Modern TV" adaptive sharpening.
 
-### Resolution Tiers (v1.3.1 Logic)
+### Resolution Tiers (v1.5.1 Logic)
 | Resolution | Profile | Technology |
 | :--- | :--- | :--- |
-| **< 576p** | `HQ-SD` | SSimSuperRes + Adaptive Sharpen (SD Tuned) |
-| **576p – <1080p** | `HQ-HD` | NNEDI3 + KrigBilateral + Adaptive Sharpen (HD Tuned) |
+| **< 576p** | `HQ-SD` | **NNEDI3-256** (Max Quality) or **FSRCNNX** (Sharp Mode) |
+| **576p – <1080p** | `HQ-HD` | **NNEDI3-64** (Balanced) or **FSRCNNX** (Sharp Mode) |
 | **≥ 1080p** | `High-Quality` | Native + Adaptive Sharpen + Glaze (Film Grain) |
 
 ### 🎮 Controls
 | Shortcut | Context | Function |
 | :--- | :--- | :--- |
-| `CTRL + q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Texture mode preserves grain/noise for older DVDs)* |
-| `Q` | **HD Only** | Toggle **NNEDI3 (Auto)** ↔ **FSRCNNX (Manual High-Quality)**. <br>*(Switches logic between Geometry-focused and Texture-focused upscaling)* |
+| `CTRL + q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Only works in NNEDI3 mode. Locked if FSRCNNX is active)* |
+| `Q` | **SD & HD** | **Master Upscaler Toggle** (NNEDI3 ↔ FSRCNNX). <br>*(Switches logic between Geometry-focused and Texture-focused upscaling for both SD and HD)* |
 
-> **Note:** The shortcuts `Q` and `Ctrl+q` are **smart**. They will not activate if you are playing content that doesn't match their resolution tier.
+> **Note:** The shortcuts are **smart**. `CTRL+Q` will automatically lock itself if you are using the Sharp (FSRCNNX) mode to prevent logic conflicts.
 
 ---
 
