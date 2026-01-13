@@ -360,6 +360,82 @@
                     <div class="c-compare__handle"></div>
                 </div>
             </div>
+
+            <div class="reveal" style="margin-top: 80px; margin-bottom: 60px;">
+                <h2 class="slider-title" style="margin-bottom: 30px;">Anime Mode: Stylized vs. Faithful</h2>
+                <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    This build offers two distinct ways to watch anime. Switch instantly using <code style="background:rgba(110,118,129,0.4); padding:2px 6px; border-radius:4px;">CTRL + '</code> (OFF) and <code style="background:rgba(110,118,129,0.4); padding:2px 6px; border-radius:4px;">CTRL + ;</code> (ON).
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 50px;">
+                    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 25px;">
+                        <h3 style="color: #58a6ff; margin-bottom: 15px;">1. Anime4K Mode (ON)</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 10px;"><em>The "Modern" Look</em></p>
+                        <ul style="list-style: none; padding: 0; color: var(--text-main);">
+                            <li style="margin-bottom: 8px;"><strong>Philosophy:</strong> "Make it look like 4K."</li>
+                            <li style="margin-bottom: 8px;"><strong>Effect:</strong> Aggressively sharpens lines, thins heavy borders, and removes noise.</li>
+                            <li><strong>Result:</strong> Razor-sharp, highly stylized image. Great for older anime or making 720p look like modern 4K.</li>
+                        </ul>
+                    </div>
+                    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 25px;">
+                        <h3 style="color: #3fb950; margin-bottom: 15px;">2. Reference Mode (OFF)</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 10px;"><em>The "Faithful" Look</em></p>
+                        <ul style="list-style: none; padding: 0; color: var(--text-main);">
+                            <li style="margin-bottom: 8px;"><strong>Philosophy:</strong> "Show exactly what the artist drew."</li>
+                            <li style="margin-bottom: 8px;"><strong>Effect:</strong> Uses professional scalers (NNEDI3 & FSRCNNX) to smooth lines naturally.</li>
+                            <li><strong>Result:</strong> Smooth, cinema-quality image preserving line weight, film grain, and background textures.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3 style="text-align: center; margin-bottom: 20px; color: #fff;">Resolution Handling Comparison</h3>
+                <div class="hdr-table-container">
+                    <table class="hdr-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Resolution</th>
+                                <th style="width: 35%;">Anime4K Mode (ON)</th>
+                                <th style="width: 35%;">Reference Mode (OFF)</th>
+                                <th style="width: 15%;">Best Choice</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SD (<576p)</strong><br><span style="font-size:0.8em; opacity:0.7;">(DVDs, Old Rips)</span></td>
+                                <td><strong>Restoration Focused</strong><br>Aggressively removes compression artifacts. Attempts to "re-draw" jagged lines.</td>
+                                <td><strong>Detail Focused (NNEDI3-256)</strong><br>Uses deep neural networks to reconstruct details while preserving retro texture.</td>
+                                <td><span class="badge badge-blue">ON</span> for Blocky<br><span class="badge badge-green">OFF</span> for Quality</td>
+                            </tr>
+                            <tr>
+                                <td><strong>HD (720p)</strong><br><span style="font-size:0.8em; opacity:0.7;">(TV Rips, Web)</span></td>
+                                <td><strong>Upscale Focused</strong><br>Sharpening maximized to simulate 4K. Lines become thin and crisp.</td>
+                                <td><strong>Smoothness Focused (NNEDI3-64)</strong><br>Prioritizes smooth, connected lines over raw sharpness. No ringing.</td>
+                                <td><span class="badge badge-blue">ON</span> for Crisp<br><span class="badge badge-green">OFF</span> for Accurate</td>
+                            </tr>
+                            <tr>
+                                <td><strong>FHD (1080p)</strong><br><span style="font-size:0.8em; opacity:0.7;">(Blu-Ray)</span></td>
+                                <td><strong>Enhancement Focused</strong><br>Adds "digital sheen" and enhances edge contrast.</td>
+                                <td><strong>Fidelity Focused (FSRCNNX)</strong><br>Fixes color bleeding (KrigBilateral) and adds cinematic grain.</td>
+                                <td><span class="badge badge-blue">ON</span> for Razor<br><span class="badge badge-green">OFF</span> for Purist</td>
+                            </tr>
+                            <tr>
+                                <td><strong>4K (2160p)</strong><br><span style="font-size:0.8em; opacity:0.7;">(Modern Movies)</span></td>
+                                <td><strong>Pass-through</strong><br>Light processing to avoid over-sharpening.</td>
+                                <td><strong>Native 1:1</strong><br>Bit-perfect pixel mapping. No upscaling needed.</td>
+                                <td><span class="badge badge-green">OFF</span> Always</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 40px; background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
+                    <h4 style="color: #58a6ff; margin-bottom: 10px;">💡 The "Purist" Workflow</h4>
+                    <p style="margin-bottom: 0;">
+                        Want studio-mastered quality with professional scaling? <br>
+                        1. Press <strong>CTRL + '</strong> (Mode OFF). 2. Press <strong>Q</strong> to toggle upscaler (<strong>NNEDI3</strong> for soft, <strong>FSRCNNX</strong> for sharp).
+                    </p>
+                </div>
+            </div>
             
             <div class="reveal">
                 <h3 style="text-align:center; color:var(--text-muted); margin-bottom:20px; margin-top:60px;">HDR Tone Mapping & Passthrough Tests</h3>
