@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+🚀 Performance & Logic
+
+Fixed: Native 4K (2160p) content is no longer processed by FSRCNNX/NNEDI3. Previously, the logic treated 4K as "High Quality" and attempted to upscale it further.
+
+New Feature: Added [4K-Native] profile to mpv.conf. This profile disables glsl-shaders (upscalers) and applies only adaptive-sharpen-modern for crisp 1:1 playback.
+
+Updated Logic: anime_profile_controller.lua now includes a strict gate for height >= 2160 before checking for HD/FHD profiles.
+
 ---
 
 ## [v1.5] – The "Universal & SVP" Update
