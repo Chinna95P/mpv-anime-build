@@ -241,4 +241,4 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **ModernZ Skin:** Samillion
 - **Thumbfast:** po5
-- **Config & Logic:** Customized for MPV Anime Build v1.3.2
+- **Config & Logic:** Customized for MPV Anime Build
