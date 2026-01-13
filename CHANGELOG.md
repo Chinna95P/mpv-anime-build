@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.5.2] – The "RTX Manual Override" Update
+
+### 🚀 Critical Fixes (Nvidia VSR)
+* **Manual VSR Toggle (`vsr_auto.lua`):**
+    * **The Change:** Switched VSR activation from "Auto-Detection" to **"Manual Override"**.
+    * **Why:** On many Hybrid Laptops (Optimus), MPV cannot "see" the dedicated RTX GPU even when it is being used, causing the script to falsely block VSR.
+    * **New Behavior:** Pressing **`V`** now forces the command directly to the GPU driver. If you have an RTX card, it works instantly.
+* **Linux Safety Gate:**
+    * Added a strict platform check to `vsr_auto.lua`.
+    * **Behavior:** If you press `V` on Linux, the script now blocks the command and displays an error ("Windows Only"), preventing MPV from crashing (since VSR relies on DirectX 11).
+
+### 📚 Documentation
+* **Anime Mode Philosophy:** Added a new **"Stylized vs. Faithful"** section to the Readme. This breaks down exactly when to use Anime4K (Modern look) vs. NNEDI3 (Reference look).
+* **Gallery Update:** Added visual evidence and technical stats for **RTX VSR (AI Upscaling)** to the "Technical Verification" section.
+* **FAQ Update:** Clarified that the `V` toggle is manual and should **NOT** be used on AMD/Intel cards (as it would degrade quality).
+
+---
+
 ## [v1.5.1] – The "Sharp SD" Update
 
 ### ✨ New Features
@@ -22,17 +40,7 @@ All notable changes to this project are documented here.
 
 ---
 
-🚀 Performance & Logic
-
-Fixed: Native 4K (2160p) content is no longer processed by FSRCNNX/NNEDI3. Previously, the logic treated 4K as "High Quality" and attempted to upscale it further.
-
-New Feature: Added [4K-Native] profile to mpv.conf. This profile disables glsl-shaders (upscalers) and applies only adaptive-sharpen-modern for crisp 1:1 playback.
-
-Updated Logic: anime_profile_controller.lua now includes a strict gate for height >= 2160 before checking for HD/FHD profiles.
-
----
-
-## [v1.5] – The "Universal & SVP" Update
+## [v1.5] – The "Universal, 4K & SVP" Update
 
 ### ✨ New Features
 * **Universal Linux Support:** The build is now 100% compatible with Linux (Wayland/X11).
@@ -42,6 +50,9 @@ Updated Logic: anime_profile_controller.lua now includes a strict gate for heigh
 * **SVP 4 Pro Compatibility Mode:**
     * **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
     * **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
+* **Native 4K Logic Gate:**
+    * **The Fix:** Added a robust "Logic Gate" for Native 4K (2160p) content using the new `[4K-Native]` profile.
+    * **Why:** Previous versions treated 4K video as "HD" and attempted to upscale it further to 8K using FSRCNNX, wasting massive amounts of GPU power.
 
 ### 🐛 Fixed
 * **Shader Syntax:** Replaced `glsl-shaders-set="..."` with `glsl-shaders-append`. This fixes a critical bug where Linux would fail to parse multiple shaders if they were separated by semicolons (`;`).

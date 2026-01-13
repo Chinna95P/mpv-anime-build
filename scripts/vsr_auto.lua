@@ -1,5 +1,5 @@
 -- vsr_auto.lua
--- v1.5: Toggles Nvidia VSR with Smart State Restoration & Linux Safety
+-- v1.5.2: Manual RTX VSR Toggle with Linux Safety Gate
 local mp = require 'mp'
 local vsr_active = false
 
@@ -8,36 +8,23 @@ local original_hwdec = "auto-copy"
 local stored_shaders = nil
 local stored_deband = nil
 
--- Create an OSD Overlay (Professional rendering)
+-- OSD Overlay
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 
--- Color Codes (ASS Format: &HBBGGRR&)
-local C_GREEN  = "{\\c&H00FF00&}"  -- Bright Green
-local C_YELLOW = "{\\c&H00FFFF&}"  -- Yellow
-local C_RED    = "{\\c&H0000FF&}"  -- Red
-local C_WHITE  = "{\\c&HFFFFFF&}"  -- White (Reset)
-
-function show_vsr_osd(text)
+function show_osd(text)
     overlay.data = "{\\an7}{\\fs26}" .. text
     overlay:update()
     if timer then timer:kill() end
-    timer = mp.add_timeout(3, function() overlay:remove() end)
+    timer = mp.add_timeout(4, function() overlay:remove() end)
 end
 
 function toggle_vsr()
-    -- 0. OS Safety Check (New)
-    -- VSR depends on D3D11 (DirectX), which is Windows-only.
+    -- 1. LINUX/OS SAFETY BLOCK
+    -- VSR uses d3d11vpp, which is strictly Windows-only.
     local platform = mp.get_property("platform")
     if platform ~= "windows" then
-        show_vsr_osd(C_RED .. "VSR Error: Windows Only (D3D11)")
-        return
-    end
-
-    -- 1. Check for RTX GPU
-    local renderer = mp.get_property("gpu-renderer-string", ""):upper()
-    if not renderer:find("RTX") and not renderer:find("NVIDIA") then
-        show_vsr_osd(C_RED .. "VSR Error: No Nvidia RTX GPU detected.")
+        show_osd("{\\c&H0000FF&}VSR Error: Windows Only (DirectX 11)")
         return
     end
 
@@ -46,47 +33,37 @@ function toggle_vsr()
         mp.command('vf clr ""') 
         mp.set_property("hwdec", original_hwdec)
         
-        -- SMART RESTORE: Re-apply the shaders/deband we saved earlier
-        if stored_shaders then
-            mp.set_property_native("glsl-shaders", stored_shaders)
-        end
-        if stored_deband then
-            mp.set_property("deband", stored_deband)
-        end
+        -- Restore Shaders & Deband
+        if stored_shaders then mp.set_property_native("glsl-shaders", stored_shaders) end
+        if stored_deband then mp.set_property("deband", stored_deband) end
 
-        -- Message: Yellow text
-        show_vsr_osd(C_YELLOW .. "Nvidia VSR: Disabled " .. C_WHITE .. "(Restored Previous Config)")
+        show_osd("{\\c&H00FFFF&}Nvidia VSR: Disabled {\\c&HFFFFFF&}(Restored Config)")
         vsr_active = false
     else
         -- ENABLE VSR
-        -- 1. Snapshot current state (Memory)
         original_hwdec = mp.get_property("hwdec") or "auto-copy"
         stored_shaders = mp.get_property_native("glsl-shaders")
         stored_deband  = mp.get_property("deband")
 
-        -- 2. Apply VSR Profile
+        -- 1. Apply Profile & Clear Shaders
         mp.command("apply-profile Nvidia-VSR")
-        
-        -- 3. Clear Shaders (VSR handles scaling now)
-        mp.command('no-osd change-list glsl-shaders clr ""')
+        mp.command('no-osd change-list glsl-shaders clr ""') 
 
-        local pixel_format = mp.get_property("video-params/pixelformat", "")
-        local target_format = "nv12" 
-        local format_msg = "NV12 (8-bit)"
-
-        -- Check for 10-bit source
-        if pixel_format and (pixel_format:match("10") or pixel_format:match("12") or pixel_format:match("16")) then
-            target_format = "p010"
-            format_msg = "P010 (10-bit)"
+        -- 2. Format Logic (Crucial for 10-bit Anime)
+        local p_fmt = mp.get_property("video-params/pixelformat", "")
+        local fmt = "nv12"
+        local msg = "NV12"
+        if p_fmt and (p_fmt:match("10") or p_fmt:match("12") or p_fmt:match("16")) then
+            fmt = "p010"
+            msg = "P010"
         end
-
-        local cmd = string.format("vf set d3d11vpp=scale=2.0:scaling-mode=nvidia:format=%s", target_format)
-        mp.command(cmd)
         
-        -- Message: Green text
-        show_vsr_osd(C_GREEN .. "Nvidia VSR: Active " .. C_WHITE .. "(" .. format_msg .. ")")
+        -- 3. Force VSR Command
+        mp.command(string.format("vf set d3d11vpp=scale=2.0:scaling-mode=nvidia:format=%s", fmt))
+        
+        show_osd("{\\c&H00FF00&}Nvidia VSR: Active {\\c&HFFFFFF&}(" .. msg .. " - Manual)")
         vsr_active = true
     end
 end
 
-mp.add_key_binding("V", "toggle-vsr-smart", toggle_vsr)
+mp.add_key_binding("V", "toggle-vsr", toggle_vsr)

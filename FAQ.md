@@ -14,9 +14,12 @@
 Simply press **`V`** (`Shift+v`) on your keyboard.
 * **Status: Green** ("Active") means VSR is working.
 * **Status: Yellow** ("Disabled") means VSR is off.
-* **Status: Red** ("Error") means no supported Nvidia GPU was found.
 
-> **Note:** You must also enable "RTX Video Enhancement" in your **Nvidia Control Panel** (under *Adjust Video Image Settings*) and set the Quality to **4** for best results.
+> **⚠️ Important:** The toggle is **Manual**. 
+> * **If you have an RTX card:** It will work perfectly. 
+> * **If you have an AMD/Intel/GTX card:** Turning this ON will force basic driver scaling (bilinear), which usually looks worse than the default MPV upscalers. **Do not enable this unless you have an RTX GPU.**
+>
+> *Note:* You must also enable "RTX Video Enhancement" in your **Nvidia Control Panel** (under *Adjust Video Image Settings*) and set the Quality to **4** for best results.
 </details>
 
 <details>
@@ -41,7 +44,7 @@ This usually happens if your GPU drivers are outdated or unstable.
 
 **Yes, absolutely.**
 * **Universal Support:** The 4K Upscaling (Anime4K), HDR Passthrough, and "Modern TV" Live Action shaders work on **ALL** GPUs (Nvidia, AMD, Intel).
-* **The Only Exception:** The **`V`** key (Nvidia VSR) will simply stay disabled on non-Nvidia cards.
+* **The Only Exception:** The **`V`** key (Nvidia VSR) is designed for RTX cards. If you use it on AMD/Intel, it won't crash, but it won't look good either.
 * **Note:** v1.3.1 fixed hardware decoding for AMD/Intel, so you get full performance!
 </details>
 

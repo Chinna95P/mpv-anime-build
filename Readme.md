@@ -1,8 +1,8 @@
-# 🎬 MPV Anime Build v1.5.1
+# 🎬 MPV Anime Build v1.5.2
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
-> **Anime-aware MPV configuration with automatic Anime4K, Nvidia VSR, and Universal HDR support — zero manual profile switching.**
+> **Anime-aware MPV configuration with automatic Anime4K, Nvidia VSR, and Universal HDR support.**
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
@@ -51,10 +51,13 @@ This build now automatically detects your monitor's capabilities via Windows.
 * **Manual Override:** Press **`H`** at any time to toggle between Passthrough (TV) and Tone Mapping (SDR) manually when playing HDR.
 * **Dolby Vision:** Plays correctly on all devices. If your display does not support Dolby Vision, MPV automatically **falls back to the HDR10 Base Layer**.
 
-### 🚀 Nvidia VSR Automation (RTX Only)
-Press **`V`** to toggle **Nvidia Video Super Resolution**. The build uses a smart script to prevent color banding:
-* **10-bit Video (Anime/HDR):** Uses `P010` format to preserve high-precision colors.
-* **8-bit Video (Web/YouTube):** Uses `NV12` format for maximum compatibility.
+### 🚀 Nvidia VSR (Manual Toggle)
+Press **`V`** to toggle **Nvidia Video Super Resolution**. 
+
+> **⚠️ Warning for Non-RTX Users:**
+> This toggle is **Manual**. It forces the GPU to upscale the video using the "Nvidia-VSR" method (Windows Only).
+> * **RTX 2000/3000/4000:** Activates AI Upscaling (High Quality).
+> * **GTX / AMD / Intel:** Will force basic driver scaling, which often looks **worse** than MPV's default upscalers. **Do not use this unless you have an RTX card.**
 
 ---
 
@@ -117,6 +120,14 @@ Comparison of restoration modes for DVD-quality (<576p) content.
 | ![SD Clean](screenshots/sd-clean.jpg) | ![SD Texture](screenshots/sd-texture.jpg) |
 | *Cleans artifacts & noise* | *Preserves original film grain* |
 
+### 🔹 Nvidia VSR (RTX AI Upscaling)
+Example of RTX VSR Upscaling active on a 360p Live Action Source.
+
+| **RTX VSR Active (Green OSD)** |
+| :---: |
+| ![RTX VSR](screenshots/rtx-vsr-on.jpg) |
+| *AI Upscaling via Nvidia RTX 2060* |
+
 ---
 
 ## 🤓 Technical Verification (Shaders Info)
@@ -145,6 +156,11 @@ Click below to see the active shader chains for each mode (Proof of Logic).
 | 4K Native Pipeline |
 | :---: |
 | ![Info 4K](screenshots/shaders-info-live-action-4k-auto.jpg) |
+
+### Nvidia VSR (Manual)
+| VSR Active | Detail View |
+| :---: | :---: |
+| ![VSR Stats 1](screenshots/rtx-vsr-stats1.jpg) | ![VSR Stats 2](screenshots/rtx-vsr-stats2.jpg) |
 
 </details>
 
