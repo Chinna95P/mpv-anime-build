@@ -13,9 +13,6 @@ For the auto-switching logic to function correctly, your files must follow these
 
 ---
 
-
-
-
 ## [v1.5] – The "Universal, 4K & SVP" Update
 
 ### ⚡ Critical Optimization
@@ -24,8 +21,6 @@ For the auto-switching logic to function correctly, your files must follow these
 * **The Fix:** Added a robust "Logic Gate" for Native 4K (2160p) content.
 * **Why:** Previous versions treated 4K video as "HD" and attempted to upscale it further to 8K using FSRCNNX, wasting massive amounts of GPU power.
 * **Result:** Native 4K content now bypasses upscalers entirely (using the new `[4K-Native]` profile), ensuring crisp 1:1 playback with **zero performance penalty**.
-
-
 
 ### ✨ New Features
 
@@ -39,14 +34,12 @@ For the auto-switching logic to function correctly, your files must follow these
 * **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
 * **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
 
-
-
 ### 🐛 Fixed
 
 * **Shader Syntax:** Replaced `glsl-shaders-set="..."` with `glsl-shaders-append`. This fixes a critical bug where Linux would fail to parse multiple shaders if they were separated by semicolons (`;`).
 * **VSR Logic:** Updated `vsr_auto.lua` to smartly restore your previous specific shader profile (Anime vs Live Action) when disabled, instead of just resetting to default.
----
 
+---
 
 ## 🌟 New in v1.4: Universal HDR & VSR
 
@@ -62,6 +55,39 @@ This build now automatically detects your monitor's capabilities via Windows.
 Press **`V`** to toggle **Nvidia Video Super Resolution**. The build uses a smart script to prevent color banding:
 * **10-bit Video (Anime/HDR):** Uses `P010` format to preserve high-precision colors.
 * **8-bit Video (Web/YouTube):** Uses `NV12` format for maximum compatibility.
+
+---
+
+## 🎨 Anime Mode: Stylized vs. Faithful
+
+This build offers two distinct ways to watch anime. You can switch between them instantly using `CTRL + '` (OFF) and `CTRL + ;` (ON), or let the Auto-Detection decide.
+
+### 1. Anime4K Mode (ON) – *The "Modern" Look*
+* **Philosophy:** "Make it look like 4K."
+* **Effect:** Aggressively sharpens lines, thins heavy borders, and removes noise.
+* **Result:** A razor-sharp, highly stylized image that pops off the screen. Great for older anime or making 720p look like modern 4K releases.
+
+### 2. Reference Mode (OFF) – *The "Faithful" Look*
+* **Philosophy:** "Show exactly what the artist drew."
+* **Effect:** Uses professional scalers (**NNEDI3** & **FSRCNNX**) to smooth lines naturally without altering the art style.
+* **Result:** A smooth, cinema-quality image that preserves the original line weight, film grain, and background textures.
+
+### 📊 Comparison Table: How They Handle Resolutions
+
+| Resolution | Anime4K Mode (ON) | Reference / Live-Action Mode (OFF) | Best Choice For... |
+| :--- | :--- | :--- | :--- |
+| **SD (<576p)**<br>*(DVDs, Old Rips)* | **Restoration Focused**<br>Aggressively removes compression artifacts and noise. Attempts to "re-draw" jagged lines to look HD. | **Detail Focused (NNEDI3-256)**<br>Uses deep neural networks to reconstruct missing details while preserving the original "retro" texture and grain. | **ON:** Poor quality / blocky files.<br>**OFF:** High-quality DVD remuxes. |
+| **HD (720p)**<br>*(TV Rips, Web)* | **Upscale Focused**<br>Sharpening is maximized to simulate a 4K resolution. Lines become very thin and crisp. | **Smoothness Focused (NNEDI3-64)**<br>Prioritizes smooth, connected lines (anti-aliasing) over raw sharpness. No "ringing" artifacts. | **ON:** Making soft video look crisp.<br>**OFF:** Accurate playback. |
+| **FHD (1080p)**<br>*(Blu-Ray)* | **Enhancement Focused**<br>Adds a "digital sheen." Enhances edge contrast for a pop-out effect. | **Fidelity Focused (FSRCNNX)**<br>Uses `KrigBilateral` to fix color bleeding and `Glaze` to add subtle cinematic grain. Reference quality. | **ON:** If you prefer the "Razor" look.<br>**OFF:** Purists & Blu-Ray watching. |
+| **4K (2160p)**<br>*(Modern Movies)* | **Pass-through**<br>Light processing to avoid over-sharpening already perfect video. | **Native 1:1**<br>Bit-perfect pixel mapping. No upscaling needed. | **OFF:** Always preferred for Native 4K. |
+
+### 💡 The "Purist" Workflow
+If you want to watch anime exactly as the studio mastered it, but with better scaling than a standard player:
+
+1.  Press **`CTRL + '`** to force **Anime Mode OFF**.
+2.  Press **`Q`** to toggle your upscaler preference:
+    * **NNEDI3 (Default):** Soft, natural, artifact-free lines.
+    * **FSRCNNX (Sharp):** Maximum texture detail and crispness.
 
 ---
 
@@ -257,5 +283,5 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **ModernZ Skin:** Samillion
 - **Thumbfast:** po5
-- **Shaders:**  bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
+- **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
 - **Config & Logic:** Customized and built for MPV Anime Build by Chinna95P
