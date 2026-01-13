@@ -14,21 +14,37 @@ For the auto-switching logic to function correctly, your files must follow these
 ---
 
 
-## [v1.5] – The "Universal & SVP" Update
+
+
+## [v1.5] – The "Universal, 4K & SVP" Update
+
+### ⚡ Critical Optimization
+
+* **Native 4K Logic Gate (Smart Passthrough):**
+* **The Fix:** Added a robust "Logic Gate" for Native 4K (2160p) content.
+* **Why:** Previous versions treated 4K video as "HD" and attempted to upscale it further to 8K using FSRCNNX, wasting massive amounts of GPU power.
+* **Result:** Native 4K content now bypasses upscalers entirely (using the new `[4K-Native]` profile), ensuring crisp 1:1 playback with **zero performance penalty**.
+
+
 
 ### ✨ New Features
+
 * **Universal Linux Support:** The build is now 100% compatible with Linux (Wayland/X11).
-    * **Dual-OS Config:** `mpv.conf` now automatically detects your OS. It loads `d3d11` for Windows and `vulkan` for Linux without needing manual edits.
-    * **Script Safety:** `vsr_auto.lua` and `hdr_detect.lua` now include OS-checks to prevent Windows-only commands (like VSR) from crashing Linux.
-    * **Universal Paths:** Updated all shader paths and script logic to work with both Windows (`%APPDATA%`) and Linux (`~/.config/mpv`) directory structures.
+* **Dual-OS Config:** `mpv.conf` now automatically detects your OS. It loads `d3d11` for Windows and `vulkan` for Linux without needing manual edits.
+* **Script Safety:** `vsr_auto.lua` and `hdr_detect.lua` now include OS-checks to prevent Windows-only commands (like VSR) from crashing Linux.
+* **Universal Paths:** Updated all shader paths and script logic to work with both Windows (`%APPDATA%`) and Linux (`~/.config/mpv`) directory structures.
+
+
 * **SVP 4 Pro Compatibility Mode:**
-    * **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
-    * **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
+* **The Fix:** Enforced `hwdec=auto-copy` on Windows. This fixes the conflict where Native D3D11 decoding was locking video frames on the GPU, preventing SVP from interpolating them.
+* **Result:** You can now use SVP 4 Pro (Frame Generation) and Nvidia VSR (Upscaling) simultaneously.
+
+
 
 ### 🐛 Fixed
+
 * **Shader Syntax:** Replaced `glsl-shaders-set="..."` with `glsl-shaders-append`. This fixes a critical bug where Linux would fail to parse multiple shaders if they were separated by semicolons (`;`).
 * **VSR Logic:** Updated `vsr_auto.lua` to smartly restore your previous specific shader profile (Anime vs Live Action) when disabled, instead of just resetting to default.
-
 ---
 
 
@@ -241,4 +257,5 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **ModernZ Skin:** Samillion
 - **Thumbfast:** po5
-- **Config & Logic:** Customized for MPV Anime Build
+- **Shaders:**  bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
+- **Config & Logic:** Customized and built for MPV Anime Build by Chinna95P
