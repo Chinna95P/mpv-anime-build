@@ -228,16 +228,22 @@ local function evaluate()
         return
     end
 
+    -- 4K LOGIC: h >= 2160 (Native 4K)
+    -- Prevents FSRCNNX from trying to upscale content that is already 4K
+    if h >= 2160 then
+        apply_profile("4K-Native")
+        return
+    end
+
     -- HD LOGIC (UPDATED): 576p <= h < 1080p
-    -- We removed the redundant check because if h >= 576, it passes the block above.
     if not hd_manual_override and h < 1080 then
         apply_profile("HQ-HD-NNEDI")
     else
-        -- Fallback for >= 1080p OR Manual Override
+        -- Fallback for >= 1080p (FHD) OR Manual Override (HD)
+        -- This applies FSRCNNX, which is ideal for 1080p -> 4K
         apply_profile("High-Quality")
     end
 end
-
 -------------------------------------------------
 -- SCRIPT-BINDINGS
 -------------------------------------------------
