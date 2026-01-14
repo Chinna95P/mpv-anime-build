@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.6.1] – HDR Detection Hotfix
+
+### 🐛 Critical Fixes
+* **Hybrid HDR Detection (`hdr_detect.lua`):**
+    * **The Issue:** On some Windows setups, MPV's internal API would incorrectly report "SDR" (BT.709) even when Windows HDR was enabled in the OS settings. This caused the script to force Tone Mapping instead of Passthrough.
+    * **The Fix:** Implemented a **Silent PowerShell Fallback**. If MPV reports SDR, the script now silently queries the Windows API (`WmiMonitorAdvancedColorProperties`) to verify the *real* HDR status.
+    * **Logging:** Added a diagnostic log message to the MPV console (`[HDR-Detect] Windows Settings report HDR: ON/OFF`) to help users verify their system state.
+    * **Result:** 100% accurate Auto-Switching for OLED/HDR TV users.
+
+---
+
 ## [v1.6] – The "Mobile Power" Update
 
 ### 🔋 New Features

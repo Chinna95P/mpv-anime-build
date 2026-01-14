@@ -1,9 +1,14 @@
 -- scripts/hdr_detect.lua
--- v1.5: Universal Windows/Linux HDR Detection
+-- v1.6.1: Hybrid Detection (Internal + PowerShell Fallback)
+-- HOTFIX: Fixed false negatives where MPV reported SDR despite Windows HDR being ON.
+-- LOGGING: Added console output for Windows HDR status.
+
 local mp = require 'mp'
+local utils = require 'mp.utils'
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_auto_state = nil 
+local os_hdr_confirmed = false -- Caches the PowerShell result
 
 -- Colors
 local C_GREEN  = "{\\c&H00FF00&}" 
@@ -18,21 +23,65 @@ function show_hdr_osd(text)
     timer = mp.add_timeout(3, function() overlay:remove() end)
 end
 
-function is_windows_hdr_active()
-    -- On Linux, we cannot easily read "Windows HDR" status.
-    -- We assume if the user is playing HDR content on Linux, they want Passthrough 
-    -- unless they manually toggle it off.
-    local platform = mp.get_property("platform")
-    if platform ~= "windows" then
-        return true -- Linux: Assume display supports HDR for now (let Manual Toggle fix it if not)
+-- --------------------------------------------------------------------------
+-- POWER CHECK: Queries Windows WMI directly to see if HDR is enabled
+-- --------------------------------------------------------------------------
+local function check_windows_hdr_powershell()
+    -- Only run on Windows
+    if mp.get_property("platform") ~= "windows" then return false end
+
+    -- WMI Command: Checks 'AdvancedColorEnabled' status for active monitors
+    local cmd = 'powershell -NoProfile -Command "Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction SilentlyContinue | Where-Object { $_.AdvancedColorEnabled -eq $true } | Measure-Object | Select-Object -ExpandProperty Count"'
+    
+    local res = utils.subprocess({
+        args = {"powershell", "-NoProfile", "-Command", cmd},
+        playback_only = false,
+        capture_stdout = true
+    })
+
+    if res.status == 0 and res.stdout then
+        -- If Count > 0, at least one monitor has HDR (Advanced Color) enabled
+        local count = tonumber(res.stdout:match("%d+"))
+        if count and count > 0 then 
+            return true 
+        end
+    end
+    return false
+end
+
+-- Update the OS HDR status cache (Runs on file load or VO change)
+local function refresh_os_hdr_status()
+    os_hdr_confirmed = check_windows_hdr_powershell()
+    
+    -- DIAGNOSTIC LOG (v1.6.1 Feature)
+    if mp.get_property("platform") == "windows" then
+        if os_hdr_confirmed then
+            print("[HDR-Detect] Windows Settings report HDR: ON")
+        else
+            print("[HDR-Detect] Windows Settings report HDR: OFF")
+        end
     end
 
+    -- Re-evaluate logic after refreshing status
+    check_hdr_state()
+end
+-- --------------------------------------------------------------------------
+
+function is_windows_hdr_active()
+    local platform = mp.get_property("platform")
+    if platform ~= "windows" then
+        return true -- Linux: Assume True (Manual Toggle 'H' handles errors)
+    end
+
+    -- 1. Trust PowerShell (The Deep Check)
+    if os_hdr_confirmed then return true end
+
+    -- 2. Fallback to MPV internal detection (The Fast Check)
     local d = mp.get_property_native("display-params")
-    if not d then return false end
-    
-    -- Windows Check
-    if (d.primaries == "bt.2020" or d.primaries == "dci-p3") then return true end
-    if (d.gamma == "pq" or d.gamma == "st2084" or d.gamma == "hybrid-log-gamma") then return true end
+    if d then 
+        if (d.primaries == "bt.2020" or d.primaries == "dci-p3") then return true end
+        if (d.gamma == "pq" or d.gamma == "st2084" or d.gamma == "hybrid-log-gamma") then return true end
+    end
 
     return false
 end
@@ -55,17 +104,15 @@ function check_hdr_state()
 
     -- Apply State
     if target_state == "passthrough" then
-        print("[HDR-Detect] Enabling PASSTHROUGH")
+        print("[HDR-Detect] Action: Enabling PASSTHROUGH")
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
         
-        -- OSD Message (differentiate auto logic)
-        local msg = (mp.get_property("platform") == "windows") and "(Auto)" or "(Linux Default)"
-        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. msg)
+        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Auto)")
         
     elseif target_state == "tonemap" then
-        print("[HDR-Detect] Enabling TONE MAPPING")
+        print("[HDR-Detect] Action: Enabling TONE MAPPING")
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
@@ -77,7 +124,7 @@ function check_hdr_state()
     end
 end
 
--- Manual Toggle (Works on both OS)
+-- Manual Toggle
 function toggle_hdr_manual()
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     if video_peak <= 1 then
@@ -102,6 +149,11 @@ function toggle_hdr_manual()
 end
 
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
-mp.observe_property("display-params", "native", check_hdr_state)
+
+-- Triggers
 mp.observe_property("video-params", "native", check_hdr_state)
-mp.observe_property("vo-configured", "bool", function(name, val) if val then check_hdr_state() end end)
+
+-- Refresh OS status only on critical events to avoid lag
+mp.observe_property("vo-configured", "bool", function(name, val) 
+    if val then refresh_os_hdr_status() end 
+end)
