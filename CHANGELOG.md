@@ -4,6 +4,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.6] – The "Mobile Power" Update
+
+### 🔋 New Features
+* **Power Manager (`power_manager.lua`):**
+    * **Laptop Detection:** Automatically detects if you are running on a laptop.
+    * **Battery Awareness:** Automatically switches MPV to a `[Low-End]` profile when unplugged (Battery Mode). This disables high-end shaders (NNEDI3/FSRCNNX/Anime4K) and switches scaling to bilinear to save battery.
+    * **Smart Resume:** Pauses playback briefly during the switch to prevent stuttering or glitches.
+    * **Manual Override:** Added **`Ctrl+p`** to force "Low Power Mode" ON/OFF manually (useful for desktops or saving energy while plugged in).
+* **SVP Intelligence:**
+    * **The Problem:** SVP 4 Pro is aggressive and often tries to re-hook into MPV even after we disable it for battery saving.
+    * **The Fix:** The script now cleanly hands off control. We also added a guide (see Readme) for configuring SVP's internal "Battery Profile" for perfect synchronization.
+
+### 🛠️ Improvements
+* **OSD Stacking:** Rewrote the OSD logic in `power_manager.lua` to properly stack messages *below* the Anime Profile info, preventing text overlap.
+* **Logic Handshake:** Updated `anime_profile_controller.lua` with a new `force-evaluate` hook. When you plug your laptop back in, the Power Manager forces the Anime Controller to re-scan the file and restore the exact correct profile (Anime/Live-Action/SD/HD) automatically.
+* **Fallback Profiles:** Added `[Fallback-SD-Tier2]` and `[Fallback-HD-Tier2]` to `mpv.conf` for future performance monitoring features.
+
+---
+
 ## [v1.5.2] – The "RTX Manual Override" Update
 
 ### 🚀 Critical Fixes (Nvidia VSR)

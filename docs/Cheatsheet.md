@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v1.5.1 – Cheat Sheet
+# ⚡ MPV Anime Build v1.6 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
@@ -118,3 +118,4 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
 | **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
 | **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD). |
+| **`CTRL+p`** | **Power Mode** | Toggle Low-Power Mode (Battery Saver) manually. |

@@ -1,13 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.5.1 (Unified Q Toggle)
---    UPDATED:  2026-01-13
---    
---    CHANGES:
---    - Unified 'Q' key behavior:
---      * HD: Toggles NNEDI3 vs FSRCNNX (Existing)
---      * SD: Toggles NNEDI3 vs FSRCNNX (New)
---    - Added lock to CTRL+Q when SD is in FSRCNNX mode.
+--    VERSION:  v1.5.2 (Force Refresh Fix)
+--    UPDATED:  2026-01-14
 -- ]]
 
 local mp = require("mp")
@@ -40,7 +34,6 @@ local anime4k_mode = "A"         -- A B C AA BB CA
 -------------------------------------------------
 -- COLORS (BGR Hex)
 -------------------------------------------------
--- BGR Format: &HBBGGRR&
 local C = {
     YELLOW  = "{\\c&H00FFFF&}",
     WHITE   = "{\\c&HFFFFFF&}",
@@ -55,7 +48,7 @@ local C = {
 }
 
 -------------------------------------------------
--- OSD OVERLAY SYSTEM (Pro API)
+-- OSD OVERLAY SYSTEM
 -------------------------------------------------
 local osd_overlay = mp.create_osd_overlay("ass-events")
 local osd_timer = nil
@@ -66,6 +59,7 @@ end
 
 local function show_temp_osd(text, duration)
     duration = duration or 2
+    -- Position: Top-Left (an7)
     osd_overlay.data = "{\\an7}{\\fs32}{\\q1}" .. text
     osd_overlay:update()
     
@@ -74,33 +68,26 @@ local function show_temp_osd(text, duration)
 end
 
 -------------------------------------------------
--- PROFILE MESSAGE (Status Info)
+-- PROFILE MESSAGE
 -------------------------------------------------
 local function profile_message()
-    -- 1. Anime Mode Section
-    local mode_color = C.GREEN -- Default Auto
+    local mode_color = C.GREEN 
     if anime_mode == "on" then mode_color = C.BLUE
     elseif anime_mode == "off" then mode_color = C.RED end
     
     local part1 = C.YELLOW .. "{\\b1}Anime Mode:{\\b0} " .. C.WHITE .. mode_color .. anime_mode:upper()
-    
-    -- Separator
     local sep = C.WHITE .. " | "
-    
-    -- 2. Profile / Anime4K Section (COLORIZED)
     local part2 = ""
     
     if current_profile == "anime-shaders" then
         local a4k_str = anime4k_quality:upper() .. " (" .. anime4k_mode .. ")"
         part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.WHITE .. C.MAGENTA .. a4k_str
     else
-        -- Logic to colorize the Live Action profile names
         local prof_color = C.WHITE
         if current_profile == "High-Quality" or current_profile == "HQ-SD-FSRCNNX" then prof_color = C.CYAN
         elseif current_profile and current_profile:find("HQ%-HD") then prof_color = C.GOLD
         elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
         end
-        
         part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.WHITE .. prof_color .. current_profile
     end
     
@@ -122,10 +109,7 @@ end
 
 local function save_anime_mode()
     local f = io.open(anime_opts_path, "w")
-    if f then
-        f:write("anime_mode=" .. anime_mode .. "\n")
-        f:close()
-    end
+    if f then f:write("anime_mode=" .. anime_mode .. "\n"); f:close() end
 end
 
 local function load_anime4k()
@@ -161,16 +145,14 @@ end
 local function is_live_action(p)
     if not p then return false end
     p = p:lower()
-    return p:find("live action")
-        or p:find("live%-action")
-        or p:find("liveaction")
-        or p:find("drama")
+    return p:find("live action") or p:find("live%-action") or p:find("liveaction") or p:find("drama")
 end
 
 -------------------------------------------------
 -- APPLY PROFILE
 -------------------------------------------------
 local function apply_profile(p)
+    -- Only apply if it's different from what we *think* is active
     if p ~= current_profile then
         mp.commandv("apply-profile", p)
         current_profile = p
@@ -227,27 +209,23 @@ local function evaluate()
     -- SD LOGIC (< 576p)
     if h > 0 and h < 576 then
         if sd_manual_override then
-            -- Sharp FSRCNNX path for SD
             apply_profile("HQ-SD-FSRCNNX")
         else
-            -- Standard NNEDI path (Clean or Texture)
             apply_profile(sd_mode == "texture" and "HQ-SD-Texture" or "HQ-SD-Clean")
         end
         return
     end
 
-    -- 4K LOGIC: h >= 2160 (Native 4K)
+    -- 4K LOGIC
     if h >= 2160 then
         apply_profile("4K-Native")
         return
     end
 
-    -- HD LOGIC (576p <= h < 1080p)
+    -- HD LOGIC
     if not hd_manual_override and h < 1080 then
         apply_profile("HQ-HD-NNEDI")
     else
-        -- Fallback for >= 1080p (FHD) OR Manual Override (HD)
-        -- This applies FSRCNNX
         apply_profile("High-Quality")
     end
 end
@@ -298,55 +276,45 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 -------------------------------------------------
--- MANUAL TOGGLES (STRICT RESOLUTION CHECK)
+-- MANUAL TOGGLES
 -------------------------------------------------
 
--- CTRL+q: Toggle SD Mode (Clean <-> Texture)
--- RESTRICTION: Only works if we are using the NNEDI SD profiles.
 mp.register_script_message("toggle-hq-sd", function()
-    -- Check if we are in the special FSRCNNX mode for SD
     if current_profile == "HQ-SD-FSRCNNX" then
         show_temp_osd(C.RED .. "{\\b1}Locked:{\\b0} " .. C.WHITE .. "Switch 'Q' to NNEDI first.", 2)
         return
     end
-
-    if not current_profile or not string.find(current_profile, "HQ%-SD") then
-        return 
-    end
-
+    if not current_profile or not string.find(current_profile, "HQ%-SD") then return end
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
     evaluate()
     show_temp_osd(C.YELLOW .. "{\\b1}SD Mode:{\\b0} " .. C.ORANGE .. sd_mode:upper(), 2)
 end)
 
--- Q: Master Upscaler Toggle (NNEDI <-> FSRCNNX)
--- Works for both SD and HD now.
 mp.register_script_message("toggle-hq-hd-nnedi", function()
     local h = tonumber(mp.get_property("height")) or 0
-    
-    if current_profile == "anime-shaders" or h >= 1080 then
-        return 
-    end
+    if current_profile == "anime-shaders" or h >= 1080 then return end
 
-    local mode_name = ""
-    local mode_color = ""
-
-    -- SD TOGGLE
+    local mode_name, mode_color = "", ""
     if h < 576 then
         sd_manual_override = not sd_manual_override
         evaluate()
         mode_name = sd_manual_override and "FSRCNNX (Sharp)" or "NNEDI3 (Clean/Texture)"
         mode_color = sd_manual_override and C.CYAN or C.ORANGE
-    
-    -- HD TOGGLE
     else 
         hd_manual_override = not hd_manual_override
         evaluate()
         mode_name = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
         mode_color = hd_manual_override and C.CYAN or C.GOLD
     end
-    
     show_temp_osd(C.YELLOW .. "{\\b1}Logic Switch:{\\b0} " .. mode_color .. mode_name, 2)
+end)
+
+-- EXPOSED HOOK: Allow Power Manager to force a refresh
+mp.register_script_message("force-evaluate-profile", function()
+    -- FIX: Reset current_profile to force apply_profile() to execute
+    current_profile = "" 
+    evaluate()
+    show_temp_osd(profile_message(), 2)
 end)
 
 mp.register_event("file-loaded", function()
@@ -354,7 +322,7 @@ mp.register_event("file-loaded", function()
     load_anime4k()
     sd_mode = "clean"
     hd_manual_override = false
-    sd_manual_override = false -- Reset SD override on new file
+    sd_manual_override = false
     evaluate()
     show_temp_osd(profile_message(), 2)
 end)

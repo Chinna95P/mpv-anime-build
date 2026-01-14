@@ -112,6 +112,14 @@ Toggle between them using the **`A`** (`Shift+a`) key:
 ## 🔧 Troubleshooting & Setup
 
 <details>
+<summary><b>Why is SVP still running when I'm on Battery?</b></summary>
+
+MPV cannot "kill" the SVP process because it runs separately.
+* **The Fix:** You need to tell SVP to stop itself.
+* Please read the **"Important for SVP 4 Pro Users"** section in the `README.md` to learn how to set up an automatic "Battery Profile" inside SVP.
+</details>
+
+<details>
 <summary><b>Does this build work on Linux?</b></summary>
 
 **Yes! (New in v1.5)**

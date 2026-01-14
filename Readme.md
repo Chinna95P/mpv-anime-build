@@ -1,8 +1,8 @@
-# 🎬 MPV Anime Build v1.5.2
+# 🎬 MPV Anime Build v1.6
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
-> **Anime-aware MPV configuration with automatic Anime4K, Nvidia VSR, and Universal HDR support.**
+> **Anime-aware MPV configuration with automatic Anime4K, Power Management, Nvidia VSR, and Universal HDR support.**
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
@@ -10,6 +10,32 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## 🔋 Power Management (New in v1.6)
+
+This build now includes a smart **Power Manager** designed for laptops.
+
+* **Auto-Detection:** If you unplug your laptop, MPV automatically switches to a `[Low-End]` profile.
+    * **Effect:** Disables high-end shaders (NNEDI3/FSRCNNX/Anime4K) and switches scaling to bilinear to save battery.
+    * **Benefit:** Significantly extends battery life while watching video.
+* **Auto-Restore:** Plug your laptop back in, and MPV instantly restores your previous High-Quality profile (including Anime4K or Live Action shaders).
+* **Manual Toggle:** Press **`Ctrl+p`** to toggle this mode manually on any device.
+
+### ⚠️ Important for SVP 4 Pro Users (Laptops)
+The `[Low-End]` profile optimizes MPV, but **SVP 4 Pro** runs as an external background process and may try to keep working, draining your battery.
+
+**To fix this, you MUST create a "Battery Profile" inside SVP:**
+
+1.  Open the **SVP 4 Pro** Control Panel (system tray icon).
+2.  Go to **Video Profiles**, select your main profile, and click **"New"** (Duplicate).
+3.  Name it **"Battery Mode"**.
+4.  **Important:** Uncheck the **"Do frame rate conversion"** box in this new profile.
+5.  Click **"Add Condition"** (or "Profile conditions").
+6.  Set the condition: **"Is on battery" = "Yes"**.
+
+*Result:* Now, when you unplug your laptop, SVP will automatically stop Frame Interpolation, and MPV will automatically stop Upscaling. Total efficiency!
 
 ---
 
