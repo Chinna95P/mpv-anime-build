@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.6.3] – Cinema 4K & Color Pop
+
+### 🎨 Visual Tuning
+* **SDR Vibrancy Boost:** Moved color tuning (`gamma=1.02`, `contrast=1.05`, `saturation=1.05`) to the global scope. This gives Anime and SDR content a subtle "modern pop" by default.
+* **HDR Safety Net:** Updated the `[HDR-High-Quality]` profile to explicitly reset all color values to `1.0` (Reference Standards). This prevents the SDR boost from crushing blacks or clipping highlights in HDR/Dolby Vision content.
+* **Cinema 4K Shader:** Introduced a dedicated `adaptive-sharpen-modern-4K.glsl` shader.
+    * **The Change:** Lowered sharpening strength from `1.0` to `0.6`.
+    * **Why:** Native 4K content doesn't need heavy sharpening. The lower strength improves clarity without boosting film grain or sensor noise, resulting in a cleaner "Cinema" look.
+
+---
+
 ## [v1.6.2] – Resolution Logic Refinement
 
 ### 🧠 Logic Upgrade
