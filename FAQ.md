@@ -45,7 +45,7 @@ This usually happens if your GPU drivers are outdated or unstable.
 **Yes, absolutely.**
 * **Universal Support:** The 4K Upscaling (Anime4K), HDR Passthrough, and "Modern TV" Live Action shaders work on **ALL** GPUs (Nvidia, AMD, Intel).
 * **The Only Exception:** The **`V`** key (Nvidia VSR) is designed for RTX cards. If you use it on AMD/Intel, it won't crash, but it won't look good either.
-* **Note:** v1.3.1 fixed hardware decoding for AMD/Intel, so you get full performance!
+* **Note:** Hardware decoding is set to `auto-copy`, ensuring full performance on all vendors.
 </details>
 
 <br>
@@ -54,21 +54,27 @@ This usually happens if your GPU drivers are outdated or unstable.
 *Universal support for TVs and Monitors.*
 
 <details>
-<summary><b>How do I get HDR to work on my TV?</b></summary>
+<summary><b>How do I get "True" HDR Passthrough?</b></summary>
 
 **Just toggle the Windows HDR switch.**
 1.  Go to Windows Display Settings and turn **"Use HDR"** to **ON**.
-2.  MPV will automatically detect this and switch to **Passthrough Mode**.
-3.  Your TV should show its "HDR" or "Dolby Vision" popup.
+2.  MPV detects this and activates **True Passthrough** (`target-colorspace-hint=yes`).
+3.  This bypasses MPV's processing and sends the raw metadata (MaxCLL/FALL) directly to your display, ensuring your TV handles the brightness mapping perfectly.
 </details>
 
 <details>
-<summary><b>Why do I need to turn Windows HDR ON? Can't MPV just force it?</b></summary>
+<summary><b>Why do I need to turn Windows HDR ON?</b></summary>
 
-MPV *can* force Passthrough, but we use the Windows setting as a **Preference Switch**:
+MPV requires the Windows D3D11 Swapchain to be in HDR mode to send metadata.
 * **Windows HDR ON:** Triggers **Passthrough Mode** (Your Display handles the HDR).
 * **Windows HDR OFF:** Triggers **Tone Mapping** (MPV converts HDR to SDR).
-* *Reason:* Some users prefer the look of MPV's high-quality Tone Mapping over their monitor's native HDR implementation. This logic gives you the choice without changing config files.
+</details>
+
+<details>
+<summary><b>Why is Passthrough better than Tone Mapping?</b></summary>
+
+* **Passthrough:** Allows your TV/Monitor to use its internal processor (and dynamic tone mapping) to handle the brightness. This usually results in the most accurate image for OLEDs.
+* **Tone Mapping:** MPV converts the colors to fit an SDR container. This is better for projectors or standard monitors that don't support native HDR.
 </details>
 
 <details>
@@ -85,6 +91,19 @@ This happens if MPV thinks you are in HDR mode when you aren't (or vice versa).
 **Yes.**
 * **If you have a Dolby Vision TV:** Enable Windows HDR, and MPV will pass the signal through.
 * **If you have a Standard Monitor:** MPV will automatically play the **HDR10 Base Layer** and tone-map it perfectly to your screen. You won't get purple/green tints.
+</details>
+
+<br>
+
+## 🖥️ User Interface (UOSC)
+
+<details>
+<summary><b>Where did the old controls go?</b></summary>
+
+We have moved to **UOSC** for a cleaner, modern experience. You can still use shortcuts, but the easiest way is now the Menu:
+* **Right-click anywhere** or press the **Menu** button.
+* Select **"Anime Build Options"**.
+* This centralized panel controls everything: Anime4K, Audio Upmix, Power Mode, and VSR.
 </details>
 
 <br>
@@ -122,8 +141,8 @@ MPV cannot "kill" the SVP process because it runs separately.
 <details>
 <summary><b>Does this build work on Linux?</b></summary>
 
-**Yes! (New in v1.5)**
-The build is now fully universal.
+**Yes!**
+The build is fully universal.
 * **Config:** `mpv.conf` automatically switches to `vulkan` backend on Linux for best performance.
 * **Shaders:** Anime4K and High-Quality shaders work perfectly.
 * **Limitations:** Nvidia VSR (Key: `V`) is disabled on Linux because it requires DirectX 11.
@@ -133,7 +152,7 @@ The build is now fully universal.
 <summary><b>SVP 4 Pro isn't working / "No active playback"</b></summary>
 
 This is usually caused by the "Native Hardware Decoding" conflict.
-* **The Fix:** We fixed this in v1.5 by setting `hwdec=auto-copy`.
+* **The Fix:** We fixed this by setting `hwdec=auto-copy`.
 * **Verify:** Press `Shift+I` and check `HW:`. It must say `d3d11va-copy` (or `nvdec-copy`). If it says just `d3d11va`, SVP cannot "see" the video frames to interpolate them.
 </details>
 

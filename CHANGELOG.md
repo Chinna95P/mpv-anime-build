@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.7] – The "Glass UI" & True HDR Update
+
+### 🎨 Visual & Interface (UOSC)
+* **New UI Engine (UOSC):** Shifted from the 'ModernZ' skin to **UOSC** for a cleaner, faster, and more modern interface.
+* **Customized Integration:** Heavily modified the default UOSC configuration to seamlessly fit the specific needs and workflows of the *mpv-anime-build*.
+* **"Glass" Theme Design:** Designed a custom **"Smoked Glass" theme** with transparency effects (33% opacity) for menus, title bars, and volume sliders, ensuring the video remains visible while navigating.
+
+### ⚙️ Logic & Workflow
+* **Centralized Anime Control:** Reworked all existing scripts to route through a single, centralized **Anime Build Options** button in the menu. This panel now houses all build-specific features (Anime4K, Upscaling, Audio, Power) in one place.
+* **HDR Logic Overhaul:** Fixed the **HDR Manual Toggle** bugs and completely reworked the detection logic to support **True HDR Passthrough**, ensuring raw metadata is correctly sent to the display when Windows HDR is active.
+
+---
+
 ## [v1.6.3] – Cinema 4K & Color Pop
 
 ### 🎨 Visual Tuning

@@ -1,37 +1,44 @@
--- scripts/hdr_detect.lua
--- v1.6.1: Hybrid Detection (Internal + PowerShell Fallback)
--- HOTFIX: Fixed false negatives where MPV reported SDR despite Windows HDR being ON.
--- LOGGING: Added console output for Windows HDR status.
+-- [[ 
+--    scripts/hdr_detect.lua
+--    VERSION: v1.7 (Manual Override Fix)
+--    FIX: Prevents Auto-Detection from undoing Manual Toggles ('H' key).
+--    LOGIC:
+--      - Auto Mode: Runs on file load or system change.
+--      - Manual Mode: Activates when you press 'H'. Disables Auto Mode for the current file.
+-- ]]
 
 local mp = require 'mp'
 local utils = require 'mp.utils'
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
-local last_auto_state = nil 
-local os_hdr_confirmed = false -- Caches the PowerShell result
+local last_state = nil 
+local os_hdr_state = false 
+local manual_override = false -- New Lock Variable
 
--- Colors
-local C_GREEN  = "{\\c&H00FF00&}" 
-local C_BLUE   = "{\\c&HFFFF00&}"
-local C_RED    = "{\\c&H0000FF&}"
-local C_WHITE  = "{\\c&HFFFFFF&}"
+-- OSD Colors
+local C = {
+    GREEN  = "{\\c&H00FF00&}", 
+    BLUE   = "{\\c&HFFFF00&}",
+    RED    = "{\\c&H0000FF&}",
+    WHITE  = "{\\c&HFFFFFF&}",
+    ORANGE = "{\\c&H0080FF&}"
+}
 
 function show_hdr_osd(text)
     overlay.data = "{\\an9}{\\fs26}" .. text
     overlay:update()
     if timer then timer:kill() end
-    timer = mp.add_timeout(3, function() overlay:remove() end)
+    timer = mp.add_timeout(4, function() overlay:remove() end)
 end
 
 -- --------------------------------------------------------------------------
--- POWER CHECK: Queries Windows WMI directly to see if HDR is enabled
+-- 1. DETECT WINDOWS HDR STATUS
 -- --------------------------------------------------------------------------
-local function check_windows_hdr_powershell()
-    -- Only run on Windows
+local function check_windows_hdr()
     if mp.get_property("platform") ~= "windows" then return false end
 
-    -- WMI Command: Checks 'AdvancedColorEnabled' status for active monitors
-    local cmd = 'powershell -NoProfile -Command "Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction SilentlyContinue | Where-Object { $_.AdvancedColorEnabled -eq $true } | Measure-Object | Select-Object -ExpandProperty Count"'
+    -- Safe PowerShell command with backticks for special chars
+    local cmd = 'powershell -NoProfile -Command "@(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction SilentlyContinue).AdvancedColorEnabled | Where-Object { `$_ -eq `$true } | Measure-Object | Select-Object -ExpandProperty Count"'
     
     local res = utils.subprocess({
         args = {"powershell", "-NoProfile", "-Command", cmd},
@@ -40,7 +47,6 @@ local function check_windows_hdr_powershell()
     })
 
     if res.status == 0 and res.stdout then
-        -- If Count > 0, at least one monitor has HDR (Advanced Color) enabled
         local count = tonumber(res.stdout:match("%d+"))
         if count and count > 0 then 
             return true 
@@ -49,111 +55,122 @@ local function check_windows_hdr_powershell()
     return false
 end
 
--- Update the OS HDR status cache (Runs on file load or VO change)
-local function refresh_os_hdr_status()
-    os_hdr_confirmed = check_windows_hdr_powershell()
+-- --------------------------------------------------------------------------
+-- 2. EVALUATE LOGIC (Auto)
+-- --------------------------------------------------------------------------
+function evaluate_hdr_state()
+    -- STOP if user has manually overridden the settings for this file
+    if manual_override then return end
+
+    -- A. Get Video Properties
+    local video_peak = mp.get_property_number("video-params/sig-peak", 0)
+    local primaries = mp.get_property("video-params/primaries")
+    local is_hdr_video = (video_peak > 1) or (primaries == "bt.2020") or (primaries == "dci-p3")
+
+    -- B. Get OS Properties
+    local is_os_hdr = os_hdr_state
+
+    -- C. Determine Target State
+    local target = "sdr"
     
-    -- DIAGNOSTIC LOG (v1.6.1 Feature)
-    if mp.get_property("platform") == "windows" then
-        if os_hdr_confirmed then
-            print("[HDR-Detect] Windows Settings report HDR: ON")
+    if is_hdr_video then
+        if is_os_hdr then
+            target = "passthrough" -- True Passthrough
         else
-            print("[HDR-Detect] Windows Settings report HDR: OFF")
+            target = "tonemap"     -- Tone-Mapping
         end
     end
 
-    -- Re-evaluate logic after refreshing status
-    check_hdr_state()
-end
--- --------------------------------------------------------------------------
+    -- D. Apply Settings (Only if changed)
+    if target == last_state then return end
 
-function is_windows_hdr_active()
-    local platform = mp.get_property("platform")
-    if platform ~= "windows" then
-        return true -- Linux: Assume True (Manual Toggle 'H' handles errors)
-    end
-
-    -- 1. Trust PowerShell (The Deep Check)
-    if os_hdr_confirmed then return true end
-
-    -- 2. Fallback to MPV internal detection (The Fast Check)
-    local d = mp.get_property_native("display-params")
-    if d then 
-        if (d.primaries == "bt.2020" or d.primaries == "dci-p3") then return true end
-        if (d.gamma == "pq" or d.gamma == "st2084" or d.gamma == "hybrid-log-gamma") then return true end
-    end
-
-    return false
-end
-
-function check_hdr_state()
-    local is_display_hdr = is_windows_hdr_active()
-    local video_peak = mp.get_property_number("video-params/sig-peak", 0)
-    local is_hdr_video = video_peak > 1
-
-    -- Decide State
-    local target_state = "sdr"
-    if is_hdr_video and is_display_hdr then
-        target_state = "passthrough"
-    elseif is_hdr_video then
-        target_state = "tonemap"
-    end
-
-    if target_state == last_auto_state then return end
-    last_auto_state = target_state
-
-    -- Apply State
-    if target_state == "passthrough" then
-        print("[HDR-Detect] Action: Enabling PASSTHROUGH")
+    if target == "passthrough" then
+        print("[HDR-Auto] Mode: PASSTHROUGH (Metadata sent to Display)")
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
-        
-        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Auto)")
-        
-    elseif target_state == "tonemap" then
-        print("[HDR-Detect] Action: Enabling TONE MAPPING")
+        show_hdr_osd(C.GREEN .. "HDR Mode: " .. C.WHITE .. "True Passthrough (Auto)")
+
+    elseif target == "tonemap" then
+        print("[HDR-Auto] Mode: TONE-MAP (Windows is SDR)")
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
-        show_hdr_osd(C_BLUE .. "HDR Mode: Tone Mapping " .. C_WHITE .. "(SDR Display)")
-        
-    else
-        -- SDR Mode
-        mp.set_property("target-colorspace-hint", "no")
+        show_hdr_osd(C.BLUE .. "HDR Mode: " .. C.WHITE .. "Tone-Mapping (Auto)")
+
+    else -- "sdr"
+        if last_state ~= nil and last_state ~= "sdr" then
+            mp.set_property("target-colorspace-hint", "no")
+        end
     end
+
+    last_state = target
 end
 
--- Manual Toggle
+-- --------------------------------------------------------------------------
+-- 3. MANUAL TOGGLE (The Fix)
+-- --------------------------------------------------------------------------
 function toggle_hdr_manual()
+    -- 1. Enable Override Lock
+    manual_override = true
+    
+    -- 2. Refresh OS Status
+    os_hdr_state = check_windows_hdr()
+    
+    -- 3. Check video type to ensure valid toggle
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
-    if video_peak <= 1 then
-        show_hdr_osd(C_RED .. "Error: Not an HDR Video")
+    local primaries = mp.get_property("video-params/primaries")
+    local is_hdr_video = (video_peak > 1) or (primaries == "bt.2020") or (primaries == "dci-p3")
+    
+    if not is_hdr_video then
+        show_hdr_osd(C.RED .. "Error: Not an HDR Video")
         return
     end
 
-    local current_mode = mp.get_property("target-colorspace-hint")
-    if current_mode == "yes" then
+    -- 4. Flip Logic
+    if last_state == "passthrough" then
+        -- Force Tone-Map
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
-        show_hdr_osd(C_BLUE .. "HDR Mode: Tone Mapping " .. C_WHITE .. "(Forced)")
-        last_auto_state = "tonemap"
+        last_state = "tonemap"
+        show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "Tone-Mapping (Forced)")
     else
+        -- Force Passthrough
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
-        show_hdr_osd(C_GREEN .. "HDR Mode: Passthrough " .. C_WHITE .. "(Forced)")
-        last_auto_state = "passthrough"
+        last_state = "passthrough"
+        show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "True Passthrough (Forced)")
     end
 end
 
+-- --------------------------------------------------------------------------
+-- 4. TRIGGERS
+-- --------------------------------------------------------------------------
+
+-- Reset Override when loading a new file
+mp.register_event("file-loaded", function()
+    manual_override = false -- Unlock auto-mode
+    os_hdr_state = check_windows_hdr() -- Refresh status
+    evaluate_hdr_state()
+end)
+
+-- Auto-Detect on property changes (Only if not overridden)
+mp.observe_property("video-params", "native", function()
+    evaluate_hdr_state()
+end)
+
+-- Refresh OS status on window move (Only if not overridden)
+mp.observe_property("vo-configured", "bool", function(name, val) 
+    if val then 
+        os_hdr_state = check_windows_hdr()
+        evaluate_hdr_state()
+    end 
+end)
+
+-- BINDING: Allows 'H' in input.conf to work
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
 
--- Triggers
-mp.observe_property("video-params", "native", check_hdr_state)
-
--- Refresh OS status only on critical events to avoid lag
-mp.observe_property("vo-configured", "bool", function(name, val) 
-    if val then refresh_os_hdr_status() end 
-end)
+-- LEGACY: Support for script-message calls
+mp.register_script_message("toggle-hdr-mode", toggle_hdr_manual)

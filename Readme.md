@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.6.3
+# 🎬 MPV Anime Build v1.7
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,20 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## 🌟 New in v1.7: Glass UI & True HDR
+
+### 🎨 The "Glass" Interface (UOSC)
+We have shifted from ModernZ to a fully **Customized UOSC** interface.
+* **Smoked Glass Theme:** Menus, title bars, and sliders now feature a transparent design (33% opacity), ensuring the video remains visible while you navigate.
+* **Centralized Control:** A new **"Anime Build Options"** menu acts as a command center, giving you instant access to Anime4K, Audio Upmix, Power Mode, and VSR without needing to remember shortcuts.
+
+### 📺 True HDR Passthrough
+The detection logic has been completely overhauled.
+* **Windows HDR ON:** MPV activates **True Passthrough** (`target-colorspace-hint=yes`). It sends raw metadata directly to your display, allowing the TV to handle brightness mapping perfectly.
+* **Windows HDR OFF:** MPV switches to **High-Quality Tone Mapping** (Spline) for SDR monitors.
 
 ---
 
@@ -223,14 +237,14 @@ This build features a robust **Auto-Detection System** (`hdr_detect.lua`) that c
 
 ---
 
-## 📌 Key Features (v1.4)
+## 📌 Key Features
 
 - 🎯 **Smart Detection:** Automatic anime vs. live-action isolation.
-- 🌈 **Universal HDR:** Auto-switching between Passthrough and Tone Mapping (Manual Toggle: **`H`**).
+- 🎨 **Glass UI:** Modern, transparent **UOSC** interface with a centralized control hub.
+- 🌈 **True HDR:** Automated "True Passthrough" logic with raw metadata transport.
 - 🚀 **Nvidia VSR:** Smart automation with bit-depth protection (Manual Toggle: **`V`**).
-- 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red).
 - 🧠 **Logic Lockdown:** Strict resolution gates prevent profiles from firing on the wrong content.
-- 🖥️ **Modern UI:** Pre-configured with the **ModernZ** skin.
+- 🎨 **Professional OSD:** Color-coded status overlay (Green/Blue/Red).
 - 🖌️ **Anime Pipeline:** Full **Anime4K** suite (Fast & HQ modes).
 - 📺 **Live-Action Pipeline:** "Modern TV" style upscaling (Sony/Samsung emulation).
 - 🔊 **Smart Audio:** Manual toggle for 7.1 Upmix vs. TrueHD/DTS-X Passthrough (Toggle: **`A`**).
@@ -323,7 +337,7 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 
 ## 📝 Credits
 - **Anime4K:** bloc97
-- **ModernZ Skin:** Samillion
+- **UOSC Skin:** tomasklaen
 - **Thumbfast:** po5
-- **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
+- **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral),
 - **Config & Logic:** Customized and built for MPV Anime Build by Chinna95P
