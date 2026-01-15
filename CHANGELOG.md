@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.6.2] – Resolution Logic Refinement
+
+### 🧠 Logic Upgrade
+* **Smart Resolution Gates (`anime_profile_controller.lua`):**
+    * **The Upgrade:** Resolution detection now checks **Width OR Height** instead of just Height.
+    * **Fix 1 (Ultrawide 1080p):** Movies with cropped black bars (e.g., `1920x800`) are now correctly identified as **FullHD (High-Quality)** instead of being mistaken for 720p.
+    * **Fix 2 (PAL SD):** European DVDs (`720x576`) are now correctly identified as **SD**, applying the proper restoration shaders.
+    * **Result:** Perfect profile application regardless of aspect ratio or cropping.
+
+---
+
 ## [v1.6.1] – HDR Detection Hotfix
 
 ### 🐛 Critical Fixes
@@ -188,7 +199,7 @@ All notable changes to this project are documented here.
 ## [v1.1] – Visual Refinement Update
 
 ### ✨ New Features
-- **"Modern TV" Upscaling:** Added custom shader configurations (`adaptive-sharpen-modern-*.glsl`) to replicate high-end TV processing (Sony Reality Creation style) for 480p, 720p, and 1080p.
+- **\"Modern TV\" Upscaling:** Added custom shader configurations (`adaptive-sharpen-modern-*.glsl`) to replicate high-end TV processing (Sony Reality Creation style) for 480p, 720p, and 1080p.
 - **Smart Logic Update:** Added handlers for manual Live-Action toggles (`toggle-hq-sd`, `toggle-hq-hd-nnedi`) which were previously missing from the Lua script.
 - **Visual Polish:** Added Film Grain and Dithering to High-Quality profiles for a more organic, cinematic look.
 

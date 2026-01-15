@@ -1,7 +1,11 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.5.2 (Force Refresh Fix)
---    UPDATED:  2026-01-14
+--    VERSION:  v1.6.2 (Enhanced Resolution Logic)
+--    UPDATED:  2026-01-15
+--    CHANGES:
+--    - Replaced 'Height-Only' check with 'Width OR Height' logic.
+--    - Fixed detection for Ultrawide 1080p (previously misread as 720p).
+--    - Fixed detection for PAL SD (previously misread as HD).
 -- ]]
 
 local mp = require("mp")
@@ -87,6 +91,7 @@ local function profile_message()
         if current_profile == "High-Quality" or current_profile == "HQ-SD-FSRCNNX" then prof_color = C.CYAN
         elseif current_profile and current_profile:find("HQ%-HD") then prof_color = C.GOLD
         elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
+        elseif current_profile == "4K-Native" then prof_color = C.GREEN
         end
         part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.WHITE .. prof_color .. current_profile
     end
@@ -190,12 +195,15 @@ local function apply_anime4k()
 end
 
 -------------------------------------------------
--- CORE LOGIC
+-- CORE LOGIC (NEW v1.6.1)
 -------------------------------------------------
 local function evaluate()
     local path = mp.get_property("path")
-    local h = tonumber(mp.get_property("height")) or 0
+    -- Get video dimensions (trusting MPV internal info)
+    local w = tonumber(mp.get_property("video-params/w")) or 0
+    local h = tonumber(mp.get_property("video-params/h")) or 0
 
+    -- 1. Anime Mode Gate (Keep existing logic)
     if anime_mode == "on"
         or (anime_mode == "auto" and is_anime_folder(path) and not is_live_action(path)) then
         apply_profile("anime-shaders")
@@ -203,11 +211,15 @@ local function evaluate()
         return
     end
 
-    -- leaving anime: clear Anime4K shaders
+    -- Clear Anime4K if we are in Live Action mode
     mp.commandv("change-list", "glsl-shaders", "clear", "")
 
-    -- SD LOGIC (< 576p)
-    if h > 0 and h < 576 then
+    -- 2. RESOLUTION LOGIC (The New Upgrade)
+    
+    -- TIER 1: SD (Standard Definition)
+    -- Covers NTSC (480p) and PAL (576p).
+    -- Your logic: Height < 496 OR Width < 960 (Handles 640x480 and 720x576 correctly)
+    if h < 496 or w < 960 then
         if sd_manual_override then
             apply_profile("HQ-SD-FSRCNNX")
         else
@@ -216,17 +228,30 @@ local function evaluate()
         return
     end
 
-    -- 4K LOGIC
-    if h >= 2160 then
+    -- TIER 2: 4K (Ultra HD)
+    -- Check 4K first to ensure it catches everything big.
+    -- If width > 2560 (1440p+) or Height > 1440.
+    if w > 2560 or h > 1440 then
         apply_profile("4K-Native")
         return
     end
 
-    -- HD LOGIC
-    if not hd_manual_override and h < 1080 then
+    -- TIER 3: FullHD (1080p)
+    -- Includes: 1920x1080, 1920x800 (Ultrawide), 1440x1080 (4:3)
+    -- Logic: If it wasn't SD, and it wasn't 4K... 
+    -- Is it bigger than 720p bounds? (Width > 1280 OR Height > 720)
+    if w > 1280 or h > 720 then
+        apply_profile("High-Quality") -- This applies your 1080p shader chain
+        return
+    end
+
+    -- TIER 4: HD (720p)
+    -- Everything else falling between SD and FHD.
+    -- Includes: 1280x720, 1280x544 (Ultrawide HD)
+    if not hd_manual_override then
         apply_profile("HQ-HD-NNEDI")
     else
-        apply_profile("High-Quality")
+        apply_profile("High-Quality") -- Or a specific 720p FSRCNNX profile if you have one
     end
 end
 
