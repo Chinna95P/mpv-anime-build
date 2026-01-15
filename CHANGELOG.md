@@ -9,7 +9,7 @@ All notable changes to this project are documented here.
 ### 🧠 Logic Upgrade
 * **Smart Resolution Gates (`anime_profile_controller.lua`):**
     * **The Upgrade:** Resolution detection now checks **Width OR Height** instead of just Height.
-    * **Fix 1 (Ultrawide 1080p/4K):** Movies with cropped black bars (e.g., `1920x800` or '3840x1600') are now correctly identified as **FullHD (High-Quality)/4K-Native** instead of being mistaken for 720p/1080p.
+    * **Fix 1 (Ultrawide 1080p/4K):** Movies with cropped black bars (e.g., `1920x800` or `3840x1600`) are now correctly identified as **FullHD (High-Quality)/4K-Native** instead of being mistaken for 720p/1080p.
     * **Fix 2 (PAL SD):** European DVDs (`720x576`) are now correctly identified as **SD**, applying the proper restoration shaders.
     * **Result:** Perfect profile application regardless of aspect ratio or cropping.
 
