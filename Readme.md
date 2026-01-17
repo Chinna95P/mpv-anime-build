@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.7
+# 🎬 MPV Anime Build v1.7.1
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,14 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+### 🎮 The "Controls" Dashboard (v1.7.1)
+We have added a dedicated **Controls Button** (Tune/Sliders icon) to the main **Control Bar** (above the timeline).
+* **Instant Access:** Adjust Audio/Subtitle Sync, Interpolation, Colors, and Shaders with a single click.
+* **Advanced Tools:** Includes deep settings for Hardware Decoding, Dither, and Video Sync modes.
+* **Smart Memory:** The menu remembers your cursor position, allowing for rapid-fire adjustments without the mouse jumping around.
 
 ---
 

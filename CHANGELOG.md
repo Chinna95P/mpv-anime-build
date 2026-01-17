@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.7.1] – The "Total Control" Update
+
+### 🎮 Interface & Workflow
+* **New 'Controls' Button:** Added a dedicated **Controls** button (Sliders Icon) to the interface (above the timeline). This gives instant access to essential adjustments (Sync, Colors, Interpolation) without needing keyboard shortcuts.
+* **Centralized Right-Click Menu:** Integrated **"Anime Build Options"** and the new **"Controls"** menu directly into the main UOSC Right-Click context menu.
+* **Searchable Playlist:** The Playlist panel now includes a **Search Bar**. Simply type to find files instantly.
+
+### ⚙️ Logic & Stability
+* **Smart Menu Memory:** The Controls menu now remembers your cursor position. This makes repetitive tasks (like tapping "Decrease Audio Delay") smooth and frustration-free.
+* **Advanced Sub-Menu:** Cleaned up the UI by moving technical settings (Hardware Decoding, Dither, Interpolation Method) into a separate **"Advanced"** folder.
+* **Safety Guard:** The **GPU API** selector is now **Read-Only**. It displays your active API (e.g., `d3d11`) but prevents accidental clicks that would otherwise crash the player.
+
+---
+
 ## [v1.7] – The "Glass UI" & True HDR Update
 
 ### 🎨 Visual & Interface (UOSC)

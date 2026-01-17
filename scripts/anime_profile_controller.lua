@@ -271,34 +271,33 @@ mp.add_key_binding(nil, "open-anime-menu", function()
 
     -- Base Menu Items
     local items = {
+		{ title = "====(Auto-Detection Modes)====", value = "ignore" },
         { title = "Auto Mode (Default)", value = "script-binding anime-mode-auto" },
         { title = "Force On (Anime4K)", value = "script-binding anime-mode-on" },
         { title = "Force Off (Native HQ)", value = "script-binding anime-mode-off" },
-        { title = "-----------------", value = "ignore" },
+        { title = "Show Current Status", value = "script-binding show-profile-info" },        
+        { title = "====(Quality Toggles)====", value = "ignore" },
         { title = "Toggle SD Mode (Texture/Clean)", value = "script-message toggle-hq-sd" },
         { title = "Toggle SD/HD Logic (NNEDI/FSR)", value = "script-message toggle-hq-hd-nnedi" },
         { title = "Toggle Anime4K Quality (Fast/HQ)", value = "script-binding toggle-anime4k-quality" },
-        { title = "Show Current Status", value = "script-binding show-profile-info" },
-        { title = "-----------------", value = "ignore" },
-        
         -- RTX VSR Integration
-        { title = "RTX VSR: Toggle Auto/Manual", value = "script-binding toggle-vsr" }
+        { title = "RTX VSR: Toggle ON/OFF", value = "script-binding toggle-vsr" }
     }
 
     -- Audio Options Section
-    table.insert(items, { title = "-----------------", value = "ignore" })
+    table.insert(items, { title = "====(Audio)====", value = "ignore" })
     table.insert(items, { title = "Audio: Toggle 7.1 Upmix (Enhanced Bass)", value = "script-message toggle-audio-upmix" })
     table.insert(items, { title = "Audio: Toggle Passthrough / Bitstream", value = "script-message toggle-audio-passthrough" })
 
     -- HDR Integration
     if is_hdr then
-        table.insert(items, { title = "-----------------", value = "ignore" })
+        table.insert(items, { title = "====(HDR)====", value = "ignore" })
         table.insert(items, { title = "HDR: Force Tone-Mapping / Passthrough", value = "script-binding toggle-hdr-hybrid" })
     end
 
     -- Power Manager Integration
-    table.insert(items, { title = "-----------------", value = "ignore" })
-    table.insert(items, { title = "Power: Force Low Power Mode", value = "script-binding toggle-power" })
+    table.insert(items, { title = "====(Power Mode)====", value = "ignore" })
+    table.insert(items, { title = "Power: Toggle Low Power Mode", value = "script-binding toggle-power" })
 
     -- Send to UOSC
     local menu_json = utils.format_json({

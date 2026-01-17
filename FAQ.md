@@ -5,6 +5,26 @@
 
 <br>
 
+## 🖥️ User Interface (UOSC)
+
+<details>
+<summary><b>Where are the controls? (New in v1.7.1)</b></summary>
+
+You now have **two** easy ways to control everything:
+1.  **Control Bar Button:** Click the **Sliders/Tune Icon** located in the control bar (just above the timeline). This opens the new **Controls Dashboard** (Sync, Colors, Interpolation).
+2.  **Right-Click Menu:** Right-click anywhere > select **Controls** or **Anime Build Options**.
+</details>
+
+<details>
+<summary><b>What does the "GPU API" setting do?</b></summary>
+
+This is a **Read-Only** display found in the Controls menu.
+* It tells you if MPV is running on `d3d11` (Windows) or `vulkan` (Linux).
+* **Why is it greyed out?** Changing the GPU backend requires a full player restart. We made it unclickable to prevent accidental crashes during playback.
+</details>
+
+<br>
+
 ## 🚀 Nvidia VSR (Video Super Resolution)
 *Exclusive to RTX 3000/4000 (2000 Series should also work) series users.*
 

@@ -1,10 +1,10 @@
 -- [[ 
 --    scripts/hdr_detect.lua
---    VERSION: v1.7 (Manual Override Fix)
---    FIX: Prevents Auto-Detection from undoing Manual Toggles ('H' key).
+--    VERSION: v1.7.1 (HDR Fallback Fix)
 --    LOGIC:
---      - Auto Mode: Runs on file load or system change.
---      - Manual Mode: Activates when you press 'H'. Disables Auto Mode for the current file.
+--      1. Try Windows WMI (PowerShell).
+--      2. If WMI fails/errors, check MPV 'display-params' (Fallback).
+--      3. If either detects HDR -> Enable PASSTHROUGH.
 -- ]]
 
 local mp = require 'mp'
@@ -13,7 +13,7 @@ local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_state = nil 
 local os_hdr_state = false 
-local manual_override = false -- New Lock Variable
+local manual_override = false 
 
 -- OSD Colors
 local C = {
@@ -32,13 +32,14 @@ function show_hdr_osd(text)
 end
 
 -- --------------------------------------------------------------------------
--- 1. DETECT WINDOWS HDR STATUS
+-- 1. DETECT WINDOWS HDR STATUS (Hybrid Method)
 -- --------------------------------------------------------------------------
 local function check_windows_hdr()
     if mp.get_property("platform") ~= "windows" then return false end
 
-    -- Safe PowerShell command with backticks for special chars
-    local cmd = 'powershell -NoProfile -Command "@(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction SilentlyContinue).AdvancedColorEnabled | Where-Object { `$_ -eq `$true } | Measure-Object | Select-Object -ExpandProperty Count"'
+    -- METHOD A: PowerShell WMI (The most accurate, if it works)
+    -- We wrap this in a try/catch block to prevent "Invalid Class" errors from spamming the console.
+    local cmd = 'powershell -NoProfile -Command "try { (Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction Stop).AdvancedColorEnabled } catch { Write-Output \'Fallback\' }"'
     
     local res = utils.subprocess({
         args = {"powershell", "-NoProfile", "-Command", cmd},
@@ -47,19 +48,39 @@ local function check_windows_hdr()
     })
 
     if res.status == 0 and res.stdout then
-        local count = tonumber(res.stdout:match("%d+"))
-        if count and count > 0 then 
+        -- Clean string
+        local output = res.stdout:gsub("%s+", "")
+        
+        -- Success Case
+        if output == "True" then 
+            print("[HDR-Detect] WMI Check: HDR ON")
             return true 
+        elseif output == "False" then
+            print("[HDR-Detect] WMI Check: HDR OFF")
+            return false
+        end
+        -- If output is 'Fallback' or empty, we proceed to Method B
+    end
+
+    -- METHOD B: Internal MPV Fallback
+    -- If WMI fails (Invalid Class), we check what MPV sees.
+    -- If MPV detects BT.2020 primaries or PQ gamma on the output, Windows is likely in HDR mode.
+    local d = mp.get_property_native("display-params")
+    if d then
+        if d.primaries == "bt.2020" or d.primaries == "dci-p3" or d.gamma == "pq" or d.gamma == "st2084" then
+            print("[HDR-Detect] Fallback Check: HDR ON (Detected via display-params)")
+            return true
         end
     end
+    
+    print("[HDR-Detect] Checks finished: HDR OFF")
     return false
 end
 
 -- --------------------------------------------------------------------------
--- 2. EVALUATE LOGIC (Auto)
+-- 2. EVALUATE LOGIC
 -- --------------------------------------------------------------------------
 function evaluate_hdr_state()
-    -- STOP if user has manually overridden the settings for this file
     if manual_override then return end
 
     -- A. Get Video Properties
@@ -108,16 +129,12 @@ function evaluate_hdr_state()
 end
 
 -- --------------------------------------------------------------------------
--- 3. MANUAL TOGGLE (The Fix)
+-- 3. MANUAL TOGGLE
 -- --------------------------------------------------------------------------
 function toggle_hdr_manual()
-    -- 1. Enable Override Lock
     manual_override = true
-    
-    -- 2. Refresh OS Status
     os_hdr_state = check_windows_hdr()
     
-    -- 3. Check video type to ensure valid toggle
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     local primaries = mp.get_property("video-params/primaries")
     local is_hdr_video = (video_peak > 1) or (primaries == "bt.2020") or (primaries == "dci-p3")
@@ -127,16 +144,13 @@ function toggle_hdr_manual()
         return
     end
 
-    -- 4. Flip Logic
     if last_state == "passthrough" then
-        -- Force Tone-Map
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
         mp.set_property("tone-mapping", "spline")
         last_state = "tonemap"
         show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "Tone-Mapping (Forced)")
     else
-        -- Force Passthrough
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
@@ -149,19 +163,16 @@ end
 -- 4. TRIGGERS
 -- --------------------------------------------------------------------------
 
--- Reset Override when loading a new file
 mp.register_event("file-loaded", function()
-    manual_override = false -- Unlock auto-mode
-    os_hdr_state = check_windows_hdr() -- Refresh status
+    manual_override = false 
+    os_hdr_state = check_windows_hdr()
     evaluate_hdr_state()
 end)
 
--- Auto-Detect on property changes (Only if not overridden)
 mp.observe_property("video-params", "native", function()
     evaluate_hdr_state()
 end)
 
--- Refresh OS status on window move (Only if not overridden)
 mp.observe_property("vo-configured", "bool", function(name, val) 
     if val then 
         os_hdr_state = check_windows_hdr()
@@ -169,8 +180,5 @@ mp.observe_property("vo-configured", "bool", function(name, val)
     end 
 end)
 
--- BINDING: Allows 'H' in input.conf to work
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
-
--- LEGACY: Support for script-message calls
 mp.register_script_message("toggle-hdr-mode", toggle_hdr_manual)

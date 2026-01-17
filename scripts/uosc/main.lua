@@ -299,58 +299,280 @@ function update_config()
 end
 update_config()
 
+-- [PHASE 3: SMART UPDATER WITH SELECTION MEMORY]
+mp.register_script_message('control-update', function(command, submenu_id, active_index)
+    mp.command(command)
+    
+    -- 1. Refresh the Menu Content
+    if Menu:is_open('menu') then
+        local items = create_default_menu_items()
+        local json = utils.format_json({ type = 'menu', items = items })
+        mp.commandv("script-message-to", "uosc", "update-menu", json)
+        if submenu_id and submenu_id ~= '' then
+            mp.commandv("script-message-to", "uosc", "open-menu", json, submenu_id)
+        end
+
+    elseif Menu:is_open('controls') then
+        local menu_data = create_controls_menu()
+        menu_data.type = "controls"
+        local json = utils.format_json(menu_data)
+        mp.commandv("script-message-to", "uosc", "open-menu", json, submenu_id)
+    end
+
+    -- 2. Restore the Cursor/Selection Position
+    -- If we passed an index (e.g. "2" for Decrease), force UOSC to select it now
+    if active_index and active_index ~= '' then
+        local type = Menu:is_open('menu') and 'menu' or 'controls'
+        mp.commandv("script-message-to", "uosc", "select-menu-item", type, active_index, submenu_id)
+    end
+end)
+
 -- Default menu items
+-- Inside scripts/uosc/main.lua
+
+-- [PHASE 5: FINAL CONTROLS (GPU API LOCKED)]
+function create_controls_menu()
+    -- Helpers
+    local function prop(p) return mp.get_property(p) end
+    local function is_true(p) return prop(p) == 'yes' end
+    local function active(p, v) return prop(p) == v end
+    
+    -- Wrapper: Executes command + Refreshes menu + Selects specific index
+    local function cmd(c, id, idx) 
+        local menu_id = id or ''
+        local item_idx = idx or ''
+        return 'script-message-to uosc control-update "' .. c .. '" "' .. menu_id .. '" "' .. item_idx .. '"' 
+    end
+
+    -- Generator for Value Menus (+ / - / Reset)
+    local function create_adjust_menu(title, property, step, reset_val, unit, submenu_id)
+        local current = tonumber(prop(property)) or 0
+        local hint_str = unit and string.format("%s %s", current, unit) or tostring(current)
+        return {
+            title = title,
+            hint = hint_str,
+            id = submenu_id,
+            items = {
+                { title = 'Increase (+)', value = cmd('add ' .. property .. ' ' .. step, submenu_id, 1) },
+                { title = 'Decrease (-)', value = cmd('add ' .. property .. ' -' .. step, submenu_id, 2) },
+                { title = 'Reset (' .. reset_val .. ')', value = cmd('set ' .. property .. ' ' .. reset_val, submenu_id, 3) },
+            }
+        }
+    end
+
+    return {
+        title = 'Controls',
+        id = 'controls_root',
+        items = {
+            -- 1. MAIN TOGGLES
+            { title = 'Interpolation (Motion)', active = is_true('interpolation'), value = cmd('cycle interpolation', 'controls_root', 1) },
+            { title = 'Deband', active = is_true('deband'), value = cmd('cycle deband', 'controls_root', 2) },
+            { title = 'Deinterlace', active = is_true('deinterlace'), value = cmd('cycle deinterlace', 'controls_root', 3) },
+            
+            -- 2. SYNC & COLORS
+            {
+                title = 'Synchronization',
+                id = 'sync_root',
+                items = {
+                    create_adjust_menu('Audio Delay', 'audio-delay', 0.1, 0, 's', 'audio_delay_menu'),
+                    create_adjust_menu('Subtitle Delay', 'sub-delay', 0.1, 0, 's', 'sub_delay_menu'),
+                    create_adjust_menu('Subtitle Pos', 'sub-pos', 1, 100, '%', 'sub_pos_menu'),
+                }
+            },
+            {
+                title = 'Video Colors',
+                id = 'color_root',
+                items = {
+                    { title = 'Reset All Colors', value = cmd('set contrast 0; set brightness 0; set gamma 0; set saturation 0; set hue 0', 'color_root', 1) },
+                    create_adjust_menu('Contrast', 'contrast', 1, 0, nil, 'contrast_menu'),
+                    create_adjust_menu('Brightness', 'brightness', 1, 0, nil, 'bright_menu'),
+                    create_adjust_menu('Gamma', 'gamma', 1, 0, nil, 'gamma_menu'),
+                    create_adjust_menu('Saturation', 'saturation', 1, 0, nil, 'sat_menu'),
+                    create_adjust_menu('Hue', 'hue', 1, 0, nil, 'hue_menu'),
+                }
+            },
+
+            -- 3. ADVANCED MENU
+            {
+                title = 'Advanced',
+                id = 'advanced_root',
+                items = {
+                    -- A. Interpolation Method
+                    {
+                        title = 'Interpolation Method >',
+                        hint = prop('tscale'),
+                        id = 'interp_menu',
+                        items = {
+                            { title = 'oversample', active = active('tscale', 'oversample'), value = cmd('set tscale oversample', 'interp_menu', 1) },
+                            { title = 'linear', active = active('tscale', 'linear'), value = cmd('set tscale linear', 'interp_menu', 2) },
+                            { title = 'catmull_rom', active = active('tscale', 'catmull_rom'), value = cmd('set tscale catmull_rom', 'interp_menu', 3) },
+                            { title = 'mitchell', active = active('tscale', 'mitchell'), value = cmd('set tscale mitchell', 'interp_menu', 4) },
+                            { title = 'bicubic', active = active('tscale', 'bicubic'), value = cmd('set tscale bicubic', 'interp_menu', 5) },
+                        }
+                    },
+                    -- B. Video Sync
+                    {
+                        title = 'Video Sync >',
+                        hint = prop('video-sync'),
+                        id = 'vsync_menu',
+                        items = {
+                            { title = 'Audio (Default)', active = active('video-sync', 'audio'), value = cmd('set video-sync audio', 'vsync_menu', 1) },
+                            { title = 'Display Resample', active = active('video-sync', 'display-resample'), value = cmd('set video-sync display-resample', 'vsync_menu', 2) },
+                            { title = 'Display Resample (Vdrop)', active = active('video-sync', 'display-resample-vdrop'), value = cmd('set video-sync display-resample-vdrop', 'vsync_menu', 3) },
+                            { title = 'Desync', active = active('video-sync', 'desync'), value = cmd('set video-sync desync', 'vsync_menu', 4) },
+                        }
+                    },
+                    -- C. Dither
+                    {
+                        title = 'Dither Settings >',
+                        hint = prop('dither'),
+                        id = 'dither_menu',
+                        items = {
+                            { title = 'fruit (Default)', active = active('dither', 'fruit'), value = cmd('set dither fruit', 'dither_menu', 1) },
+                            { title = 'ordered', active = active('dither', 'ordered'), value = cmd('set dither ordered', 'dither_menu', 2) },
+                            { title = 'Disable', active = active('dither', 'no'), value = cmd('set dither no', 'dither_menu', 3) },
+                            { title = 'Depth: Auto', active = active('dither-depth', 'auto'), value = cmd('set dither-depth auto', 'dither_menu', 4) },
+                            { title = 'Depth: 8', active = active('dither-depth', '8'), value = cmd('set dither-depth 8', 'dither_menu', 5) },
+                            { title = 'Depth: 10', active = active('dither-depth', '10'), value = cmd('set dither-depth 10', 'dither_menu', 6) },
+                        }
+                    },
+                    -- D. Hardware Decoding
+                    {
+                        title = 'Hardware Decoding >',
+                        hint = prop('hwdec'),
+                        id = 'hwdec_menu',
+                        items = {
+                            { title = 'auto-copy (Best)', active = active('hwdec', 'auto-copy'), value = cmd('set hwdec auto-copy', 'hwdec_menu', 1) },
+                            { title = 'd3d11va', active = active('hwdec', 'd3d11va'), value = cmd('set hwdec d3d11va', 'hwdec_menu', 2) },
+                            { title = 'vulkan', active = active('hwdec', 'vulkan'), value = cmd('set hwdec vulkan', 'hwdec_menu', 3) },
+                            { title = 'OFF (Software)', active = active('hwdec', 'no'), value = cmd('set hwdec no', 'hwdec_menu', 4) },
+                        }
+                    },
+                    -- E. Scaling
+                    {
+                        title = 'Upscaler (Scale) >',
+                        hint = prop('scale'),
+                        id = 'scale_menu',
+                        items = {
+                            { title = 'ewa_lanczossharp', active = active('scale', 'ewa_lanczossharp'), value = cmd('set scale ewa_lanczossharp', 'scale_menu', 1) },
+                            { title = 'spline36', active = active('scale', 'spline36'), value = cmd('set scale spline36', 'scale_menu', 2) },
+                            { title = 'bilinear', active = active('scale', 'bilinear'), value = cmd('set scale bilinear', 'scale_menu', 3) },
+                        }
+                    },
+                    -- F. GPU API (READ ONLY)
+                    {
+                        title = 'GPU API >',
+                        hint = prop('gpu-api') or 'auto',
+                        id = 'gpu_menu',
+                        items = {
+                            { 
+                                title = 'd3d11 (Windows)', 
+                                active = active('gpu-api', 'd3d11'), 
+                                muted = not active('gpu-api', 'd3d11'), 
+                                value = '' -- Unclickable
+                            },
+                            { 
+                                title = 'vulkan (Linux)', 
+                                active = active('gpu-api', 'vulkan'), 
+                                muted = not active('gpu-api', 'vulkan'), 
+                                value = '' -- Unclickable
+                            },
+                            { 
+                                title = 'opengl', 
+                                active = active('gpu-api', 'opengl'), 
+                                muted = not active('gpu-api', 'opengl'), 
+                                value = '' -- Unclickable
+                            },
+                        }
+                    },
+                }
+            },
+        }
+    }
+end
+
+-- [PHASE 1: BUTTON BINDING]
+mp.add_key_binding(nil, "open-controls-menu", function()
+    local menu_data = create_controls_menu()
+    menu_data.type = "controls"
+    local json = utils.format_json(menu_data)
+    mp.commandv("script-message-to", "uosc", "open-menu", json)
+end)
+
+-- [PHASE 4: MAIN MENU WITH USER RENAMES]
 function create_default_menu_items()
-	return {
-		{title = t('Subtitles'), value = 'script-binding uosc/subtitles'},
-		{title = t('Audio tracks'), value = 'script-binding uosc/audio'},
-		{title = t('Stream quality'), value = 'script-binding uosc/stream-quality'},
-		{title = t('Playlist'), value = 'script-binding uosc/items'},
-		{title = t('Chapters'), value = 'script-binding uosc/chapters'},
-		{
-			title = t('Navigation'),
-			items = {
-				{
-					title = t('Next'),
-					hint = t('playlist or file'),
-					value =
-					'script-binding uosc/next',
-				},
-				{
-					title = t('Prev'),
-					hint = t('playlist or file'),
-					value =
-					'script-binding uosc/prev',
-				},
-				{title = t('Delete file & Next'), value = 'script-binding uosc/delete-file-next'},
-				{title = t('Delete file & Prev'), value = 'script-binding uosc/delete-file-prev'},
-				{title = t('Delete file & Quit'), value = 'script-binding uosc/delete-file-quit'},
-				{title = t('Open file'), value = 'script-binding uosc/open-file'},
-			},
-		},
-		{
-			title = t('Utils'),
-			items = {
-				{
-					title = t('Aspect ratio'),
-					items = {
-						{title = t('Default'), value = 'set video-aspect-override "-1"'},
-						{title = '16:9', value = 'set video-aspect-override "16:9"'},
-						{title = '4:3', value = 'set video-aspect-override "4:3"'},
-						{title = '2.35:1', value = 'set video-aspect-override "2.35:1"'},
-					},
-				},
-				{title = t('Audio devices'), value = 'script-binding uosc/audio-device'},
-				{title = t('Editions'), value = 'script-binding uosc/editions'},
-				{title = t('Screenshot'), value = 'async screenshot'},
-				{title = t('Key bindings'), value = 'script-binding uosc/keybinds'},
-				{title = t('Show in directory'), value = 'script-binding uosc/show-in-directory'},
-				{title = t('Open config folder'), value = 'script-binding uosc/open-config-directory'},
-				{title = t('Update uosc'), value = 'script-binding uosc/update'},
-			},
-		},
-		{title = t('Quit'), value = 'quit'},
-	}
+    -- Generate dynamic controls
+    local controls_data = create_controls_menu()
+    
+    return {
+        {title = t('Subtitles'), value = 'script-binding uosc/subtitles'},
+        {title = t('Audio tracks'), value = 'script-binding uosc/audio'},
+        {title = t('Stream quality'), value = 'script-binding uosc/stream-quality'},
+        {title = t('Playlist'), value = 'script-binding uosc/items'},
+        {title = t('Chapters'), value = 'script-binding uosc/chapters'},
+        
+        {
+            title = t('Navigation'),
+            items = {
+                { title = t('Next'), hint = t('playlist or file'), value = 'script-binding uosc/next' },
+                { title = t('Prev'), hint = t('playlist or file'), value = 'script-binding uosc/prev' },
+                { title = t('Delete file & Next'), value = 'script-binding uosc/delete-file-next' },
+                { title = t('Delete file & Prev'), value = 'script-binding uosc/delete-file-prev' },
+                { title = t('Delete file & Quit'), value = 'script-binding uosc/delete-file-quit' },
+                { title = t('Open file'), value = 'script-binding uosc/open-file' },
+            },
+        },
+
+        -- [CONTROLS EMBEDDED]
+        controls_data,
+
+        -- [ANIME BUILD OPTIONS (User Renames Applied)]
+        {
+            title = 'Anime Build Options',
+            items = {
+				{ title = "====(Auto-Detection Modes)====", value = "ignore" },
+                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto' },
+                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on' },
+                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off' },
+				{ title = 'Show Status Info', value = 'script-binding show-profile-info' },
+				{ title = "====(Quality Toggles)====", value = "ignore" },
+                { title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd' },
+                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi' },
+                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality' },
+                { title = 'RTX VSR: Toggle ON/OFF', value = 'script-binding toggle-vsr' },
+				{ title = "====(Audio)====", value = "ignore" },
+                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix' },
+                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough' },
+				{ title = "====(HDR)====", value = "ignore" },
+                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid' },
+				{ title = "====(Power Mode)====", value = "ignore" },
+                { title = 'Power: Toggle Low Power Mode', value = 'script-binding toggle-power' },
+            },
+        },
+
+        {
+            title = t('Utils'),
+            items = {
+                {
+                    title = t('Aspect ratio'),
+                    items = {
+                        {title = t('Default'), value = 'set video-aspect-override "-1"'},
+                        {title = '16:9', value = 'set video-aspect-override "16:9"'},
+                        {title = '4:3', value = 'set video-aspect-override "4:3"'},
+                        {title = '2.35:1', value = 'set video-aspect-override "2.35:1"'},
+                    },
+                },
+                {title = t('Audio devices'), value = 'script-binding uosc/audio-device'},
+                {title = t('Editions'), value = 'script-binding uosc/editions'},
+                {title = t('Screenshot'), value = 'async screenshot'},
+                {title = t('Key bindings'), value = 'script-binding uosc/keybinds'},
+                {title = t('Show in directory'), value = 'script-binding uosc/show-in-directory'},
+                {title = t('Open config folder'), value = 'script-binding uosc/open-config-directory'},
+                {title = t('Update uosc'), value = 'script-binding uosc/update'},
+            },
+        },
+        {title = t('Quit'), value = 'quit'},
+    }
 end
 
 --[[ STATE ]]
@@ -818,8 +1040,33 @@ bind_command('flash-progress', function() Elements:flash({'progress'}) end)
 bind_command('toggle-progress', function() Elements:maybe('timeline', 'toggle_progress') end)
 bind_command('toggle-title', function() Elements:maybe('top_bar', 'toggle_title') end)
 bind_command('decide-pause-indicator', function() Elements:maybe('pause_indicator', 'decide') end)
-bind_command('menu', function() toggle_menu_with_items() end)
-bind_command('menu-blurred', function() toggle_menu_with_items({mouse_nav = true}) end)
+-- [FIX: BYPASS CACHE AND FORCE REFRESH]
+bind_command('menu', function() 
+    if Menu:is_open('menu') then
+        Menu:close()
+    else
+        -- Direct call to open_command_menu ensures we always use fresh items
+        -- bypassing any internal caching in toggle_menu_with_items
+        open_command_menu({ 
+            type = 'menu', 
+            items = create_default_menu_items(),
+            search_style = 'palette' 
+        })
+    end
+end)
+
+bind_command('menu-blurred', function() 
+    if Menu:is_open('menu') then
+        Menu:close()
+    else
+        open_command_menu({ 
+            type = 'menu', 
+            items = create_default_menu_items(),
+            search_style = 'palette',
+            mouse_nav = true 
+        })
+    end
+end)
 bind_command('keybinds', function()
 	if Menu:is_open('keybinds') then
 		Menu:close()
@@ -862,9 +1109,14 @@ bind_command('video', create_select_tracklist_type_menu_opener({
 	title = t('Video'), type = 'video', prop = 'vid', load_command = 'script-binding uosc/load-video',
 }))
 bind_command('playlist', create_self_updating_menu_opener({
-	title = t('Playlist'),
+	title = t('Playlist (Type to Search)'),
 	type = 'playlist',
 	list_prop = 'playlist',
+    
+    -- [SEARCH SETTINGS]
+    search_style = 'palette',             -- Enables the search bar
+    search_subtext = 'Type to search...', -- Adds the visual hint text
+    
 	footnote = t('Paste path or url to add.') .. ' ' .. t('%s to reorder.', 'ctrl+up/down/pgup/pgdn/home/end'),
 	serializer = function(playlist)
 		local items = {}
