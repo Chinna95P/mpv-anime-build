@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.7.2] – The "Visual Feedback" Update
+
+### 🎮 Interface & Controls
+
+* **Comprehensive Scaling Menu:** Expanded the **Scaling** section within the 'Controls' menu to include all available upscaler and downscaler options, giving users granular control over image resizing directly from the UI.
+* **Universal Checkmarks:** Implemented consistent visual feedback across the interface. Active settings now display checkmarks correctly in both the main **'Controls'** and the **'Anime Mode'** Buttons, ensuring you always know which features are enabled.
+
+### 🐛 Logic Fixes
+
+* **Audio Passthrough Fix:** Resolved a logic error in the Audio Passthrough toggle. The button now correctly identifies and highlights the active state (PCM vs. Bitstream), preventing mismatch errors where the menu would show the wrong status.
+
+---
+
 ## [v1.7.1] – The "Total Control" Update
 
 ### 🎮 Interface & Workflow

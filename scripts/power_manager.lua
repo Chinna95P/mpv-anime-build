@@ -1,13 +1,13 @@
--- power_manager.lua for mpv-anime-build v1.6
+-- power_manager.lua for mpv-anime-build v1.7
 -- Features: Silent Laptop Check, Smart Resume, OSD Overlay Stacking
--- UPDATED: Fixed OSD Collision (\N\N), Restored Symbols (⚡ 🔌 🔒)
+-- UPDATED: State Broadcast added for Menu Highlight (Fix 3)
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 -- CONFIGURATION
 local opts = {
-    check_interval = 5,            -- How often to check power state (seconds)
+    check_interval = 5,
     low_power_profile = "Low-End", 
     forced_hotkey = "toggle-power", 
 }
@@ -30,9 +30,6 @@ local function hide_osd()
 end
 
 local function show_power_osd(text)
-    -- Layout: Top-Left (an7)
-    -- FIX: Used {\q1} (Exact Wrapping) and \\N\\N (Hard Line Breaks).
-    -- This forces the text to start on 'Line 3', leaving Line 1 free for the Anime Profile OSD.
     osd_overlay.data = "{\\an7}{\\fs32}{\\q1}\\N\\N" .. text
     osd_overlay:update()
     
@@ -50,14 +47,18 @@ local state = {
     resume_timer = nil
 }
 
--- HELPER: Check if system is a laptop (SILENT VERSION)
+-- [NEW] HELPER: Broadcast State for Menu Highlighting
+local function update_menu_status(is_active)
+    mp.set_property("user-data/power_active", is_active and "yes" or "no")
+end
+
+-- HELPER: Check if system is a laptop
 local function check_is_laptop()
     local res = utils.subprocess({ 
         args = {"powershell", "-command", "Get-WmiObject Win32_Battery"}, 
         cancellable = false,
         playback_only = false
     })
-    
     if res.status == 0 and res.stdout and res.stdout ~= "" then
         return true
     end
@@ -81,15 +82,16 @@ end
 local function enable_low_power()
     if mp.get_property("profile") == opts.low_power_profile then return end
 
-    -- Bold Label, Colored Text, Symbol Restored
     show_power_osd(C.YELLOW .. "⚡ {\\b1}Power Saving:{\\b0} " .. C.GREEN .. "Enabled")
     msg.info("Power Manager: Switching to [Low-End]")
 
     local was_paused = mp.get_property_bool("pause")
     mp.set_property_bool("pause", true)
     
-    -- Apply Profile
     mp.commandv("apply-profile", opts.low_power_profile)
+    
+    -- [FIX 3] Broadcast State Active
+    update_menu_status(true)
 
     if not was_paused then
         if state.resume_timer then state.resume_timer:kill() end
@@ -103,14 +105,13 @@ end
 -- LOGIC: Restore Normal Mode
 local function disable_low_power()
     msg.info("Power Manager: Handing control to Anime Profile Controller")
-    -- Bold Label, Cyan Text, Symbol Restored
     show_power_osd(C.YELLOW .. "🔌 {\\b1}AC Power:{\\b0} " .. C.CYAN .. "Restoring Smart Profile...")
     
-    -- 1. Force SVP-Compatible Decoder FIRST
     mp.set_property("hwdec", "auto-copy")
-    
-    -- 2. Ask the Controller to re-evaluate the file
     mp.commandv("script-message", "force-evaluate-profile")
+    
+    -- [FIX 3] Broadcast State Inactive
+    update_menu_status(false)
 end
 
 -- CORE: Main Loop
@@ -147,6 +148,7 @@ end
 mp.register_event("file-loaded", function()
     if not state.initialized then
         state.initialized = true
+        update_menu_status(false) -- Init state
         if check_is_laptop() then
             msg.info("Laptop detected. Power Monitor Active.")
             state.is_laptop = true

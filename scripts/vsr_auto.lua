@@ -1,5 +1,5 @@
 -- vsr_auto.lua
--- v1.5.2: Manual RTX VSR Toggle with Linux Safety Gate
+-- v1.6: Manual RTX VSR Toggle with State Broadcast
 local mp = require 'mp'
 local vsr_active = false
 
@@ -21,7 +21,6 @@ end
 
 function toggle_vsr()
     -- 1. LINUX/OS SAFETY BLOCK
-    -- VSR uses d3d11vpp, which is strictly Windows-only.
     local platform = mp.get_property("platform")
     if platform ~= "windows" then
         show_osd("{\\c&H0000FF&}VSR Error: Windows Only (DirectX 11)")
@@ -39,6 +38,7 @@ function toggle_vsr()
 
         show_osd("{\\c&H00FFFF&}Nvidia VSR: Disabled {\\c&HFFFFFF&}(Restored Config)")
         vsr_active = false
+        mp.set_property("user-data/vsr_active", "no") -- [BROADCAST STATE]
     else
         -- ENABLE VSR
         original_hwdec = mp.get_property("hwdec") or "auto-copy"
@@ -63,7 +63,11 @@ function toggle_vsr()
         
         show_osd("{\\c&H00FF00&}Nvidia VSR: Active {\\c&HFFFFFF&}(" .. msg .. " - Manual)")
         vsr_active = true
+        mp.set_property("user-data/vsr_active", "yes") -- [BROADCAST STATE]
     end
 end
+
+-- Initialize state
+mp.set_property("user-data/vsr_active", "no")
 
 mp.add_key_binding("V", "toggle-vsr", toggle_vsr)

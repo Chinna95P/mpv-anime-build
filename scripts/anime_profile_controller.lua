@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.7 (UOSC Integration)
---    UPDATED:  2026-01-15
+--    VERSION:  v1.7.2 (Menu Highlights Fix)
+--    UPDATED:  2026-01-17
 -- ]]
 
 local mp = require("mp")
@@ -22,6 +22,7 @@ local anime4k_opts_path = mp.command_native({
 -------------------------------------------------
 local anime_mode = "auto"
 local current_profile = ""
+local shaders_master_switch = true
 
 -- Live Action States
 local sd_mode = "clean"          
@@ -66,9 +67,41 @@ local function show_temp_osd(text, duration)
 end
 
 -------------------------------------------------
+-- SYNC STATE HELPER (For UOSC & Internal Menu)
+-------------------------------------------------
+local function sync_state()
+    -- Exports state so main.lua can see it
+    mp.set_property("user-data/anime/shaders_enabled", shaders_master_switch and "yes" or "no")
+    mp.set_property("user-data/anime/anime4k_hq", (anime4k_quality == "hq") and "yes" or "no")
+    mp.set_property("user-data/anime/sd_texture", (sd_mode == "texture") and "yes" or "no")
+    mp.set_property("user-data/anime/logic_fsrcnnx", (sd_manual_override or hd_manual_override) and "yes" or "no")
+    
+    mp.set_property("user-data/anime/mode_auto", (anime_mode == "auto") and "yes" or "no")
+    mp.set_property("user-data/anime/mode_on", (anime_mode == "on") and "yes" or "no")
+    mp.set_property("user-data/anime/mode_off", (anime_mode == "off") and "yes" or "no")
+    
+    -- Audio Sync (Fix 1: Logic Tightened)
+    -- If 'audio-spdif' is 'no' or empty, Passthrough is OFF.
+    local spdif = mp.get_property("audio-spdif") or "no"
+    local is_passthrough = (spdif ~= "no" and spdif ~= "")
+    mp.set_property("user-data/anime/audio_passthrough", is_passthrough and "yes" or "no")
+    
+    local af = mp.get_property("af") or ""
+    mp.set_property("user-data/anime/audio_upmix", string.find(af, "surround") and "yes" or "no")
+    
+    -- HDR
+    local hdr = mp.get_property("target-colorspace-hint") == "yes"
+    mp.set_property("user-data/anime/hdr_passthrough", hdr and "yes" or "no")
+end
+
+-------------------------------------------------
 -- PROFILE MESSAGE
 -------------------------------------------------
 local function profile_message()
+    if not shaders_master_switch then
+        return C.RED .. "{\\b1}Shaders:{\\b0} " .. C.WHITE .. "Disabled (Master Switch OFF)"
+    end
+
     local mode_color = C.GREEN 
     if anime_mode == "on" then mode_color = C.BLUE
     elseif anime_mode == "off" then mode_color = C.RED end
@@ -191,6 +224,8 @@ end
 -- CORE LOGIC
 -------------------------------------------------
 local function evaluate()
+    if not shaders_master_switch then return end
+
     local path = mp.get_property("path")
     local w = tonumber(mp.get_property("video-params/w")) or 0
     local h = tonumber(mp.get_property("video-params/h")) or 0
@@ -231,71 +266,108 @@ local function evaluate()
 end
 
 -------------------------------------------------
--- AUDIO FUNCTIONS (FIXED: no-osd overlap)
+-- AUDIO FUNCTIONS
 -------------------------------------------------
-
--- 7.1 Upmix Logic
 mp.register_script_message("toggle-audio-upmix", function()
-    -- FIXED: Added 'no-osd' to silence standard message
     mp.command('no-osd cycle-values af "lavfi=[surround=chl_out=7.1:lfe_low=80]" ""')
-    
     local af = mp.get_property("af")
     if af and string.find(af, "surround") then
         show_temp_osd(C.GREEN .. "7.1 Upmix: " .. C.WHITE .. "ON (Enhanced Bass)", 2)
     else
         show_temp_osd(C.RED .. "7.1 Upmix: " .. C.WHITE .. "OFF", 2)
     end
+    sync_state()
 end)
 
--- Passthrough Logic
 mp.register_script_message("toggle-audio-passthrough", function()
-    -- FIXED: Added 'no-osd' to silence standard message
     mp.command('no-osd cycle-values audio-spdif "ac3,dts,eac3,truehd,dtshd" "no"')
-
+    
+    -- [FIX 1] Improved Logic for OSD
     local spdif = mp.get_property("audio-spdif")
-    if spdif == "no" then
+    if spdif == "no" or spdif == "" then
         show_temp_osd(C.CYAN .. "Audio: " .. C.WHITE .. "PCM (Upmix Active)", 2)
     else
         show_temp_osd(C.GOLD .. "Audio: " .. C.WHITE .. "Bitstream (Passthrough)", 2)
     end
+    sync_state()
 end)
+
+-------------------------------------------------
+-- GLOBAL SHADER TOGGLE
+-------------------------------------------------
+mp.register_script_message("toggle-global-shaders", function()
+    shaders_master_switch = not shaders_master_switch
+    if not shaders_master_switch then
+        mp.set_property("glsl-shaders", "") 
+        current_profile = ""
+        show_temp_osd(C.RED .. "Shaders: " .. C.WHITE .. "Disabled", 2)
+    else
+        evaluate()
+        show_temp_osd(C.GREEN .. "Shaders: " .. C.WHITE .. "Enabled", 2)
+    end
+    sync_state()
+end)
+
+-- [ADDED] Observers for automatic sync
+mp.observe_property("af", "string", sync_state)
+mp.observe_property("audio-spdif", "string", sync_state)
+mp.observe_property("target-colorspace-hint", "string", sync_state)
 
 -------------------------------------------------
 -- UOSC MENU INTEGRATION
 -------------------------------------------------
 mp.add_key_binding(nil, "open-anime-menu", function()
-    -- Check if content is HDR
     local is_hdr = false
     local prim = mp.get_property_native("video-params/primaries")
     if prim == "bt.2020" or prim == "apple" then is_hdr = true end
 
+    -- [ADDED] Local State for Checkmarks
+    local s_on = shaders_master_switch
+    local s_auto = (anime_mode == "auto")
+    local s_force = (anime_mode == "on")
+    local s_off = (anime_mode == "off")
+    local s_sd_tex = (sd_mode == "texture")
+    local s_logic_fsr = (sd_manual_override or hd_manual_override)
+    local s_a4k_hq = (anime4k_quality == "hq")
+    
+    -- Audio Check
+    local af = mp.get_property("af") or ""
+    local s_upmix = string.find(af, "surround")
+    local spdif = mp.get_property("audio-spdif") or "no"
+    local s_pass = (spdif ~= "no" and spdif ~= "") -- [FIX 1]
+    
+    local s_hdr_active = (mp.get_property("target-colorspace-hint") == "yes")
+    
+
     -- Base Menu Items
     local items = {
 		{ title = "====(Auto-Detection Modes)====", value = "ignore" },
-        { title = "Auto Mode (Default)", value = "script-binding anime-mode-auto" },
-        { title = "Force On (Anime4K)", value = "script-binding anime-mode-on" },
-        { title = "Force Off (Native HQ)", value = "script-binding anime-mode-off" },
-        { title = "Show Current Status", value = "script-binding show-profile-info" },        
+        { title = "Mode: Auto (Default)", value = "script-binding anime-mode-auto", active = s_auto },
+        { title = "Mode: Force On (Anime4K)", value = "script-binding anime-mode-on", active = s_force },
+        { title = "Mode: Force Off (Native HQ)", value = "script-binding anime-mode-off", active = s_off },
+        { title = "Show Status Info", value = "script-binding show-profile-info" },        
+        
         { title = "====(Quality Toggles)====", value = "ignore" },
-        { title = "Toggle SD Mode (Texture/Clean)", value = "script-message toggle-hq-sd" },
-        { title = "Toggle SD/HD Logic (NNEDI/FSR)", value = "script-message toggle-hq-hd-nnedi" },
-        { title = "Toggle Anime4K Quality (Fast/HQ)", value = "script-binding toggle-anime4k-quality" },
-        -- RTX VSR Integration
-        { title = "RTX VSR: Toggle ON/OFF", value = "script-binding toggle-vsr" }
+        { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = s_on },
+        
+        { title = "Toggle SD Mode (Texture/Clean)", value = "script-message toggle-hq-sd", active = s_sd_tex },
+		{ title = "Toggle SD/HD Logic (NNEDI/FSR)", value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
+        { title = "Toggle Anime4K Quality (Fast/HQ)", value = "script-binding toggle-anime4k-quality", active = s_a4k_hq },
+        { title = "RTX VSR: Toggle ON/OFF", value = "script-binding toggle-vsr" } 
     }
 
     -- Audio Options Section
     table.insert(items, { title = "====(Audio)====", value = "ignore" })
-    table.insert(items, { title = "Audio: Toggle 7.1 Upmix (Enhanced Bass)", value = "script-message toggle-audio-upmix" })
-    table.insert(items, { title = "Audio: Toggle Passthrough / Bitstream", value = "script-message toggle-audio-passthrough" })
+    table.insert(items, { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix })
+    table.insert(items, { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass }) -- [FIX 1] Highlight Corrected
 
     -- HDR Integration
     if is_hdr then
         table.insert(items, { title = "====(HDR)====", value = "ignore" })
-        table.insert(items, { title = "HDR: Force Tone-Mapping / Passthrough", value = "script-binding toggle-hdr-hybrid" })
+        table.insert(items, { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active })
     end
 
-    -- Power Manager Integration
+	-- Power Manager Integration
     table.insert(items, { title = "====(Power Mode)====", value = "ignore" })
     table.insert(items, { title = "Power: Toggle Low Power Mode", value = "script-binding toggle-power" })
 
@@ -309,13 +381,14 @@ mp.add_key_binding(nil, "open-anime-menu", function()
 end)
 
 -------------------------------------------------
--- SCRIPT-BINDINGS (EXISTING)
+-- SCRIPT-BINDINGS
 -------------------------------------------------
 mp.add_key_binding(nil, "anime-mode-auto", function()
     anime_mode = "auto"
     save_anime_mode()
     evaluate()
     show_temp_osd(profile_message(), 2)
+    sync_state()
 end)
 
 mp.add_key_binding(nil, "anime-mode-on", function()
@@ -323,6 +396,7 @@ mp.add_key_binding(nil, "anime-mode-on", function()
     save_anime_mode()
     evaluate()
     show_temp_osd(profile_message(), 2)
+    sync_state()
 end)
 
 mp.add_key_binding(nil, "anime-mode-off", function()
@@ -330,6 +404,7 @@ mp.add_key_binding(nil, "anime-mode-off", function()
     save_anime_mode()
     evaluate()
     show_temp_osd(profile_message(), 2)
+    sync_state()
 end)
 
 mp.add_key_binding(nil, "toggle-anime4k-quality", function()
@@ -338,6 +413,7 @@ mp.add_key_binding(nil, "toggle-anime4k-quality", function()
     save_anime4k()
     apply_anime4k()
     show_temp_osd(profile_message(), 2)
+    sync_state()
 end)
 
 mp.add_key_binding(nil, "show-profile-info", function()
@@ -354,6 +430,8 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 mp.register_script_message("toggle-hq-sd", function()
+    if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
+    
     if current_profile == "HQ-SD-FSRCNNX" then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Switch to NNEDI first.", 2)
         return
@@ -365,9 +443,12 @@ mp.register_script_message("toggle-hq-sd", function()
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
     evaluate()
     show_temp_osd(C.YELLOW .. "SD Mode: " .. C.ORANGE .. sd_mode:upper(), 2)
+    sync_state()
 end)
 
 mp.register_script_message("toggle-hq-hd-nnedi", function()
+    if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
+    
     local w = tonumber(mp.get_property("video-params/w")) or 0
     local h = tonumber(mp.get_property("video-params/h")) or 0
 
@@ -390,6 +471,7 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
         mode_color = hd_manual_override and C.CYAN or C.GOLD
     end
     show_temp_osd(C.YELLOW .. "Logic Switch: " .. mode_color .. mode_name, 2)
+    sync_state()
 end)
 
 mp.register_script_message("force-evaluate-profile", function()
@@ -406,4 +488,7 @@ mp.register_event("file-loaded", function()
     sd_manual_override = false
     evaluate()
     show_temp_osd(profile_message(), 2)
+    sync_state()
 end)
+
+sync_state()

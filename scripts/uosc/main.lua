@@ -330,7 +330,7 @@ end)
 -- Default menu items
 -- Inside scripts/uosc/main.lua
 
--- [PHASE 5: FINAL CONTROLS (GPU API LOCKED)]
+-- [PHASE 5: FINAL CONTROLS (WITH SCALING SUITE)]
 function create_controls_menu()
     -- Helpers
     local function prop(p) return mp.get_property(p) end
@@ -397,20 +397,7 @@ function create_controls_menu()
                 title = 'Advanced',
                 id = 'advanced_root',
                 items = {
-                    -- A. Interpolation Method
-                    {
-                        title = 'Interpolation Method >',
-                        hint = prop('tscale'),
-                        id = 'interp_menu',
-                        items = {
-                            { title = 'oversample', active = active('tscale', 'oversample'), value = cmd('set tscale oversample', 'interp_menu', 1) },
-                            { title = 'linear', active = active('tscale', 'linear'), value = cmd('set tscale linear', 'interp_menu', 2) },
-                            { title = 'catmull_rom', active = active('tscale', 'catmull_rom'), value = cmd('set tscale catmull_rom', 'interp_menu', 3) },
-                            { title = 'mitchell', active = active('tscale', 'mitchell'), value = cmd('set tscale mitchell', 'interp_menu', 4) },
-                            { title = 'bicubic', active = active('tscale', 'bicubic'), value = cmd('set tscale bicubic', 'interp_menu', 5) },
-                        }
-                    },
-                    -- B. Video Sync
+                    -- A. Video Sync
                     {
                         title = 'Video Sync >',
                         hint = prop('video-sync'),
@@ -422,7 +409,7 @@ function create_controls_menu()
                             { title = 'Desync', active = active('video-sync', 'desync'), value = cmd('set video-sync desync', 'vsync_menu', 4) },
                         }
                     },
-                    -- C. Dither
+                    -- B. Dither
                     {
                         title = 'Dither Settings >',
                         hint = prop('dither'),
@@ -436,7 +423,7 @@ function create_controls_menu()
                             { title = 'Depth: 10', active = active('dither-depth', '10'), value = cmd('set dither-depth 10', 'dither_menu', 6) },
                         }
                     },
-                    -- D. Hardware Decoding
+                    -- C. Hardware Decoding
                     {
                         title = 'Hardware Decoding >',
                         hint = prop('hwdec'),
@@ -448,41 +435,74 @@ function create_controls_menu()
                             { title = 'OFF (Software)', active = active('hwdec', 'no'), value = cmd('set hwdec no', 'hwdec_menu', 4) },
                         }
                     },
-                    -- E. Scaling
+                    -- D. Scaling (FULL SUITE)
                     {
-                        title = 'Upscaler (Scale) >',
-                        hint = prop('scale'),
-                        id = 'scale_menu',
+                        title = 'Scaling',
+                        id = 'scaling_root',
                         items = {
-                            { title = 'ewa_lanczossharp', active = active('scale', 'ewa_lanczossharp'), value = cmd('set scale ewa_lanczossharp', 'scale_menu', 1) },
-                            { title = 'spline36', active = active('scale', 'spline36'), value = cmd('set scale spline36', 'scale_menu', 2) },
-                            { title = 'bilinear', active = active('scale', 'bilinear'), value = cmd('set scale bilinear', 'scale_menu', 3) },
+                            -- Upscaler
+                            {
+                                title = 'Upscale >',
+                                hint = prop('scale'),
+                                id = 'scale_menu',
+                                items = {
+                                    { title = 'ewa_lanczossharp', active = active('scale', 'ewa_lanczossharp'), value = cmd('set scale ewa_lanczossharp', 'scale_menu', 1) },
+                                    { title = 'spline36', active = active('scale', 'spline36'), value = cmd('set scale spline36', 'scale_menu', 2) },
+                                    { title = 'bilinear', active = active('scale', 'bilinear'), value = cmd('set scale bilinear', 'scale_menu', 3) },
+                                }
+                            },
+                            -- Downscaler
+                            {
+                                title = 'Downscale >',
+                                hint = prop('dscale'),
+                                id = 'dscale_menu',
+                                items = {
+                                    { title = 'mitchell', active = active('dscale', 'mitchell'), value = cmd('set dscale mitchell', 'dscale_menu', 1) },
+                                    { title = 'hermite', active = active('dscale', 'hermite'), value = cmd('set dscale hermite', 'dscale_menu', 2) },
+                                    { title = 'spline36', active = active('dscale', 'spline36'), value = cmd('set dscale spline36', 'dscale_menu', 3) },
+                                    { title = 'bilinear', active = active('dscale', 'bilinear'), value = cmd('set dscale bilinear', 'dscale_menu', 4) },
+                                }
+                            },
+                            -- Chromascaler
+                            {
+                                title = 'Chromascale >',
+                                hint = prop('cscale'),
+                                id = 'cscale_menu',
+                                items = {
+                                    { title = 'spline36', active = active('cscale', 'spline36'), value = cmd('set cscale spline36', 'cscale_menu', 1) },
+                                    { title = 'lanczos', active = active('cscale', 'lanczos'), value = cmd('set cscale lanczos', 'cscale_menu', 2) },
+                                    { title = 'bilinear', active = active('cscale', 'bilinear'), value = cmd('set cscale bilinear', 'cscale_menu', 3) },
+                                }
+                            },
+                            -- Temporalscaler (Interpolation Method)
+                            {
+                                title = 'Temporalscale >',
+                                hint = prop('tscale'),
+                                id = 'tscale_menu',
+                                items = {
+                                    { title = 'oversample', active = active('tscale', 'oversample'), value = cmd('set tscale oversample', 'tscale_menu', 1) },
+                                    { title = 'linear', active = active('tscale', 'linear'), value = cmd('set tscale linear', 'tscale_menu', 2) },
+                                    { title = 'catmull_rom', active = active('tscale', 'catmull_rom'), value = cmd('set tscale catmull_rom', 'tscale_menu', 3) },
+                                    { title = 'mitchell', active = active('tscale', 'mitchell'), value = cmd('set tscale mitchell', 'tscale_menu', 4) },
+                                    { title = 'bicubic', active = active('tscale', 'bicubic'), value = cmd('set tscale bicubic', 'tscale_menu', 5) },
+                                }
+                            },
+                            -- Toggles
+                            { title = 'Linear Upscaling', active = is_true('linear-upscaling'), value = cmd('cycle linear-upscaling', 'scaling_root', 5) },
+                            { title = 'Sigmoid Upscaling', active = is_true('sigmoid-upscaling'), value = cmd('cycle sigmoid-upscaling', 'scaling_root', 6) },
+                            { title = 'Correct Downscaling', active = is_true('correct-downscaling'), value = cmd('cycle correct-downscaling', 'scaling_root', 7) },
+                            { title = 'Linear Downscaling', active = is_true('linear-downscaling'), value = cmd('cycle linear-downscaling', 'scaling_root', 8) },
                         }
                     },
-                    -- F. GPU API (READ ONLY)
+                    -- E. GPU API (Read-Only)
                     {
                         title = 'GPU API >',
                         hint = prop('gpu-api') or 'auto',
                         id = 'gpu_menu',
                         items = {
-                            { 
-                                title = 'd3d11 (Windows)', 
-                                active = active('gpu-api', 'd3d11'), 
-                                muted = not active('gpu-api', 'd3d11'), 
-                                value = '' -- Unclickable
-                            },
-                            { 
-                                title = 'vulkan (Linux)', 
-                                active = active('gpu-api', 'vulkan'), 
-                                muted = not active('gpu-api', 'vulkan'), 
-                                value = '' -- Unclickable
-                            },
-                            { 
-                                title = 'opengl', 
-                                active = active('gpu-api', 'opengl'), 
-                                muted = not active('gpu-api', 'opengl'), 
-                                value = '' -- Unclickable
-                            },
+                            { title = 'd3d11 (Windows)', active = active('gpu-api', 'd3d11'), muted = not active('gpu-api', 'd3d11'), value = '' },
+                            { title = 'vulkan (Linux)', active = active('gpu-api', 'vulkan'), muted = not active('gpu-api', 'vulkan'), value = '' },
+                            { title = 'opengl', active = active('gpu-api', 'opengl'), muted = not active('gpu-api', 'opengl'), value = '' },
                         }
                     },
                 }
@@ -499,11 +519,16 @@ mp.add_key_binding(nil, "open-controls-menu", function()
     mp.commandv("script-message-to", "uosc", "open-menu", json)
 end)
 
--- [PHASE 4: MAIN MENU WITH USER RENAMES]
+-- [PHASE 6: MAIN MENU (WITH CHECKMARKS & SHADER TOGGLE)]
 function create_default_menu_items()
     -- Generate dynamic controls
     local controls_data = create_controls_menu()
     
+-- [HELPER] Read Shared State from Anime Controller
+    local function get_anime(key)
+        return mp.get_property("user-data/anime/" .. key) == "yes"
+    end
+
     return {
         {title = t('Subtitles'), value = 'script-binding uosc/subtitles'},
         {title = t('Audio tracks'), value = 'script-binding uosc/audio'},
@@ -526,26 +551,33 @@ function create_default_menu_items()
         -- [CONTROLS EMBEDDED]
         controls_data,
 
-        -- [ANIME BUILD OPTIONS (User Renames Applied)]
+        -- [ANIME BUILD OPTIONS (Interactive & Safe)]
         {
             title = 'Anime Build Options',
             items = {
 				{ title = "====(Auto-Detection Modes)====", value = "ignore" },
-                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto' },
-                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on' },
-                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off' },
+                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime("mode_auto") },
+                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime("mode_on") },
+                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime("mode_off") },
 				{ title = 'Show Status Info', value = 'script-binding show-profile-info' },
-				{ title = "====(Quality Toggles)====", value = "ignore" },
-                { title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd' },
-                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi' },
-                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality' },
+				
+                { title = "====(Quality Toggles)====", value = "ignore" },
+                -- [NEW] Shader Toggle
+                { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime("shaders_enabled") },
+                
+				{ title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd', active = get_anime("sd_texture") },
+                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi', active = get_anime("logic_fsrcnnx") },
+                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality', active = get_anime("anime4k_hq") },
                 { title = 'RTX VSR: Toggle ON/OFF', value = 'script-binding toggle-vsr' },
-				{ title = "====(Audio)====", value = "ignore" },
-                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix' },
-                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough' },
-				{ title = "====(HDR)====", value = "ignore" },
-                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid' },
-				{ title = "====(Power Mode)====", value = "ignore" },
+				
+                { title = "====(Audio)====", value = "ignore" },
+                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime("audio_upmix") },
+                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime("audio_passthrough") },
+				
+                { title = "====(HDR)====", value = "ignore" },
+                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime("hdr_passthrough") },
+				
+                { title = "====(Power Mode)====", value = "ignore" },
                 { title = 'Power: Toggle Low Power Mode', value = 'script-binding toggle-power' },
             },
         },

@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.7.1
+# 🎬 MPV Anime Build v1.7.2
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
