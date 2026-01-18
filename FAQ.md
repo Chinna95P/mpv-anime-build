@@ -151,6 +151,18 @@ Toggle between them using the **`A`** (`Shift+a`) key:
 ## 🔧 Troubleshooting & Setup
 
 <details>
+<summary><b>The "Skip Intro" button is not appearing!</b></summary>
+
+The Skip Button relies on **Chapter Metadata**. It is not magic; it reads the chapter names inside the video file.
+
+* **Requirement:** The file *must* have chapters, and those chapters *must* be named correctly (e.g., "Intro", "OP", "Ending", "Preview").
+* **Why it fails:**
+    * The file has no chapters at all.
+    * The chapters are named generically (e.g., "Chapter 01", "Chapter 02") instead of "Opening" or "Ending".
+    * **Fix:** This is an issue with the file itself, not the player. Try downloading a "Release Group" version (e.g., Eraser, Judas, SubsPlease) which usually includes proper chapter names.
+</details>
+
+<details>
 <summary><b>Why is SVP still running when I'm on Battery?</b></summary>
 
 MPV cannot "kill" the SVP process because it runs separately.

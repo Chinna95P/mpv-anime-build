@@ -4,6 +4,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.8] – The "Skip Intro" Update
+
+### ✨ New Feature: Smart Skip Button
+Now introducing a fully automated, context-aware **Skip Intro** button inspired by modern streaming services.
+
+* **Context-Aware Logic:** Automatically detects and distinguishes between **Openings (OP)**, **Endings (ED)**, **Previews (PV)**, and generic **Intros**.
+* **Multi-Color Coding:** The button adapts its color based on the content type for instant recognition:
+    * 🟢 **Green:** OP (Opening)
+    * 🔵 **Blue:** ED (Ending)
+    * 🟣 **Magenta:** PV (Preview)
+    * 🟠 **Orange:** Intro (Generic)
+* **Smart Timer:** The countdown timer automatically **pauses** if you pause the video, ensuring the button doesn't expire while you're away.
+* **Mouse Support:** The button is fully interactive. Hovering turns the text **Cyan**, and clicking it instantly skips the chapter. (Keyboard Shortcut: `ENTER` only works when the button is visible)
+
+### 🎨 Visual Refinement
+* **High-Contrast Design:** Redesigned the button with a heavy black border and "Two-Tone" text (Color + White) to ensure visibility against any anime background (bright sky or dark cave).
+
+---
+
 ## [v1.7.3] - The Synchronization Update
 
 **Core Improvements:**

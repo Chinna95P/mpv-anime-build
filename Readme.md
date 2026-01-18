@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.7.2
+# 🎬 MPV Anime Build v1.8
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,37 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## ⏩ Smart Skip Intro (New in v1.8)
+
+This build now features an intelligent **Skip Intro** button that appears automatically when a chapter starts.
+
+### How it Works
+The build reads chapter titles and categorizes them to give you context-aware options:
+
+| Content Type | Button Label | Color Indicator | Meaning |
+| :--- | :--- | :--- | :--- |
+| **Opening** | `SKIP OP` | 🟢 **Green** | "Start the episode" |
+| **Ending** | `SKIP ED` | 🔵 **Blue** | "Finish the episode" |
+| **Preview** | `SKIP PV` | 🟣 **Magenta** | "Skip spoilers" |
+| **Intro** | `SKIP INTRO` | 🟠 **Orange** | "Generic Skip" |
+
+### 🎮 Controls
+* **Click:** Simply click the button with your mouse.
+* **Keyboard:** Press **`ENTER`** to skip.
+* **Smart Pause:** If you pause the video, the skip timer pauses too. It waits for you.
+
+### ⚙️ Activation Requirements
+The button **only** appears if your video file contains **Chapters** with specific keywords in their titles. The build automatically scans for these terms:
+
+* **OP / Opening:** `OP`, `Opening`, `Theme`, `Song`
+* **ED / Ending:** `ED`, `Ending`, `Credits`
+* **PV / Preview:** `PV`, `Preview`
+* **Intro:** `Intro`
+
+> **Note:** If your file does not have chapters (or chapters are named generically like "Chapter 1"), the button will not appear.
 
 ---
 
