@@ -1,6 +1,7 @@
 -- vsr_auto.lua
--- v1.6: Manual RTX VSR Toggle with State Broadcast
+-- v1.7: Manual RTX VSR Toggle with Direct Broadcast (Baseline 1.3 Compatible)
 local mp = require 'mp'
+local utils = require 'mp.utils' -- [ADDED] Required for JSON
 local vsr_active = false
 
 -- State Memory
@@ -17,6 +18,16 @@ function show_osd(text)
     overlay:update()
     if timer then timer:kill() end
     timer = mp.add_timeout(4, function() overlay:remove() end)
+end
+
+-- [NEW] Hybrid Update Helper (Updates Both Menus)
+local function update_status(is_active)
+    -- 1. Update user-data (For Anime Button Menu)
+    mp.set_property("user-data/vsr_active", is_active and "yes" or "no")
+
+    -- 2. Broadcast (For UOSC Main Menu)
+    local json = utils.format_json({ vsr_active = is_active })
+    mp.commandv("script-message", "anime-state-broadcast", json)
 end
 
 function toggle_vsr()
@@ -38,7 +49,6 @@ function toggle_vsr()
 
         show_osd("{\\c&H00FFFF&}Nvidia VSR: Disabled {\\c&HFFFFFF&}(Restored Config)")
         vsr_active = false
-        mp.set_property("user-data/vsr_active", "no") -- [BROADCAST STATE]
     else
         -- ENABLE VSR
         original_hwdec = mp.get_property("hwdec") or "auto-copy"
@@ -63,11 +73,15 @@ function toggle_vsr()
         
         show_osd("{\\c&H00FF00&}Nvidia VSR: Active {\\c&HFFFFFF&}(" .. msg .. " - Manual)")
         vsr_active = true
-        mp.set_property("user-data/vsr_active", "yes") -- [BROADCAST STATE]
     end
+    
+    -- [CRITICAL] Update both systems
+    update_status(vsr_active)
 end
 
--- Initialize state
-mp.set_property("user-data/vsr_active", "no")
+-- Listen for the "force-evaluate" signal (from main.lua load)
+mp.register_script_message("force-evaluate-profile", function()
+    update_status(vsr_active)
+end)
 
 mp.add_key_binding("V", "toggle-vsr", toggle_vsr)

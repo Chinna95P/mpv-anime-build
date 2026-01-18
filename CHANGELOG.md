@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.7.3] - The Synchronization Update
+
+**Core Improvements:**
+* **Hybrid Menu Sync System:** Solved the "Invisible Checkmark" issue. The UOSC Main Menu and the Anime Mode Button now share a real-time communication channel.
+    * Toggling VSR, Power Mode, or Shaders from *any* menu instantly updates the checkmarks in *all* other menus.
+    * Fixed the desync where `user-data` updates were sometimes too slow to reflect in the UI immediately.
+
+**Under the Hood:**
+* **Broadcast Listeners:** Added dedicated listeners to `anime_profile_controller.lua` and `main.lua` to catch state changes instantly.
+* **Robust State Caching:** UOSC now caches the anime state locally to prevent UI flickering during rapid menu navigation.
+* **Startup Evaluation:** Forced a profile re-evaluation on file load to ensure the menu always shows the correct state immediately after opening a file.
+
+---
+
 ## [v1.7.2] – The "Visual Feedback" Update
 
 ### 🎮 Interface & Controls

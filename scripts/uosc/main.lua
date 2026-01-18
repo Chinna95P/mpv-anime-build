@@ -524,9 +524,10 @@ function create_default_menu_items()
     -- Generate dynamic controls
     local controls_data = create_controls_menu()
     
--- [HELPER] Read Shared State from Anime Controller
+-- [HELPER] Read Shared State (Flat Keys)
     local function get_anime(key)
-        return mp.get_property("user-data/anime/" .. key) == "yes"
+        -- Note the underscore: "anime_" instead of "anime/"
+        return mp.get_property("user-data/anime_" .. key) == "yes"
     end
 
     return {
@@ -555,30 +556,30 @@ function create_default_menu_items()
         {
             title = 'Anime Build Options',
             items = {
-				{ title = "====(Auto-Detection Modes)====", value = "ignore" },
-                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime("mode_auto") },
-                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime("mode_on") },
-                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime("mode_off") },
+{ title = "====(Auto-Detection Modes)====", value = "ignore" },
+                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime_state("mode_auto") },
+                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime_state("mode_on") },
+                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime_state("mode_off") },
 				{ title = 'Show Status Info', value = 'script-binding show-profile-info' },
 				
                 { title = "====(Quality Toggles)====", value = "ignore" },
                 -- [NEW] Shader Toggle
-                { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime("shaders_enabled") },
+                { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime_state("shaders_enabled") },
                 
-				{ title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd', active = get_anime("sd_texture") },
-                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi', active = get_anime("logic_fsrcnnx") },
-                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality', active = get_anime("anime4k_hq") },
-                { title = 'RTX VSR: Toggle ON/OFF', value = 'script-binding toggle-vsr' },
+				{ title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd', active = get_anime_state("sd_texture") },
+                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi', active = get_anime_state("logic_fsrcnnx") },
+                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality', active = get_anime_state("anime4k_hq") },
+                { title = 'RTX VSR: Toggle ON/OFF', value = 'script-binding toggle-vsr', active = get_anime_state("vsr_active") },
 				
                 { title = "====(Audio)====", value = "ignore" },
-                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime("audio_upmix") },
-                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime("audio_passthrough") },
+                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
+                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
 				
                 { title = "====(HDR)====", value = "ignore" },
-                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime("hdr_passthrough") },
+                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },
 				
                 { title = "====(Power Mode)====", value = "ignore" },
-                { title = 'Power: Toggle Low Power Mode', value = 'script-binding toggle-power' },
+                { title = 'Power: Toggle Low Power Mode', value = 'script-binding toggle-power', active = get_anime_state("power_active") },
             },
         },
 
@@ -1484,3 +1485,49 @@ end
 
 -- Initial commit
 Manager:disable('user', options.disable_elements)
+
+-- [PHASE 7: LIVE STATE MIRROR (THE FIX)]
+-- This listener waits for the Anime Controller to update status
+local function on_anime_state_change(name, value)
+    -- If the Main Menu is currently open, force it to redraw immediately
+    if Menu:is_open('menu') then
+        local items = create_default_menu_items()
+        local json = utils.format_json({ type = 'menu', items = items })
+        mp.commandv("script-message-to", "uosc", "update-menu", json)
+    end
+end
+
+-- [PHASE 7: DIRECT BROADCAST LISTENER (ROBUST FIX)]
+
+-- 1. Create a local cache to store the latest state
+local anime_cache = {}
+
+-- 2. Define the Reader Helper (Uses cache instead of get_property)
+function get_anime_state(key)
+    -- Return true if the key exists and is true
+    return anime_cache[key] == true
+end
+
+-- 3. Listen for the Broadcast (Merged Logic)
+mp.register_script_message('anime-state-broadcast', function(json)
+    local data = utils.parse_json(json)
+    if not data then return end
+    
+    -- [FIX] Merge data into cache instead of replacing it
+    for k, v in pairs(data) do
+        anime_cache[k] = v
+    end
+    
+    -- Force Redraw if Menu is Open
+    if Menu:is_open('menu') then
+        local items = create_default_menu_items()
+        local menu_json = utils.format_json({ type = 'menu', items = items })
+        mp.commandv("script-message-to", mp.get_script_name(), "update-menu", menu_json)
+    end
+end)
+
+-- 4. Request state on load (in case Controller loaded first)
+mp.register_event("file-loaded", function()
+    -- Trigger the controller to resend state
+    mp.commandv("script-message", "force-evaluate-profile") 
+end)

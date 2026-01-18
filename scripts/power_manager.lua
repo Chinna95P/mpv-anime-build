@@ -47,9 +47,14 @@ local state = {
     resume_timer = nil
 }
 
--- [NEW] HELPER: Broadcast State for Menu Highlighting
+-- [NEW] Hybrid Helper: Broadcast + User-Data
 local function update_menu_status(is_active)
+    -- 1. Set User-Data (For Anime Mode Button)
     mp.set_property("user-data/power_active", is_active and "yes" or "no")
+    
+    -- 2. Broadcast (For UOSC Main Menu)
+    local json = utils.format_json({ power_active = is_active })
+    mp.commandv("script-message", "anime-state-broadcast", json)
 end
 
 -- HELPER: Check if system is a laptop
@@ -143,6 +148,12 @@ local function toggle_force_mode()
         end
     end
 end
+
+-- Respond to menu open requests
+mp.register_script_message("force-evaluate-profile", function()
+    -- Re-broadcast current state
+    update_menu_status(state.forced_mode or state.on_battery)
+end)
 
 -- INITIALIZATION
 mp.register_event("file-loaded", function()

@@ -29,6 +29,10 @@ local sd_mode = "clean"
 local sd_manual_override = false 
 local hd_manual_override = false 
 
+-- [NEW] External States (Synced via Broadcast)
+local external_vsr_active = false
+local external_power_active = false
+
 -- Anime4K (persistent)
 local anime4k_quality = "fast"
 local anime4k_mode = "A"
@@ -66,32 +70,35 @@ local function show_temp_osd(text, duration)
     osd_timer = mp.add_timeout(duration, hide_osd)
 end
 
--------------------------------------------------
--- SYNC STATE HELPER (For UOSC & Internal Menu)
--------------------------------------------------
 local function sync_state()
-    -- Exports state so main.lua can see it
-    mp.set_property("user-data/anime/shaders_enabled", shaders_master_switch and "yes" or "no")
-    mp.set_property("user-data/anime/anime4k_hq", (anime4k_quality == "hq") and "yes" or "no")
-    mp.set_property("user-data/anime/sd_texture", (sd_mode == "texture") and "yes" or "no")
-    mp.set_property("user-data/anime/logic_fsrcnnx", (sd_manual_override or hd_manual_override) and "yes" or "no")
+    -- [FIX] Direct Broadcast Method (Bypasses user-data issues)
     
-    mp.set_property("user-data/anime/mode_auto", (anime_mode == "auto") and "yes" or "no")
-    mp.set_property("user-data/anime/mode_on", (anime_mode == "on") and "yes" or "no")
-    mp.set_property("user-data/anime/mode_off", (anime_mode == "off") and "yes" or "no")
+    -- 1. Define the state table
+    local state = {
+        shaders_enabled = shaders_master_switch,
+        anime4k_hq = (anime4k_quality == "hq"),
+        sd_texture = (sd_mode == "texture"),
+        logic_fsrcnnx = (sd_manual_override or hd_manual_override),
+        
+        mode_auto = (anime_mode == "auto"),
+        mode_on = (anime_mode == "on"),
+        mode_off = (anime_mode == "off"),
+        
+        audio_upmix = (string.find(mp.get_property("af") or "", "surround") ~= nil),
+        audio_passthrough = (function()
+            local s = mp.get_property("audio-spdif")
+            return (s ~= "no" and s ~= "" and s ~= nil)
+        end)(),
+        
+        hdr_passthrough = (mp.get_property("target-colorspace-hint") == "yes"),
+    }
+
+    -- 2. Broadcast to UOSC (JSON)
+    local json = utils.format_json(state)
+    mp.commandv("script-message", "anime-state-broadcast", json)
     
-    -- Audio Sync (Fix 1: Logic Tightened)
-    -- If 'audio-spdif' is 'no' or empty, Passthrough is OFF.
-    local spdif = mp.get_property("audio-spdif") or "no"
-    local is_passthrough = (spdif ~= "no" and spdif ~= "")
-    mp.set_property("user-data/anime/audio_passthrough", is_passthrough and "yes" or "no")
-    
-    local af = mp.get_property("af") or ""
-    mp.set_property("user-data/anime/audio_upmix", string.find(af, "surround") and "yes" or "no")
-    
-    -- HDR
-    local hdr = mp.get_property("target-colorspace-hint") == "yes"
-    mp.set_property("user-data/anime/hdr_passthrough", hdr and "yes" or "no")
+    -- 3. Keep user-data as backup (optional, good for debugging)
+    mp.set_property("user-data/anime_shaders_enabled", state.shaders_enabled and "yes" or "no")
 end
 
 -------------------------------------------------
@@ -179,6 +186,21 @@ local function is_live_action(p)
     p = p:lower()
     return p:find("live action") or p:find("live%-action") or p:find("liveaction") or p:find("drama")
 end
+
+-------------------------------------------------
+-- BROADCAST LISTENER (Syncs VSR/Power state)
+-------------------------------------------------
+mp.register_script_message("anime-state-broadcast", function(json)
+    local data = utils.parse_json(json)
+    if not data then return end
+    
+    if data.vsr_active ~= nil then
+        external_vsr_active = data.vsr_active
+    end
+    if data.power_active ~= nil then
+        external_power_active = data.power_active
+    end
+end)
 
 -------------------------------------------------
 -- APPLY PROFILE
@@ -334,14 +356,17 @@ mp.add_key_binding(nil, "open-anime-menu", function()
     local af = mp.get_property("af") or ""
     local s_upmix = string.find(af, "surround")
     local spdif = mp.get_property("audio-spdif") or "no"
-    local s_pass = (spdif ~= "no" and spdif ~= "") -- [FIX 1]
+    local s_pass = (spdif ~= "no" and spdif ~= "") 
     
     local s_hdr_active = (mp.get_property("target-colorspace-hint") == "yes")
     
+    -- [UPDATED] VSR & Power Check (Reads from local synced state)
+    local s_vsr = external_vsr_active
+    local s_power = external_power_active
 
     -- Base Menu Items
     local items = {
-		{ title = "====(Auto-Detection Modes)====", value = "ignore" },
+        { title = "====(Auto-Detection Modes)====", value = "ignore" },
         { title = "Mode: Auto (Default)", value = "script-binding anime-mode-auto", active = s_auto },
         { title = "Mode: Force On (Anime4K)", value = "script-binding anime-mode-on", active = s_force },
         { title = "Mode: Force Off (Native HQ)", value = "script-binding anime-mode-off", active = s_off },
@@ -351,15 +376,15 @@ mp.add_key_binding(nil, "open-anime-menu", function()
         { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = s_on },
         
         { title = "Toggle SD Mode (Texture/Clean)", value = "script-message toggle-hq-sd", active = s_sd_tex },
-		{ title = "Toggle SD/HD Logic (NNEDI/FSR)", value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
+        { title = "Toggle SD/HD Logic (NNEDI/FSR)", value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
         { title = "Toggle Anime4K Quality (Fast/HQ)", value = "script-binding toggle-anime4k-quality", active = s_a4k_hq },
-        { title = "RTX VSR: Toggle ON/OFF", value = "script-binding toggle-vsr" } 
+        { title = "RTX VSR: Toggle ON/OFF", value = "script-binding toggle-vsr", active = s_vsr } 
     }
 
     -- Audio Options Section
     table.insert(items, { title = "====(Audio)====", value = "ignore" })
     table.insert(items, { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix })
-    table.insert(items, { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass }) -- [FIX 1] Highlight Corrected
+    table.insert(items, { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass }) 
 
     -- HDR Integration
     if is_hdr then
@@ -367,9 +392,9 @@ mp.add_key_binding(nil, "open-anime-menu", function()
         table.insert(items, { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active })
     end
 
-	-- Power Manager Integration
+    -- Power Manager Integration
     table.insert(items, { title = "====(Power Mode)====", value = "ignore" })
-    table.insert(items, { title = "Power: Toggle Low Power Mode", value = "script-binding toggle-power" })
+    table.insert(items, { title = "Power: Toggle Low Power Mode", value = "script-binding toggle-power", active = s_power })
 
     -- Send to UOSC
     local menu_json = utils.format_json({
