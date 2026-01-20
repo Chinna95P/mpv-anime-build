@@ -30,7 +30,7 @@ You now have two distinct engines for watching Anime. Switch between them instan
 
 | Anime4K (Art Style) | Fidelity (Purist) |
 | :---: | :---: |
-| ![Anime4K](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/anime-new-auto-anime4k.jpg) | ![Fidelity](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/anime-new-auto-fsr.jpg) |
+| ![Anime4K](screenshots/anime-new-auto-anime4k.jpg) | ![Fidelity](screenshots/anime-new-auto-fsr.jpg) |
 
 ### 2. "Neon Glass" Stats Overlay
 Press `Shift+I` to see exactly what your build is doing.
@@ -65,7 +65,7 @@ The build reads chapter titles and categorizes them to give you context-aware op
 
 | OP Detected | ED Detected | Feedback |
 | :---: | :---: | :---: |
-| ![OP](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui2.jpg) | ![ED](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui9.jpg) | ![Skipped](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui4.jpg) |
+| ![OP](screenshots/ui2.jpg) | ![ED](screenshots/ui9.jpg) | ![Skipped](screenshots/ui4.jpg) |
 
 ### 🎮 Controls
 * **Click:** Simply click the button with your mouse.
@@ -101,7 +101,7 @@ We have shifted from ModernZ to a fully **Customized UOSC** interface.
 
 | Main Menu | Advanced Controls |
 | :---: | :---: |
-| ![Menu](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui6.jpg) | ![Controls](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui7.jpg) |
+| ![Menu](screenshots/ui6.jpg) | ![Controls](screenshots/ui7.jpg) |
 
 ### 📺 True HDR Passthrough
 The detection logic has been completely overhauled.
