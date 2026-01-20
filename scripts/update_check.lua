@@ -9,7 +9,7 @@ local msg = require 'mp.msg'
 
 -- [CONFIGURATION]
 local CURRENT_VERSION_STR = "v1.9"
-local VERSION_URL = "https://github.com/Chinna95P/mpv-anime-build/blob/main/version.txt" 
+local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/version.txt" 
 
 local function parse_version(v)
     if not v then return 0 end
