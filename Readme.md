@@ -1,8 +1,8 @@
-# 🎬 MPV Anime Build v1.8
+# 🎬 MPV Anime Build v1.9
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
-> **Anime-aware MPV configuration with automatic Anime4K, Power Management, Nvidia VSR, and Universal HDR support.**
+> **Anime-aware MPV configuration with automatic Anime Fidelity, Power Management, Nvidia VSR, and Universal HDR support.**
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
@@ -10,6 +10,42 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## ✨ Key Features (v1.9)
+
+### 1. Anime Fidelity Mode vs. Performance
+You now have two distinct engines for watching Anime. Switch between them instantly via the menu.
+
+| Mode | Engine | Best For | Logic |
+| :--- | :--- | :--- | :--- |
+| **Performance (Default)** | **Anime4K** | **720p / Old Anime** | Aggressive upscaling, artifact removal, and "painting" effect. Best for low-bitrate streams. |
+| **Fidelity (New)** | **FSRCNNX** | **1080p / Modern Anime** | Preserves original texture and line art. Uses distinct networks based on resolution. |
+
+**How Fidelity Mode adapts to Resolution:**
+* **SD Content:** Applies `FSRCNNX-16 (Anime Enhance)` for deep reconstruction.
+* **HD/FHD Content:** Applies `FSRCNNX-8 (Line Art)` for subtle edge refinement without destroying the artist's original texture.
+* **4K Content:** Applies `Adaptive Sharpen` only.
+
+| Anime4K (Art Style) | Fidelity (Purist) |
+| :---: | :---: |
+| ![Anime4K](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/anime-new-auto-anime4k.jpg) | ![Fidelity](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/anime-new-auto-fsr.jpg) |
+
+### 2. "Neon Glass" Stats Overlay
+Press `Shift+I` to see exactly what your build is doing.
+* **Real-time Shader Tracking:** See if you are running NNEDI3, FSRCNNX, or Anime4K.
+* **Audio Logic:** Check if 7.1 Upmix or Night Mode is active.
+* **HDR Status:** Instant confirmation of Tone-Mapping vs Passthrough.
+* **Safe Alignment:** Uses a virtual 720p canvas to ensure pixel-perfect display on 1080p, 1440p, and 4K screens.
+
+## 🌙 Night Mode (New in v1.9)
+
+Watching late at night? Toggle **Night Mode** to normalize audio volume.
+
+* **What it does:** Applies Dynamic Range Compression (DRC).
+* **Effect:** Loud sounds (explosions, openings) are lowered, and quiet sounds (whispers, footsteps) are boosted.
+* **Toggle:** Open the **Audio & HDR** menu and click the 'Audio Night Mode'.
 
 ---
 
@@ -26,6 +62,10 @@ The build reads chapter titles and categorizes them to give you context-aware op
 | **Ending** | `SKIP ED` | 🔵 **Blue** | "Finish the episode" |
 | **Preview** | `SKIP PV` | 🟣 **Magenta** | "Skip spoilers" |
 | **Intro** | `SKIP INTRO` | 🟠 **Orange** | "Generic Skip" |
+
+| OP Detected | ED Detected | Feedback |
+| :---: | :---: | :---: |
+| ![OP](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui2.jpg) | ![ED](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui9.jpg) | ![Skipped](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui4.jpg) |
 
 ### 🎮 Controls
 * **Click:** Simply click the button with your mouse.
@@ -58,6 +98,10 @@ We have added a dedicated **Controls Button** (Tune/Sliders icon) to the main **
 We have shifted from ModernZ to a fully **Customized UOSC** interface.
 * **Smoked Glass Theme:** Menus, title bars, and sliders now feature a transparent design (33% opacity), ensuring the video remains visible while you navigate.
 * **Centralized Control:** A new **"Anime Build Options"** menu acts as a command center, giving you instant access to Anime4K, Audio Upmix, Power Mode, and VSR without needing to remember shortcuts.
+
+| Main Menu | Advanced Controls |
+| :---: | :---: |
+| ![Menu](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui6.jpg) | ![Controls](https://github.com/Chinna95P/mpv-anime-build/tree/main/screenshots/ui7.jpg) |
 
 ### 📺 True HDR Passthrough
 The detection logic has been completely overhauled.

@@ -1,6 +1,6 @@
 //!HOOK LUMA
 //!WHEN OUTPUT.w LUMA.w / 1.300 > OUTPUT.h LUMA.h / 1.300 > *
-//!DESC feature map 1
+//!DESC FSRCNNX 8-0-4-1 (Line Art)
 //!BIND LUMA
 //!SAVE FEATURE1
 //!COMPONENTS 4

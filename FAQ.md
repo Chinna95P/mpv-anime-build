@@ -25,6 +25,40 @@ This is a **Read-Only** display found in the Controls menu.
 
 <br>
 
+## 📺 Video & Quality
+
+<details>
+<summary><b>What is "Fidelity Mode"? (New in v1.9)</b></summary>
+
+By default, the build uses **Anime4K** (Mode A), which is fantastic for upscaling 720p or older anime to 4K. 
+However, for **high-quality 1080p releases**, Anime4K can sometimes look "too processed."
+
+**Fidelity Mode** switches the engine to **FSRCNNX** combined with **KrigBilateral**.
+It is **Resolution Aware**:
+* If you play an **SD** file, it uses a heavier 16-layer network to fix the image.
+* If you play an **HD/1080p** file, it uses a lighter 8-layer "Line Art" network to simply refine the edges without destroying the artist's original texture.
+</details>
+
+<details>
+<summary><b>How do I see what shaders are active?</b></summary>
+
+Press **`Shift + I`** (or go to **System > Show Statistics** in the menu).
+This opens the **Neon Glass Overlay**, which tells you exactly which scaler (NNEDI3, FSRCNNX, or Anime4K) is currently running.
+</details>
+
+<br>
+
+## 🔊 Audio
+
+<details>
+<summary><b>What is Night Mode?</b></summary>
+
+Night Mode applies **Dynamic Range Compression**. It boosts quiet dialogues (whispers) and lowers loud explosions. This is perfect for watching movies at night so you can hear what characters are saying without waking up the house during action scenes.
+Toggle it in the Audio Menu or press `Shift + U`.
+</details>
+
+<br>
+
 ## 🚀 Nvidia VSR (Video Super Resolution)
 *Exclusive to RTX 3000/4000 (2000 Series should also work) series users.*
 

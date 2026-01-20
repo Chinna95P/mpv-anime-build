@@ -4,6 +4,32 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9] – The "Fidelity & Stats" Update
+
+### ✨ New Features
+* **Anime Fidelity Mode:** A completely new rendering engine for purists (Now Default for Anime).
+    * **Concept:** While Anime4K focuses on aggressive upscaling and "painting" over artifacts, Fidelity Mode uses **FSRCNNX** + **KrigBilateral** to strictly preserve original line art and texture details.
+    * **Resolution-Aware Application:**
+        * **SD Content:** Uses **FSRCNNX-16 (Anime Enhance)** to reconstruct missing details in older, low-res anime.
+        * **HD/FHD (720p/1080p):** Uses **FSRCNNX-8 (Line Art)** for precise edge refinement without altering the artistic intent.
+        * **4K Content:** Uses **Adaptive Sharpening** only, avoiding unnecessary processing overhead.
+* **"Neon Glass" Stats Overlay:** A professional, hardware-accelerated debug overlay (Toggle via Menu or 'Statistics' Button).
+    * **Live Monitoring:** Displays exact active shader chains, distinguishing between "Line Art" (Anime) and "Generic" (Live Action) scalers.
+    * **Audio & HDR:** Tracks PCM vs Passthrough, Night Mode status, and HDR Tone-Mapping.
+    * **Visuals:** Uses a virtual 720p vector canvas to ensure pixel-perfect alignment on any screen size (1080p to 4K).
+* **Smart Resolution Logic (Live Action):** Rewritten logic for non-anime content.
+    * **SD (<576p):** Defaults to **NNEDI3** (Texture). Manual switch to **FSRCNNX** (Sharp).
+    * **HD (720p):** Defaults to **NNEDI3** (Geometry). Manual switch to **FSRCNNX** (HQ).
+    * **FHD (1080p):** Defaults to **High-Quality** (glaze/adaptive-sharpen).
+    * **4K:** Defaults to **Native** (Bitrate efficient).
+* **Audio Night Mode:** Dynamic Range Compression (DRC) for watching at night without waking the neighbors.
+* **Manual Zoom:** New controls to Crop/Fill/Fit video for Ultrawide monitors.
+
+### 🔧 Improvements
+* **Fixed Profile Logic:** Solved an issue where `HQ-HD-FSRCNNX` was missing from `mpv.conf`, restoring full manual control for 720p content.
+
+---
+
 ## [v1.8] – The "Skip Intro" Update
 
 ### ✨ New Feature: Smart Skip Button

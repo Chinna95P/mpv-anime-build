@@ -14,6 +14,36 @@ QUARTER_PI_SIN = math.sin(math.pi / 4)
 
 require('lib/std')
 
+-- [PHASE 7: DIRECT BROADCAST LISTENER (ROBUST FIX)]
+
+-- 1. Create a local cache to store the latest state
+local anime_cache = {}
+
+-- 2. Define the Reader Helper (Uses cache instead of get_property)
+function get_anime_state(key)
+    -- Return true if the key exists and is true
+    return anime_cache[key] == true
+end
+
+-- 3. Listen for the Broadcast (Merged Logic)
+mp.register_script_message('anime-state-broadcast', function(json)
+    local data = utils.parse_json(json)
+    if not data then return end
+    
+    -- [FIX] Merge data into cache instead of replacing it
+    for k, v in pairs(data) do
+        anime_cache[k] = v
+    end
+    
+    -- Force Redraw if Menu is Open
+    if Menu:is_open('menu') then
+        local items = create_default_menu_items()
+        local menu_json = utils.format_json({ type = 'menu', items = items })
+        mp.commandv("script-message-to", mp.get_script_name(), "update-menu", menu_json)
+    end
+end)
+
+
 --[[ OPTIONS ]]
 
 defaults = {
@@ -403,7 +433,7 @@ function create_controls_menu()
                         hint = prop('video-sync'),
                         id = 'vsync_menu',
                         items = {
-                            { title = 'Audio (Default)', active = active('video-sync', 'audio'), value = cmd('set video-sync audio', 'vsync_menu', 1) },
+                            { title = 'Audio', active = active('video-sync', 'audio'), value = cmd('set video-sync audio', 'vsync_menu', 1) },
                             { title = 'Display Resample', active = active('video-sync', 'display-resample'), value = cmd('set video-sync display-resample', 'vsync_menu', 2) },
                             { title = 'Display Resample (Vdrop)', active = active('video-sync', 'display-resample-vdrop'), value = cmd('set video-sync display-resample-vdrop', 'vsync_menu', 3) },
                             { title = 'Desync', active = active('video-sync', 'desync'), value = cmd('set video-sync desync', 'vsync_menu', 4) },
@@ -524,11 +554,17 @@ function create_default_menu_items()
     -- Generate dynamic controls
     local controls_data = create_controls_menu()
     
--- [HELPER] Read Shared State (Flat Keys)
-    local function get_anime(key)
-        -- Note the underscore: "anime_" instead of "anime/"
-        return mp.get_property("user-data/anime_" .. key) == "yes"
-    end
+    -- [HELPER] Read Shared State from JSON Cache (Restores Checkmarks)
+    -- This uses the global get_anime_state function defined at the bottom of main.lua
+    
+    -- Calculate Lock States
+    local is_anime = get_anime_state("is_anime_context") -- [NEW] Read Context
+    local fidelity_active = get_anime_state("anime_fidelity")
+    local a4k_allowed = get_anime_state("anime4k_allowed") -- (is_anime and not fidelity)
+
+    -- Hint Strings
+    local lock_hint = is_anime and "" or " (Locked)"
+    local a4k_hint = a4k_allowed and "" or (is_anime and " (Fidelity ON)" or " (Locked)")
 
     return {
         {title = t('Subtitles'), value = 'script-binding uosc/subtitles'},
@@ -552,34 +588,122 @@ function create_default_menu_items()
         -- [CONTROLS EMBEDDED]
         controls_data,
 
-        -- [ANIME BUILD OPTIONS (Interactive & Safe)]
+		-- [ANIME BUILD OPTIONS]
         {
             title = 'Anime Build Options',
             items = {
-{ title = "====(Auto-Detection Modes)====", value = "ignore" },
-                { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime_state("mode_auto") },
-                { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime_state("mode_on") },
-                { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime_state("mode_off") },
-				{ title = 'Show Status Info', value = 'script-binding show-profile-info' },
+                -- 1. Anime Mode Sub-Menu
+                {
+                    title = 'Anime Mode: ' .. (get_anime_state("mode_on") and "ON" or (get_anime_state("mode_off") and "OFF" or "AUTO")),
+                    icon = 'tv',
+                    items = {
+                        { title = "====(Auto-Detection Modes)====", value = "ignore", bold = true },
+                        { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime_state("mode_auto") },
+                        { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime_state("mode_on") },
+                        { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime_state("mode_off") },
+                        { title = 'Show Status Info', value = 'script-binding show-profile-info', icon = 'info' },
+                    }
+                },
+
+				-- 2. Anime4K Profiles
+                {
+                    title = 'Anime4K Profiles',
+                    icon = 'palette',
+                    -- [LOCK] Grey out if Anime4K is NOT allowed
+                    muted = not a4k_allowed,
+                    hint = a4k_hint,
+                    items = {
+                        { title = 'Mode A (Blur+Noise)', value = 'script-message anime4k-mode A', active = get_anime_state("a4k_mode_a") },
+                        { title = 'Mode B (Blur Only)',  value = 'script-message anime4k-mode B', active = get_anime_state("a4k_mode_b") },
+                        { title = 'Mode C (Noise Only)', value = 'script-message anime4k-mode C', active = get_anime_state("a4k_mode_c") },
+                        { title = 'Mode A+A (High Fid.)',value = 'script-message anime4k-mode AA', active = get_anime_state("a4k_mode_aa") },
+                        { title = 'Mode B+B (Sharpness)',value = 'script-message anime4k-mode BB', active = get_anime_state("a4k_mode_bb") },
+                        { title = 'Mode C+A (Restore)',  value = 'script-message anime4k-mode CA', active = get_anime_state("a4k_mode_ca") },
+                    }
+                },
+
+                -- 3. Fidelity & Restoration
+                {
+                    title = 'Fidelity & Restoration',
+                    icon = 'brush',
+                    items = {
+						 { title = "====(Display Tools)====", value = "ignore", bold = true },
+                         
+                         -- [NEW] UltraWide Zoom Sub-Menu
+                         {
+                             title = 'UltraWide Zoom',
+                             icon = 'aspect_ratio',
+                             items = {
+                                 -- We read anime_cache["zoom_mode"] directly
+                                 { title = '1. Fit-to-Zoom (Original)', value = 'script-message zoom-mode-fit', active = (anime_cache["zoom_mode"] == "fit") },
+                                 { title = '2. Fill-to-Zoom (Force)',   value = 'script-message zoom-mode-fill', active = (anime_cache["zoom_mode"] == "fill") },
+                                 { title = '3. Crop-to-Zoom (Smart)',   value = 'script-message zoom-mode-crop', active = (anime_cache["zoom_mode"] == "crop") },
+                             }
+                         },
+						 { title = "====(Quality Toggles)====", value = "ignore", bold = true },
+                         { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime_state("shaders_enabled") },
+                         { title = 'SD Upscaler: ' .. (get_anime_state("sd_texture") and "Texture" or "Clean"), value = 'script-message toggle-hq-sd', active = get_anime_state("sd_texture") },
+                         { title = 'HD Upscaler: ' .. (get_anime_state("logic_fsrcnnx") and "FSRCNNX" or "NNEDI3"), value = 'script-message toggle-hq-hd-nnedi', active = get_anime_state("logic_fsrcnnx") },
+                         
+                         { title = "====(Anime Options)====", value = "ignore", bold = true },
+
+                         -- [NEW] Anime Fidelity Toggle
+                         -- Active: If Fidelity is ON
+                         -- Muted: ONLY if we are NOT in Anime Context. (Unlocked for both Fidelity and Anime4K modes)
+                         { 
+                             title = "Anime Fidelity: " .. (fidelity_active and "FSRCNNX" or "Anime4K"), 
+                             value = "script-message toggle-anime-fidelity", 
+                             active = fidelity_active,
+                             muted = not is_anime, 
+                             hint = lock_hint 
+                         },
+                         
+                         -- Anime4K Quality Toggle (Greyed out if Fidelity ON or Not Anime)
+                         { 
+                            title = 'Anime4K Quality: ' .. (get_anime_state("anime4k_hq") and "HQ" or "Fast"), 
+                            value = 'script-binding toggle-anime4k-quality', 
+                            active = get_anime_state("anime4k_hq"),
+                            muted = not a4k_allowed,
+                            hint = a4k_hint
+                         },
+                    }
+                },
+
+                -- 4. Hardware & Power
+                {
+                    title = 'Hardware & Power',
+                    icon = 'memory',
+                    items = {
+                        { title = 'Power Mode: ' .. (get_anime_state("power_active") and "Eco" or "Perf"), value = 'script-binding toggle-power', active = get_anime_state("power_active") },
+                        { title = 'RTX VSR: ' .. (get_anime_state("vsr_active") and "ON" or "OFF"), value = 'script-binding toggle-vsr', active = get_anime_state("vsr_active") },
+                    }
+                },
+
+                -- 5. Audio & HDR
+                {
+                    title = 'Audio & HDR',
+                    icon = 'volume_up',
+                    items = {
+						-- [NEW] Night Mode
+                        { title = 'Audio: Night Mode (DRC)', value = 'script-message toggle-audio-nightmode', active = get_anime_state("night_mode") },
+                        { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
+                        { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
+                        { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },
+                    }
+                },
 				
-                { title = "====(Quality Toggles)====", value = "ignore" },
-                -- [NEW] Shader Toggle
-                { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime_state("shaders_enabled") },
-                
-				{ title = 'Toggle SD Mode (Texture/Clean)', value = 'script-message toggle-hq-sd', active = get_anime_state("sd_texture") },
-                { title = 'Toggle SD/HD Logic (NNEDI/FSR)', value = 'script-message toggle-hq-hd-nnedi', active = get_anime_state("logic_fsrcnnx") },
-                { title = 'Toggle Anime4K Quality (Fast/HQ)', value = 'script-binding toggle-anime4k-quality', active = get_anime_state("anime4k_hq") },
-                { title = 'RTX VSR: Toggle ON/OFF', value = 'script-binding toggle-vsr', active = get_anime_state("vsr_active") },
+				{
+					title = 'System',
+					icon = 'build',
+					items = {
+                        { title = 'Check for Updates', value = 'script-message check-for-updates', icon = 'update' },
+                        -- [UPDATED] Replaced Version Info with Stats Overlay
+                        { title = 'Show Statistics', value = 'script-binding toggle-stats', icon = 'info' },
+                    }
+				},	
 				
-                { title = "====(Audio)====", value = "ignore" },
-                { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
-                { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
-				
-                { title = "====(HDR)====", value = "ignore" },
-                { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },
-				
-                { title = "====(Power Mode)====", value = "ignore" },
-                { title = 'Power: Toggle Low Power Mode', value = 'script-binding toggle-power', active = get_anime_state("power_active") },
+                -- Advanced Controls Shortcut
+                { title = 'Advanced Controls...', icon = 'tune', value = 'script-binding uosc/open-menu-controls', bold = true, active = true },
             },
         },
 
@@ -1497,34 +1621,6 @@ local function on_anime_state_change(name, value)
     end
 end
 
--- [PHASE 7: DIRECT BROADCAST LISTENER (ROBUST FIX)]
-
--- 1. Create a local cache to store the latest state
-local anime_cache = {}
-
--- 2. Define the Reader Helper (Uses cache instead of get_property)
-function get_anime_state(key)
-    -- Return true if the key exists and is true
-    return anime_cache[key] == true
-end
-
--- 3. Listen for the Broadcast (Merged Logic)
-mp.register_script_message('anime-state-broadcast', function(json)
-    local data = utils.parse_json(json)
-    if not data then return end
-    
-    -- [FIX] Merge data into cache instead of replacing it
-    for k, v in pairs(data) do
-        anime_cache[k] = v
-    end
-    
-    -- Force Redraw if Menu is Open
-    if Menu:is_open('menu') then
-        local items = create_default_menu_items()
-        local menu_json = utils.format_json({ type = 'menu', items = items })
-        mp.commandv("script-message-to", mp.get_script_name(), "update-menu", menu_json)
-    end
-end)
 
 -- 4. Request state on load (in case Controller loaded first)
 mp.register_event("file-loaded", function()
