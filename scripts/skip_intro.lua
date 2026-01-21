@@ -13,9 +13,15 @@ local opts = {
 }
 
 local categories = {
-    { label = "ED", keywords = { "credits", "ending", " ed ", "^ed$" } },
-    { label = "PV", keywords = { "preview", "pv", "^pv$" } },
-    { label = "OP", keywords = { "opening", " op ", "^op$", "song", "theme", "signs" } },
+    -- Added "ed%d" to catch ED1, ED2, etc.
+    { label = "ED", keywords = { "credits", "ending", " ed ", "^ed$", "ed%d" } },
+    
+    -- Added "pv%d" to catch PV1, PV2, etc.
+    { label = "PV", keywords = { "preview", "pv", "^pv$", "pv%d" } },
+    
+    -- Added "op%d" to catch OP1, OP4, etc.
+    { label = "OP", keywords = { "opening", " op ", "^op$", "op%d", "song", "theme", "signs" } },
+    
     { label = "Intro", keywords = { "intro" } }
 }
 
