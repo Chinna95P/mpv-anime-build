@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.1] – The "HDR & Target Peak" Update
+
+### ✨ New Features
+* **Professional HDR Tone-Mapping:**
+    * **Algorithm Selection:** Added a new menu to choose between industry standards (**BT.2390**, **BT.2446a**), active correction (**ST.2094-40**), or legacy curves (**Reinhard**, **Hable**).
+    * **Target Peak Presets:** Added manual brightness overrides (e.g., **100 nits**, **600 nits**, **1000 nits**) to correctly calibrate tone-mapping for your specific display.
+    * **Persistence:** HDR settings now save to `hdr-mode.conf` and persist across restarts.
+* **Enhanced Stats Overlay:**
+    * Updated the "Neon Glass" overlay to display the **Active Tone-Mapping Algorithm** (e.g., `HDR (Tone-Mapping) [st2094-40]`) instead of a generic HDR label.
+
+### 🐛 Fixed
+* **HDR Logic Fallback:** Fixed `hdr_detect.lua` to respect the user's saved Tone-Mapping preference when switching out of Passthrough mode, preventing it from resetting to `spline`.
+* **Menu Stability:** Removed experimental text-input features to ensure maximum stability for the Target Peak selector.
+
+---
+
 ## [v1.9] – The "Fidelity & Stats" Update
 
 ### ✨ New Features

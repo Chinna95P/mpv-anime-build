@@ -6,7 +6,7 @@
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9"
+local BUILD_VERSION = "v1.9.1"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -17,6 +17,11 @@ local anime_opts_path = mp.command_native({
 local anime4k_opts_path = mp.command_native({
     "expand-path", "~~/script-opts/anime4k.conf"
 })
+
+local hdr_opts_path = mp.command_native({
+    "expand-path", "~~/script-opts/hdr-mode.conf"
+})
+local user_hdr_mode = nil -- Holds the saved setting
 
 -------------------------------------------------
 -- STATE
@@ -251,6 +256,34 @@ local function save_anime4k()
     if f then
         f:write("quality=" .. anime4k_quality .. "\n")
         f:write("mode=" .. anime4k_mode .. "\n")
+        f:close()
+    end
+end
+
+-- Add this new variable
+local user_target_peak = "auto" 
+
+-- Update load_hdr_mode() to read the new value
+local function load_hdr_mode()
+    local f = io.open(hdr_opts_path, "r")
+    if not f then return end
+    for l in f:lines() do
+        local v = l:match("tone_mapping=(%S+)")
+        if v then user_hdr_mode = v end
+        
+        -- [NEW] Read Target Peak
+        local p = l:match("target_peak=(%S+)")
+        if p then user_target_peak = p end
+    end
+    f:close()
+end
+
+-- Update save_hdr_mode() to write the new value
+local function save_hdr_mode()
+    local f = io.open(hdr_opts_path, "w")
+    if f then
+        f:write("tone_mapping=" .. (user_hdr_mode or "bt.2390") .. "\n")
+        f:write("target_peak=" .. (user_target_peak or "auto") .. "\n")
         f:close()
     end
 end
@@ -535,6 +568,86 @@ mp.add_key_binding(nil, "open-anime-menu", function()
     
     local s_vsr = external_vsr_active
     local s_power = external_power_active
+	
+						-- =============================================================================
+					-- LOGIC: HDR TONE-MAPPING MENU (With Memory)
+					-- =============================================================================
+
+					-- 1. DETECT STATUS
+					local primaries = mp.get_property("video-params/primaries")
+					local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
+					local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
+
+					-- 2. DETERMINE IF LOCKED
+					local tm_locked = not (is_hdr and not hdr_passthrough)
+					local tm_status_hint = ""
+
+					if not is_hdr then
+						tm_status_hint = " (Locked: SDR Content)"
+					elseif hdr_passthrough then
+						tm_status_hint = " (Locked: Passthrough Active)"
+					else
+						tm_status_hint = " (Active)"
+					end
+
+					-- 3. GET CURRENT ALGORITHM
+					local current_tm = mp.get_property("tone-mapping") or "hable"
+
+-- 4. BUILD THE SUBMENU
+    local tm_menu = {
+        type = "submenu",
+        title = "Tone-Mapping Mode" .. tm_status_hint,
+        icon = "brightness_medium",
+        active = not tm_locked,
+        items = {
+            -- Standard Curves
+            { 
+                title = "BT.2390 (Recommended)", 
+                active = (current_tm == "bt.2390"), 
+                value = "script-message save-tone-mapping bt.2390" 
+            },
+            { 
+                title = "ST.2094-40 (Active)", 
+                active = (current_tm == "st2094-40"), 
+                value = "script-message save-tone-mapping st2094-40" 
+            },
+            { 
+                title = "BT.2446a (Static)", 
+                active = (current_tm == "bt.2446a"), 
+                value = "script-message save-tone-mapping bt.2446a" 
+            },
+            { 
+                title = "Spline (Neutral)", 
+                active = (current_tm == "spline"), 
+                value = "script-message save-tone-mapping spline" 
+            },
+            
+            -- Legacy / Artistic Curves
+            { 
+                title = "Hable", 
+                active = (current_tm == "hable"), 
+                value = "script-message save-tone-mapping hable" 
+            },
+            { 
+                title = "Mobius", 
+                active = (current_tm == "mobius"), 
+                value = "script-message save-tone-mapping mobius" 
+            },
+            { 
+                title = "Reinhard", 
+                active = (current_tm == "reinhard"), 
+                value = "script-message save-tone-mapping reinhard" 
+            },
+            
+            -- Utility
+            { 
+                title = "Clip (Hard Cut)", 
+                active = (current_tm == "clip"), 
+                value = "script-message save-tone-mapping clip" 
+            }
+        }
+    }
+
 
     -- 2. Build Menu
     local items = {
@@ -607,6 +720,31 @@ mp.add_key_binding(nil, "open-anime-menu", function()
                 { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix },
                 { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass },
                 { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active },
+				
+				tm_menu,
+				
+				-- [NEW] Target Peak Sub-Menu
+            {
+                title = "Target Peak (Brightness)",
+                icon = "wb_sunny",
+                items = (function()
+                    -- Helper to detect if current peak is standard
+                    local p = user_target_peak
+                    local is_std = (p=="auto" or p=="100" or p=="200" or p=="300" or p=="400" or p=="600" or p=="1000")
+                    
+                    return {
+                       { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (p == "auto") },
+                       { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (p == "100") },
+                       { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (p == "200") },
+                       { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (p == "300") },
+                       { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (p == "400") },
+                       { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (p == "600") },
+                       { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (p == "1000") },
+                       
+                    }
+                end)()
+            },
+				
             }
         },
 		{
@@ -745,6 +883,19 @@ mp.register_script_message("zoom-state-update", function(val)
     sync_state()
 end)
 
+mp.register_script_message("save-target-peak", function(val)
+    user_target_peak = val
+    if val == "auto" then
+        mp.set_property("target-peak", "auto")
+        mp.osd_message("Target Peak: Auto")
+    else
+        mp.set_property("target-peak", val)
+        mp.osd_message("Target Peak: " .. val .. " nits")
+    end
+    save_hdr_mode()
+    sync_state()
+end)
+
 mp.register_event("file-loaded", function()
     load_anime_mode()
     load_anime4k()
@@ -760,5 +911,38 @@ mp.register_event("file-loaded", function()
     show_temp_osd(profile_message(), 2)
     sync_state()
 end)
+
+-- [HDR PERSISTENCE LOGIC]
+local function apply_hdr_preference()
+    local primaries = mp.get_property("video-params/primaries")
+    local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
+    -- Only apply if HDR and we have a saved user preference
+    if is_hdr and user_hdr_mode then
+        mp.set_property("tone-mapping", user_hdr_mode)
+    end
+	-- [NEW] Apply Target Peak
+        if user_target_peak and user_target_peak ~= "auto" then
+            mp.set_property("target-peak", user_target_peak)
+        else
+            mp.set_property("target-peak", "auto")
+        end
+end
+
+mp.register_script_message("save-tone-mapping", function(mode)
+    user_hdr_mode = mode
+    mp.set_property("tone-mapping", mode)
+    save_hdr_mode() -- Save to disk immediately
+    mp.osd_message("Tone-Mapping: " .. mode .. " (Saved)")
+    sync_state()
+end)
+
+-- Re-apply when file loads or color primaries change
+mp.observe_property("video-params/primaries", "string", function() 
+    mp.add_timeout(0.5, apply_hdr_preference) 
+end)
+
+
+-- Load the settings file when script starts
+load_hdr_mode()
 
 sync_state()

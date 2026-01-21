@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.9
+# 🎬 MPV Anime Build v1.9.1
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -12,6 +12,14 @@ For the auto-switching logic to function correctly, your files must follow these
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
 
 ---
+
+## ✨ Key Features (v1.9.1)
+
+### 1. Professional HDR Calibration
+(New in v1.9.1) We have unlocked MPV's internal tone-mapping engine. Instead of a generic "Auto" setting, you can now fine-tune HDR processing:
+
+* **Algorithms:** Select from **BT.2390** (Recommended), **ST.2094-40** (Active Contrast), **BT.2446a** (Static Color), or legacy curves like **Reinhard**.
+* **Target Peak:** Manually tell MPV your screen's brightness (e.g., 400 nits, 600 nits) to prevent crushed blacks or blown-out highlights.
 
 ## ✨ Key Features (v1.9)
 

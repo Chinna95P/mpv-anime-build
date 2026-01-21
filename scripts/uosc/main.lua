@@ -565,6 +565,85 @@ function create_default_menu_items()
     -- Hint Strings
     local lock_hint = is_anime and "" or " (Locked)"
     local a4k_hint = a4k_allowed and "" or (is_anime and " (Fidelity ON)" or " (Locked)")
+	
+	-- =============================================================================
+    -- LOGIC: HDR TONE-MAPPING MENU (Calculated BEFORE table creation)
+    -- =============================================================================
+    -- 1. DETECT STATUS
+    local primaries = mp.get_property("video-params/primaries")
+    local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
+    local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
+
+    -- 2. DETERMINE IF LOCKED
+    local tm_locked = not (is_hdr and not hdr_passthrough)
+    local tm_status_hint = ""
+
+    if not is_hdr then
+        tm_status_hint = " (Locked: SDR Content)"
+    elseif hdr_passthrough then
+        tm_status_hint = " (Locked: Passthrough Active)"
+    else
+        tm_status_hint = " (Active)"
+    end
+
+    -- 3. GET CURRENT ALGORITHM
+    local current_tm = mp.get_property("tone-mapping") or "hable"
+
+-- 4. BUILD THE SUBMENU
+    local tm_menu = {
+        type = "submenu",
+        title = "Tone-Mapping Mode" .. tm_status_hint,
+        icon = "brightness_medium",
+        active = not tm_locked,
+        items = {
+            -- Standard Curves
+            { 
+                title = "BT.2390 (Recommended)", 
+                active = (current_tm == "bt.2390"), 
+                value = "script-message save-tone-mapping bt.2390" 
+            },
+            { 
+                title = "ST.2094-40 (Active)", 
+                active = (current_tm == "st2094-40"), 
+                value = "script-message save-tone-mapping st2094-40" 
+            },
+            { 
+                title = "BT.2446a (Static)", 
+                active = (current_tm == "bt.2446a"), 
+                value = "script-message save-tone-mapping bt.2446a" 
+            },
+            { 
+                title = "Spline (Neutral)", 
+                active = (current_tm == "spline"), 
+                value = "script-message save-tone-mapping spline" 
+            },
+            
+            -- Legacy / Artistic Curves
+            { 
+                title = "Hable", 
+                active = (current_tm == "hable"), 
+                value = "script-message save-tone-mapping hable" 
+            },
+            { 
+                title = "Mobius", 
+                active = (current_tm == "mobius"), 
+                value = "script-message save-tone-mapping mobius" 
+            },
+            { 
+                title = "Reinhard", 
+                active = (current_tm == "reinhard"), 
+                value = "script-message save-tone-mapping reinhard" 
+            },
+            
+            -- Utility
+            { 
+                title = "Clip (Hard Cut)", 
+                active = (current_tm == "clip"), 
+                value = "script-message save-tone-mapping clip" 
+            }
+        }
+    }
+    -- =============================================================================
 
     return {
         {title = t('Subtitles'), value = 'script-binding uosc/subtitles'},
@@ -689,7 +768,30 @@ function create_default_menu_items()
                         { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
                         { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
                         { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },
+						tm_menu,
+						
+						-- [NEW] Target Peak Sub-Menu
+            {
+                title = "Target Peak (Brightness)",
+                icon = "wb_sunny",
+                items = (function()
+                    local current_peak = mp.get_property("target-peak") or "auto"
+                    local is_std = (current_peak=="auto" or current_peak=="100" or current_peak=="200" or current_peak=="300" or current_peak=="400" or current_peak=="600" or current_peak=="1000")
+                    
+                    return {
+                       { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (current_peak == "auto") },
+                       { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (current_peak == "100") },
+                       { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (current_peak == "200") },
+                       { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (current_peak == "300") },
+                       { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (current_peak == "400") },
+                       { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (current_peak == "600") },
+                       { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (current_peak == "1000") },
+
                     }
+                end)()
+            },
+						
+					}
                 },
 				
 				{
@@ -1486,6 +1588,7 @@ end)
 
 --[[ MESSAGE HANDLERS ]]
 
+
 mp.register_script_message('show-submenu', function(id) toggle_menu_with_items({submenu = id}) end)
 mp.register_script_message('show-submenu-blurred', function(id)
 	toggle_menu_with_items({submenu = id, mouse_nav = true})
@@ -1521,16 +1624,18 @@ end)
 mp.register_script_message('close-menu', function(type)
 	if Menu:is_open(type) then Menu:close() end
 end)
+
 mp.register_script_message('menu-action', function(name, ...)
-	local menu = Menu:is_open()
-	if menu then
-		local method = ({
-			['search-cancel'] = 'search_cancel',
-			['search-query-update'] = 'search_query_update',
-		})[name]
-		if method then menu[method](menu, ...) end
-	end
+    local menu = Menu:is_open()
+    if menu then
+        local method = ({
+            ['search-cancel'] = 'search_cancel',
+            ['search-query-update'] = 'search_query_update',
+        })[name]
+        if method then menu[method](menu, ...) end
+    end
 end)
+
 mp.register_script_message('thumbfast-info', function(json)
 	local data = utils.parse_json(json)
 	if type(data) ~= 'table' or not data.width or not data.height then

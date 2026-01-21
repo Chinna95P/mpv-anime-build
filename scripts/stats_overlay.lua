@@ -12,7 +12,7 @@ local active = false
 local timer = nil
 
 -- [VERSION INFO]
-local BUILD_VERSION = "v1.9"
+local BUILD_VERSION = "v1.9.1"
 
 -- [STATE CACHE]
 local anime_state = {
@@ -78,9 +78,15 @@ local function get_hdr_status()
     local prim = mp.get_property("video-params/primaries")
     local hint = mp.get_property("target-colorspace-hint")
     
-    if prim == "bt.2020" then
-        if hint == "yes" then return GN .. "HDR (Passthrough)"
-        else return CY .. "HDR (Tone-Mapped)" end
+    -- Check for HDR Content (BT.2020 or DCI-P3)
+    if prim == "bt.2020" or prim == "dci-p3" then
+        if hint == "yes" then 
+            return GN .. "HDR (Passthrough)"
+        else 
+            -- Get the active algorithm name
+            local tm_method = mp.get_property("tone-mapping") or "unknown"
+            return CY .. "HDR (Tone-Mapping) [" .. tm_method .. "]" 
+        end
     end
     return GR .. "SDR (Standard)"
 end

@@ -15,6 +15,23 @@ local last_state = nil
 local os_hdr_state = false 
 local manual_override = false 
 
+-- [NEW] Config Path
+local hdr_conf_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
+
+-- [NEW] Helper to read the user's saved preference
+local function get_saved_tone_mapping()
+    local mode = "bt.2390" -- Default fallback if file missing
+    local f = io.open(hdr_conf_path, "r")
+    if f then
+        for line in f:lines() do
+            local v = line:match("tone_mapping=(%S+)")
+            if v then mode = v end
+        end
+        f:close()
+    end
+    return mode
+end
+
 -- OSD Colors
 local C = {
     GREEN  = "{\\c&H00FF00&}", 
@@ -116,7 +133,7 @@ function evaluate_hdr_state()
         print("[HDR-Auto] Mode: TONE-MAP (Windows is SDR)")
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
-        mp.set_property("tone-mapping", "spline")
+        mp.set_property("tone-mapping", get_saved_tone_mapping())
         show_hdr_osd(C.BLUE .. "HDR Mode: " .. C.WHITE .. "Tone-Mapping (Auto)")
 
     else -- "sdr"
@@ -147,7 +164,7 @@ function toggle_hdr_manual()
     if last_state == "passthrough" then
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
-        mp.set_property("tone-mapping", "spline")
+        mp.set_property("tone-mapping", get_saved_tone_mapping())
         last_state = "tonemap"
         show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "Tone-Mapping (Forced)")
     else
