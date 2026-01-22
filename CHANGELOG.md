@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.2] – The "Fidelity Persistence" Update
+
+### ✨ New Features
+* **Fidelity Mode Persistence:** The build now remembers your preference between **Fidelity (FSRCNNX)** and **Performance (Anime4K)**.
+    * **Behavior:** If you switch to Anime4K mode, MPV will now launch in Anime4K mode on the next restart instead of resetting to Fidelity default.
+    * **Config:** This preference is saved automatically to `anime-mode.conf`.
+
+### 🐛 Fixed
+* **Logic Consistency:** Fixed a minor annoyance where switching to "Performance Mode" would not survive a restart, forcing users to re-toggle it every session.
+
+---
+
 ## [v1.9.1] – The "HDR & Target Peak" Update
 
 ### ✨ New Features

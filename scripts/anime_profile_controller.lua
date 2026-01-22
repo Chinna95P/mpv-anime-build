@@ -1,12 +1,12 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.9 (Fidelity Mode Added)
---    UPDATED:  2026-01-20
+--    VERSION:  v1.9.2 (Fidelity Mode Persistence Added)
+--    UPDATED:  2026-01-22
 -- ]]
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.1"
+local BUILD_VERSION = "v1.9.2"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -230,13 +230,22 @@ local function load_anime_mode()
     for l in f:lines() do
         local v = l:match("anime_mode=(%S+)")
         if v then anime_mode = v end
+        
+        -- [NEW] Read Fidelity Setting
+        local fid = l:match("fidelity=(%S+)")
+        if fid then anime_fidelity = (fid == "true") end
     end
     f:close()
 end
 
 local function save_anime_mode()
     local f = io.open(anime_opts_path, "w")
-    if f then f:write("anime_mode=" .. anime_mode .. "\n"); f:close() end
+    if f then 
+        f:write("anime_mode=" .. anime_mode .. "\n")
+        -- [NEW] Write Fidelity Setting
+        f:write("fidelity=" .. tostring(anime_fidelity) .. "\n")
+        f:close() 
+    end
 end
 
 local function load_anime4k()
@@ -469,7 +478,8 @@ mp.register_script_message("toggle-anime-fidelity", function()
         return
     end
     
-    anime_fidelity = not anime_fidelity
+	anime_fidelity = not anime_fidelity
+    save_anime_mode() -- [NEW] Save preference immediately
     evaluate() -- Re-run logic to switch shaders
     
     local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")

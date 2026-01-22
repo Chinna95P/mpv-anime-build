@@ -8,7 +8,7 @@ local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 -- [CONFIGURATION]
-local CURRENT_VERSION_STR = "v1.9.1"
+local CURRENT_VERSION_STR = "v1.9.2"
 local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/version.txt" 
 
 local function parse_version(v)
