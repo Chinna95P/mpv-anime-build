@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.3] – The "Live Action Persistence" Update
+
+### ✨ New Features
+* **Live Action Persistence:** Your upscaler preferences for Live Action content are now saved automatically.
+    * **HD Content:** If you switch from **NNEDI3** (Default) to **FSRCNNX** (HQ), the build will remember this choice for all future SD/HD files, even after restarting MPV.
+    * **SD Content:** Your preference between **Clean Mode**, **Texture Mode**, or **FSRCNNX (Sharp)** is now persistent.
+    * **Config:** These settings are saved to `anime-mode.conf` alongside your Fidelity preferences.
+
+### ⚡ Improvements
+* **Instant Save:** Toggling options via the UOSC Menu or Shortcuts (`Q`, `Ctrl+Q`) now triggers an immediate save to the config file.
+* **Smart Restore:** Removed the logic that forced settings to reset to "Default" on every file load. The player now respects your last used configuration.
+
+---
+
 ## [v1.9.2] – The "Fidelity Persistence" Update
 
 ### ✨ New Features

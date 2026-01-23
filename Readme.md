@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.9.2
+# 🎬 MPV Anime Build v1.9.3
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,17 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## ✨ Key Features (v1.9.3)
+
+### 1. Universal Persistence
+We have completed the memory system. The build now remembers **ALL** your preferences across restarts:
+* **Anime:** Remembers if you prefer **Fidelity** (FSRCNNX) or **Performance** (Anime4K).
+* **Live Action:** Remembers if you prefer **NNEDI3** (Smooth) or **FSRCNNX** (Sharp) for HD content.
+* **SD Content:** Remembers your **Clean** vs **Texture** preference.
+* **HDR:** Remembers your **Tone-Mapping** algorithm and **Target Peak**.
 
 ---
 
@@ -402,7 +413,7 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 
 Non-anime content uses a **completely separate processing path** featuring "Modern TV" adaptive sharpening.
 
-### Resolution Tiers (v1.5.1 Logic)
+### Resolution Tiers (v1.9.3 Logic)
 | Resolution | Profile | Technology |
 | :--- | :--- | :--- |
 | **< 576p** | `HQ-SD` | **NNEDI3-256** (Max Quality) or **FSRCNNX** (Sharp Mode) |
@@ -415,7 +426,7 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 | `CTRL + q` | **SD Only** | Toggle **Clean** ↔ **Texture** mode. <br>*(Only works in NNEDI3 mode. Locked if FSRCNNX is active)* |
 | `Q` | **SD & HD** | **Master Upscaler Toggle** (NNEDI3 ↔ FSRCNNX). <br>*(Switches logic between Geometry-focused and Texture-focused upscaling for both SD and HD)* |
 
-> **Note:** The shortcuts are **smart**. `CTRL+Q` will automatically lock itself if you are using the Sharp (FSRCNNX) mode to prevent logic conflicts.
+> **Note (v1.9.3):** Your choices for `Q` and `CTRL+Q` are now **Persistent**. If you set HD content to use FSRCNNX, MPV will remember that setting for the next time you open a file.> **Note:** The shortcuts are **smart**. `CTRL+Q` will automatically lock itself if you are using the Sharp (FSRCNNX) mode to prevent logic conflicts.
 
 ---
 

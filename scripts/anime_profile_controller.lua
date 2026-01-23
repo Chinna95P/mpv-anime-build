@@ -1,12 +1,12 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.9.2 (Fidelity Mode Persistence Added)
+--    VERSION:  v1.9.3 (Fidelity Mode Persistence Added)
 --    UPDATED:  2026-01-22
 -- ]]
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.2"
+local BUILD_VERSION = "v1.9.3"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -231,9 +231,19 @@ local function load_anime_mode()
         local v = l:match("anime_mode=(%S+)")
         if v then anime_mode = v end
         
-        -- [NEW] Read Fidelity Setting
+-- [NEW] Read Fidelity Setting
         local fid = l:match("fidelity=(%S+)")
         if fid then anime_fidelity = (fid == "true") end
+
+        -- [NEW] Read Live Action Persistence
+        local sd_m = l:match("sd_mode=(%S+)")
+        if sd_m then sd_mode = sd_m end
+        
+        local sd_o = l:match("sd_override=(%S+)")
+        if sd_o then sd_manual_override = (sd_o == "true") end
+        
+        local hd_o = l:match("hd_override=(%S+)")
+        if hd_o then hd_manual_override = (hd_o == "true") end
     end
     f:close()
 end
@@ -242,8 +252,13 @@ local function save_anime_mode()
     local f = io.open(anime_opts_path, "w")
     if f then 
         f:write("anime_mode=" .. anime_mode .. "\n")
-        -- [NEW] Write Fidelity Setting
         f:write("fidelity=" .. tostring(anime_fidelity) .. "\n")
+        
+        -- [NEW] Save Live Action Persistence
+        f:write("sd_mode=" .. sd_mode .. "\n")
+        f:write("sd_override=" .. tostring(sd_manual_override) .. "\n")
+        f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
+        
         f:close() 
     end
 end
@@ -844,6 +859,7 @@ mp.register_script_message("toggle-hq-sd", function()
         return 
     end
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
+	save_anime_mode()
     evaluate()
     show_temp_osd(C.YELLOW .. "SD Mode: " .. C.ORANGE .. sd_mode:upper(), 2)
     sync_state()
@@ -873,6 +889,7 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
         mode_name = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
         mode_color = hd_manual_override and C.CYAN or C.GOLD
     end
+	save_anime_mode()
     show_temp_osd(C.YELLOW .. "Logic Switch: " .. mode_color .. mode_name, 2)
     sync_state()
 end)
@@ -909,13 +926,6 @@ end)
 mp.register_event("file-loaded", function()
     load_anime_mode()
     load_anime4k()
-    sd_mode = "clean"
-    hd_manual_override = false
-    sd_manual_override = false
-    
-    -- Reset Fidelity to False on new file? 
-    -- User didn't specify, but usually persistent per session is better.
-    -- For now we keep it persistent across session until restart.
     
     evaluate()
     show_temp_osd(profile_message(), 2)
