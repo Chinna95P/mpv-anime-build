@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.9.4
+# 🎬 MPV Anime Build v1.9.5
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,24 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## ✨ Key Features (v1.9.5)
+
+### 1. Smart OSD Separation
+We have decluttered the interface by separating system status messages.
+* **Top-Left:** Displays Power Mode and Anime Profile status.
+* **Top-Right:** Displays **Nvidia VSR** status and active video filters.
+* **Benefit:** No more overlapping text when multiple features activate at once.
+
+### 2. "Silent Partner" Logic
+The build now intelligently manages OSD announcements during power events.
+* **Battery/AC Swap:** When you unplug or plug in your laptop, the Power Manager handles the announcement. Other scripts (like VSR) update their state silently in the background to prevent screen spam.
+
+### 3. Stability Hardening
+* **Race Condition Fix:** Eliminated the "double-scaling" glitch that could occur when restoring AC power. The system now waits for the GPU to fully wake up before applying high-end shaders.
+* **Logic Locks:** The Anime Controller now strictly respects the VSR engine, ensuring it never attempts to override AI upscaling with standard shaders.
 
 ---
 

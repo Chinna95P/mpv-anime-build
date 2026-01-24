@@ -12,7 +12,7 @@ local active = false
 local timer = nil
 
 -- [VERSION INFO]
-local BUILD_VERSION = "v1.9.4"
+local BUILD_VERSION = "v1.9.5"
 
 -- [STATE CACHE]
 local anime_state = {

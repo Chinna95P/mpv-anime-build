@@ -1,6 +1,6 @@
--- power_manager.lua for mpv-anime-build v1.7
+-- power_manager.lua for mpv-anime-build v1.9
 -- Features: Silent Laptop Check, Smart Resume, OSD Overlay Stacking
--- UPDATED: State Broadcast added for Menu Highlight (Fix 3)
+-- UPDATED: Increased Safety Delay to 0.5s to fix VSR Race Condition
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -47,7 +47,7 @@ local state = {
     resume_timer = nil
 }
 
--- [NEW] Hybrid Helper: Broadcast + User-Data
+-- Hybrid Helper: Broadcast + User-Data
 local function update_menu_status(is_active)
     -- 1. Set User-Data (For Anime Mode Button)
     mp.set_property("user-data/power_active", is_active and "yes" or "no")
@@ -95,7 +95,7 @@ local function enable_low_power()
     
     mp.commandv("apply-profile", opts.low_power_profile)
     
-    -- [FIX 3] Broadcast State Active
+    -- Broadcast State Active
     update_menu_status(true)
 
     if not was_paused then
@@ -114,10 +114,15 @@ local function disable_low_power()
     
     mp.set_property("hwdec", "auto-copy")
     
-    -- [CRITICAL FIX] Update Status FIRST, then Trigger Evaluate
-    -- This ensures the Controller knows Power Mode is OFF before it runs logic.
+    -- [STEP 1] Update Status immediately so VSR knows it can resume
     update_menu_status(false)
-    mp.commandv("script-message", "force-evaluate-profile")
+    
+    -- [STEP 2] INCREASED DELAY (0.5s)
+    -- We give VSR Auto 500ms to wake up and broadcast its status.
+    -- This guarantees that when 'force-evaluate' runs, it sees VSR is active.
+    mp.add_timeout(0.5, function()
+        mp.commandv("script-message", "force-evaluate-profile")
+    end)
 end
 
 -- CORE: Main Loop
@@ -139,11 +144,11 @@ local function toggle_force_mode()
     state.forced_mode = not state.forced_mode
     if state.forced_mode then
         enable_low_power()
-        show_power_osd(C.YELLOW .. "🔒 {\\b1}Force Low Power:{\\b0} " .. C.RED .. "ON")
+        show_power_osd(C.YELLOW .. "⚠️ {\\b1}Force Low Power:{\\b0} " .. C.RED .. "ON")
     else
         if state.on_battery then
              disable_low_power() 
-             show_power_osd(C.YELLOW .. "🔒 {\\b1}Force Low Power:{\\b0} " .. C.GREEN .. "OFF " .. C.RED .. "(Battery Warning)")
+             show_power_osd(C.YELLOW .. "⚠️ {\\b1}Force Low Power:{\\b0} " .. C.GREEN .. "OFF " .. C.RED .. "(Battery Warning)")
         else
              disable_low_power()
         end

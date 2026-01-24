@@ -4,6 +4,35 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.5] – The "Synchronized Logic" Update
+
+### ✨ New Features
+
+* **Smart OSD Separation:**
+* **The Split:** To prevent text overlapping, **Nvidia VSR** status messages have been moved to the **Top-Right** corner, while Power & Anime Profile messages remain on the **Top-Left**.
+* **Clean Filter Info:** Suppressed MPV's native "Video Filter" text (which often displayed messy code like `scale=%2.25`). Replaced it with a clean, formatted overlay that sits neatly below the VSR status.
+
+* **Silent Partner Protocol:**
+* During power events (unplugging/plugging in), the VSR script now enters "Silent Mode." It changes its internal state quietly and lets the **Power Manager** handle the OSD announcements ("Power Saving Enabled" / "AC Power Restored"), eliminating duplicate text crashes.
+
+
+### ⚡ Improvements
+
+* **Race Condition Fix (Power Manager):**
+* Added a **0.5-second safety delay** when restoring AC Power. This forces the system to wait for Nvidia VSR to fully wake up and broadcast its "Active" signal *before* the Anime Controller attempts to calculate shaders.
+* *Result:* Completely eliminated the "Double Scaling" glitch where FSRCNNX shaders would accidentally apply on top of VSR.
+
+* **Logic Hardening:**
+* **"Stand Down" Order:** The `anime_profile_controller.lua` now performs a strict check for VSR activity before running. If VSR is detected, the controller immediately halts execution, ensuring it never overrides the AI Upscaler.
+
+
+### 🐛 Fixed
+
+* **OSD Formatting:** Fixed an issue where filter properties were displayed as URL-encoded strings (e.g., `%20`) instead of readable text.
+* **Button Logic:** Separated the internal logic for "User Button Presses" vs. "Automatic Power Events" to prevent keyboard shortcuts from accidentally triggering battery-saving routines.
+
+---
+
 ## [v1.9.4] – The "Adaptive Intelligence" Update
 
 ### ✨ New Features

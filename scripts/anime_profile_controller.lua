@@ -6,7 +6,7 @@
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.4"
+local BUILD_VERSION = "v1.9.5"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -192,6 +192,13 @@ local function profile_message()
     local part1 = C.YELLOW .. "{\\b1}Anime Mode:{\\b0} " .. C.WHITE .. mode_color .. anime_mode:upper()
     local sep = C.WHITE .. " | "
     local part2 = ""
+	
+	-- [PRIORITY 1] Check RTX VSR Status First
+    -- If VSR is active, it overrides all other profile text
+    if external_vsr_active then
+         part2 = C.YELLOW .. "{\\b1}Nvidia VSR:{\\b0} " .. C.GREEN .. "Active (AI Upscaling)"
+         return part1 .. sep .. part2
+    end
 	
 	-- 2. [NEW] Check Power Mode immediately after
     if external_power_active then
@@ -446,6 +453,11 @@ end
 -- CORE EVALUATION LOGIC
 -------------------------------------------------
 local function evaluate()
+
+	-- [FIX] STAND DOWN if RTX VSR is Active
+    -- If VSR is handling the scaling, this script must do NOTHING.
+    if external_vsr_active then return end
+	
     if not shaders_master_switch then return end
 	
 	-- [FIX] Stop evaluation if Power Saving is active
