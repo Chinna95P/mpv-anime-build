@@ -1013,21 +1013,31 @@ mp.observe_property("video-params/primaries", "string", function()
 end)
 
 -------------------------------------------------
--- GLOBAL INTERPOLATION SYNC
+-- GLOBAL INTERPOLATION SYNC (Adaptive)
 -------------------------------------------------
--- This ensures that UOSC Menu and Anime Mode Button 
--- automatically enable the required video-sync mode.
-mp.observe_property("interpolation", "bool", function(_, value)
-    if value == true then
-        -- Interpolation ON -> Force Display Resample (Required)
+-- 1. Capture your preferred sync mode (from mpv.conf) immediately on startup
+local user_preferred_sync = mp.get_property("video-sync")
+
+mp.observe_property("interpolation", "bool", function(_, enabled)
+    if enabled then
+        -- [Active State]
+        -- Before overriding, check if the user manually changed sync while Interp was OFF.
+        -- If so, update our "Preferred" memory so we revert to the correct setting later.
+        local current_sync = mp.get_property("video-sync")
+        if current_sync ~= "display-resample" then
+            user_preferred_sync = current_sync
+        end
+        
+        -- Force the mode required for smooth motion
         mp.set_property("video-sync", "display-resample")
     else
-        -- Interpolation OFF -> Restore Standard Audio Sync
-        -- (Matches the behavior of your 'g' shortcut)
-        mp.set_property("video-sync", "audio")
+        -- [Resting State]
+        -- Interpolation turned OFF -> Restore the user's preferred setting
+        if user_preferred_sync then
+            mp.set_property("video-sync", user_preferred_sync)
+        end
     end
 end)
-
 
 -- Load the settings file when script starts
 load_hdr_mode()
