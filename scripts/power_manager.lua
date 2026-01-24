@@ -113,10 +113,11 @@ local function disable_low_power()
     show_power_osd(C.YELLOW .. "🔌 {\\b1}AC Power:{\\b0} " .. C.CYAN .. "Restoring Smart Profile...")
     
     mp.set_property("hwdec", "auto-copy")
-    mp.commandv("script-message", "force-evaluate-profile")
     
-    -- [FIX 3] Broadcast State Inactive
+    -- [CRITICAL FIX] Update Status FIRST, then Trigger Evaluate
+    -- This ensures the Controller knows Power Mode is OFF before it runs logic.
     update_menu_status(false)
+    mp.commandv("script-message", "force-evaluate-profile")
 end
 
 -- CORE: Main Loop

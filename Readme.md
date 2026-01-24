@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.9.3
+# 🎬 MPV Anime Build v1.9.4
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,28 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## ✨ Key Features (v1.9.4)
+
+### 1. Adaptive Nvidia VSR
+We have upgraded the RTX VSR implementation to be **Resolution Aware**.
+* **Old Behavior:** Always scaled 2.0x (wasting power on 1080p screens, or under-scaling on 4K).
+* **New Behavior:** Calculates the perfect pixel ratio.
+    * *Example:* Playing 720p content on a 4K Screen? -> **VSR Scales 3.0x**.
+    * *Example:* Playing 1080p content on a 1080p Screen? -> **VSR Scales 1.0x (Native)**.
+
+### 2. Logic Lockdown (Power Safety)
+The build now actively protects your battery. If **Power Saving Mode** is active (Auto or Manual), the build strictly **locks** you out of high-performance features.
+* **Locked:** Anime4K, Fidelity Mode, NNEDI3/FSRCNNX Toggles, and RTX VSR.
+* **Visuals:** The OSD and Stats Overlay will explicitly report **"⚡Power Saving Mode"** and block accidental inputs with a Red warning.
+
+### 3. Master Shader Persistence (`CTRL+g`)
+We have added a "Kill Switch" for all post-processing.
+* **What it does:** Pressing **`CTRL+g`** instantly disables **ALL** shaders (Anime4K, FSRCNNX, NNEDI3, Adaptive Sharpen, etc.), returning MPV to its raw, native state.
+* **Persistence:** This setting is now **saved**. If you turn shaders OFF, MPV will launch with shaders disabled next time.
+* **Use Case:** Perfect for checking "Before/After" quality comparisons, or for purists who want to watch specific content without any processing.
 
 ---
 
@@ -139,6 +161,8 @@ This build now includes a smart **Power Manager** designed for laptops.
 * **Auto-Restore:** Plug your laptop back in, and MPV instantly restores your previous High-Quality profile (including Anime4K or Live Action shaders).
 * **Manual Toggle:** Press **`Ctrl+p`** to toggle this mode manually on any device.
 
+* **Feature Lockdown (v1.9.4):** While in Low Power Mode, the build actively prevents you from accidentally turning on heavy shaders. Toggles for Anime4K, Fidelity, and VSR will show a **"Locked: Power Saving Mode Active"** warning.
+
 ### ⚠️ Important for SVP 4 Pro Users (Laptops)
 The `[Low-End]` profile optimizes MPV, but **SVP 4 Pro** runs as an external background process and may try to keep working, draining your battery.
 
@@ -193,13 +217,17 @@ This build now automatically detects your monitor's capabilities via Windows.
 * **Manual Override:** Press **`H`** at any time to toggle between Passthrough (TV) and Tone Mapping (SDR) manually when playing HDR.
 * **Dolby Vision:** Plays correctly on all devices. If your display does not support Dolby Vision, MPV automatically **falls back to the HDR10 Base Layer**.
 
-### 🚀 Nvidia VSR (Manual Toggle)
-Press **`V`** to toggle **Nvidia Video Super Resolution**. 
+### 🚀 Nvidia VSR (Adaptive AI Upscaling)
+Press **`V`** to toggle **Nvidia Video Super Resolution** (only works for Windows Users).
 
 > **⚠️ Warning for Non-RTX Users:**
-> This toggle is **Manual**. It forces the GPU to upscale the video using the "Nvidia-VSR" method (Windows Only).
-> * **RTX 2000/3000/4000:** Activates AI Upscaling (High Quality).
-> * **GTX / AMD / Intel:** Will force basic driver scaling, which often looks **worse** than MPV's default upscalers. **Do not use this unless you have an RTX card.**
+> This feature requires an **Nvidia RTX 2000/3000/4000 series** GPU. Do not use on Intel/AMD.
+
+**How it works (v1.9.4):**
+This is no longer a dumb toggle. The script now analyzes your **Monitor Resolution** vs. **Video Resolution**.
+* **Smart Ratio:** It applies the exact scale factor needed to fill your screen (e.g., 1.5x, 2.25x).
+* **Power Efficient:** It won't waste GPU power rendering pixels you can't see (e.g., won't render 4K internal resolution if you only have a 1080p monitor).
+* **Bit-Depth Safe:** Automatically selects `p010` (10-bit) for HDR/Anime to prevent banding.
 
 ---
 

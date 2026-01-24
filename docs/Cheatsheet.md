@@ -106,6 +106,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`K`** | **Build Status** | Show Active Profile and Anime Mode Status. |
 | **`q`** | **Quit (Save)** | Quit and save watch-later state conditionally. |
 | **`CTRL+l`** | **Mode: Auto** | Set Anime Mode to Auto. |
+| **`CTRL+g`** | **Master Switch** | Toggle ALL Shaders ON/OFF (Persistent). |
 | **`CTRL+;`** | **Mode: On** | Force Anime Mode ON. |
 | **`CTRL+'`** | **Mode: Off** | Force Anime Mode OFF. |
 | **`L`** | **Anime4K Qual** | Toggle Anime4K Quality (Fast ↔ HQ). |

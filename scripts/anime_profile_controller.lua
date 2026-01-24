@@ -1,12 +1,12 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.9.3 (Fidelity Mode Persistence Added)
---    UPDATED:  2026-01-22
+--    VERSION:  v1.9.4 (Fidelity Mode Persistence Added)
+--    UPDATED:  2026-01-24
 -- ]]
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.3"
+local BUILD_VERSION = "v1.9.4"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -180,6 +180,7 @@ end
 -- PROFILE MESSAGE
 -------------------------------------------------
 local function profile_message()
+
     if not shaders_master_switch then
         return C.RED .. "{\\b1}Shaders:{\\b0} " .. C.WHITE .. "Disabled (Master Switch OFF)"
     end
@@ -191,6 +192,12 @@ local function profile_message()
     local part1 = C.YELLOW .. "{\\b1}Anime Mode:{\\b0} " .. C.WHITE .. mode_color .. anime_mode:upper()
     local sep = C.WHITE .. " | "
     local part2 = ""
+	
+	-- 2. [NEW] Check Power Mode immediately after
+    if external_power_active then
+        part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.GREEN .. "⚡Power Saving Mode (ECO)"
+        return part1 .. sep .. part2
+    end
     
     if current_profile == "anime-shaders" then
         if anime_fidelity then
@@ -244,6 +251,11 @@ local function load_anime_mode()
         
         local hd_o = l:match("hd_override=(%S+)")
         if hd_o then hd_manual_override = (hd_o == "true") end
+		
+		-- [NEW] Read Master Switch
+        local se = l:match("shaders_enabled=(%S+)")
+        if se then shaders_master_switch = (se == "true") end
+		
     end
     f:close()
 end
@@ -258,6 +270,9 @@ local function save_anime_mode()
         f:write("sd_mode=" .. sd_mode .. "\n")
         f:write("sd_override=" .. tostring(sd_manual_override) .. "\n")
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
+		
+		-- [NEW] Save Master Switch
+        f:write("shaders_enabled=" .. tostring(shaders_master_switch) .. "\n")
         
         f:close() 
     end
@@ -432,6 +447,10 @@ end
 -------------------------------------------------
 local function evaluate()
     if not shaders_master_switch then return end
+	
+	-- [FIX] Stop evaluation if Power Saving is active
+    -- This prevents the stats overlay from forcing High-Quality shaders back on
+    if external_power_active then return end
 
     local path = mp.get_property("path")
     local res = get_resolution_mode()
@@ -485,6 +504,12 @@ end
 -- EXTERNAL TOGGLES
 -------------------------------------------------
 mp.register_script_message("toggle-anime-fidelity", function()
+	-- [NEW] Lock check
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
     
     -- Lock: Only works if Anime Mode is active
@@ -543,6 +568,9 @@ end)
 
 mp.register_script_message("toggle-global-shaders", function()
     shaders_master_switch = not shaders_master_switch
+	
+	save_anime_mode() -- [NEW] Save immediately
+	
     if not shaders_master_switch then
         mp.set_property("glsl-shaders", "") 
         current_profile = ""
@@ -820,6 +848,12 @@ mp.add_key_binding(nil, "anime-mode-off", function()
 end)
 
 mp.add_key_binding(nil, "toggle-anime4k-quality", function()
+	-- [NEW] Lock check
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+	
     if current_profile ~= "anime-shaders" then return end
     if anime_fidelity then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Disable Fidelity Mode first.", 2)
@@ -837,6 +871,11 @@ mp.add_key_binding(nil, "show-profile-info", function()
 end)
 
 mp.register_script_message("anime4k-mode", function(mode)
+	-- [NEW] Lock check
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
     if current_profile ~= "anime-shaders" then return end
     if anime_fidelity then return end -- Double protection
     if not A4K[anime4k_quality][mode] then return end
@@ -848,6 +887,12 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 mp.register_script_message("toggle-hq-sd", function()
+	-- [NEW] Lock check
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+	
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
     
     if current_profile == "HQ-SD-FSRCNNX" then
@@ -866,6 +911,12 @@ mp.register_script_message("toggle-hq-sd", function()
 end)
 
 mp.register_script_message("toggle-hq-hd-nnedi", function()
+	-- [NEW] Lock check
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+	
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
     
     local res = get_resolution_mode()
@@ -959,6 +1010,22 @@ end)
 -- Re-apply when file loads or color primaries change
 mp.observe_property("video-params/primaries", "string", function() 
     mp.add_timeout(0.5, apply_hdr_preference) 
+end)
+
+-------------------------------------------------
+-- GLOBAL INTERPOLATION SYNC
+-------------------------------------------------
+-- This ensures that UOSC Menu and Anime Mode Button 
+-- automatically enable the required video-sync mode.
+mp.observe_property("interpolation", "bool", function(_, value)
+    if value == true then
+        -- Interpolation ON -> Force Display Resample (Required)
+        mp.set_property("video-sync", "display-resample")
+    else
+        -- Interpolation OFF -> Restore Standard Audio Sync
+        -- (Matches the behavior of your 'g' shortcut)
+        mp.set_property("video-sync", "audio")
+    end
 end)
 
 

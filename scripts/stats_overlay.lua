@@ -12,13 +12,15 @@ local active = false
 local timer = nil
 
 -- [VERSION INFO]
-local BUILD_VERSION = "v1.9.3"
+local BUILD_VERSION = "v1.9.4"
 
 -- [STATE CACHE]
 local anime_state = {
     mode_auto = true,
     mode_on = false,
-    mode_off = false
+    mode_off = false,
+    vsr_active = false,   -- Track VSR State
+    power_active = false  -- [NEW] Track Power State
 }
 
 -- [COLORS]
@@ -94,12 +96,29 @@ end
 function update_osd()
     if not active then return end
     
+    -- INPUT RESOLUTION
     local w_in = mp.get_property_number("video-params/w") or 0
     local h_in = mp.get_property_number("video-params/h") or 0
+    
+    -- [NEW] OUTPUT RESOLUTION (Window Size)
+    local w_out = mp.get_property_number("osd-width") or 0
+    local h_out = mp.get_property_number("osd-height") or 0
+    
     local drop_count = mp.get_property("frame-drop-count") or 0
     local fps = mp.get_property("estimated-vf-fps") or 0
     
     local scaler = get_active_shader()
+    local scaler_color = WH
+    
+    -- Scaler Display Logic (Priority: Power > VSR > Standard)
+    if anime_state.power_active then
+        scaler = "Power Saving Mode (Eco)"
+        scaler_color = GN 
+    elseif anime_state.vsr_active then
+        scaler = "Nvidia VSR (AI Upscale)"
+        scaler_color = GN 
+    end
+    
     local audio = get_audio_status()
     local hdr = get_hdr_status()
     local mode_str = get_anime_mode_string()
@@ -113,7 +132,7 @@ function update_osd()
     local BOX_H = 320  
     
     local POS_X = 40   -- Left margin
-    local POS_Y = 110  -- [CHANGED] Moved DOWN (was 30) to clear OSD messages
+    local POS_Y = 110  -- Shifted Y-axis
     
     local PAD_X = 20   -- Text padding inside box
     local PAD_Y = 15   -- Text padding inside box
@@ -142,8 +161,11 @@ function update_osd()
     
     -- DATA
     content = content .. GR .. "Mode:      " .. WH .. mode_str .. "\\N"
-    content = content .. GR .. "Scaler:    " .. WH .. scaler .. "\\N"
-    content = content .. GR .. "Res:       " .. WH .. w_in .. "x" .. h_in .. "\\N"
+    content = content .. GR .. "Scaler:    " .. scaler_color .. scaler .. "\\N"
+    
+    -- [NEW] RESOLUTION LINE
+    content = content .. GR .. "Res:       " .. WH .. w_in .. "x" .. h_in .. GR .. " -> " .. WH .. w_out .. "x" .. h_out .. "\\N"
+    
     content = content .. GR .. "FPS:       " .. WH .. string.format("%.2f", fps) .. GR .. " (Drops: " .. RD .. drop_count .. GR .. ")\\N"
     content = content .. "\\N"
     

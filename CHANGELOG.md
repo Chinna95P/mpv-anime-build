@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.4] – The "Adaptive Intelligence" Update
+
+### ✨ New Features
+* **Adaptive Nvidia VSR:**
+    * **Smart Scaling:** VSR now calculates the exact ratio between your video and monitor (e.g., 1.5x) to maximize quality without wasting GPU power.
+    * **Safety Clamps:** Scaling is automatically capped between **1.0x** and **4.0x**.
+* **Power Mode "Lockdown":**
+    * **Feature Guard:** While in Power Saving Mode, resource-heavy toggles (Fidelity, Anime4K, VSR) are now **Locked** with a Red OSD warning.
+    * **Visuals:** The Profile Info OSD now explicitly displays `Profile: ⚡Power Saving Mode`.
+* **Master Switch Persistence:**
+    * The Global Shaders ON/OFF Toggle (**`CTRL+g`**) now remembers your choice. If you disable shaders to watch raw content, they will remain disabled across restarts until you enable them again.
+
+### ⚡ Improvements
+* **Enhanced Stats Overlay:** The "Scaler" line now prioritizes system states, displaying **"Power Saving Mode (Eco)"** or **"Nvidia VSR (AI Upscale)"** when active.
+* **Input Logic Cleanup:** Simplified the Interpolation shortcut (**`g`**) in `input.conf`. It now relies on the new global watchdog to automatically switch `video-sync` modes, ensuring perfect consistency between UOSC menus and keybinds.
+
+### 🐛 Fixed
+* **Power Restore Race Condition:** Fixed a bug where switching from Battery to AC Power would sometimes fail to restore the High-Quality profile automatically.
+* **VSR Synchronization:** Updated `vsr_auto.lua` to listen to the central broadcast system, ensuring it correctly auto-disables if Power Saving Mode is triggered.
+
+---
+
 ## [v1.9.3] – The "Live Action Persistence" Update
 
 ### ✨ New Features
