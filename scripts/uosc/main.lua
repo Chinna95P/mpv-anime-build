@@ -465,7 +465,7 @@ function create_controls_menu()
                             { title = 'OFF (Software)', active = active('hwdec', 'no'), value = cmd('set hwdec no', 'hwdec_menu', 4) },
                         }
                     },
-                    -- D. Scaling (FULL SUITE)
+                    -- D. Scaling (FULL SUITE - UPDATED v1.9.6)
                     {
                         title = 'Scaling',
                         id = 'scaling_root',
@@ -476,32 +476,37 @@ function create_controls_menu()
                                 hint = prop('scale'),
                                 id = 'scale_menu',
                                 items = {
-                                    { title = 'ewa_lanczossharp', active = active('scale', 'ewa_lanczossharp'), value = cmd('set scale ewa_lanczossharp', 'scale_menu', 1) },
-                                    { title = 'spline36', active = active('scale', 'spline36'), value = cmd('set scale spline36', 'scale_menu', 2) },
-                                    { title = 'bilinear', active = active('scale', 'bilinear'), value = cmd('set scale bilinear', 'scale_menu', 3) },
+                                    { title = 'ewa_lanczossharp (Best)', active = active('scale', 'ewa_lanczossharp'), value = cmd('set scale ewa_lanczossharp', 'scale_menu', 1) },
+                                    { title = 'spline64 (Sharp)', active = active('scale', 'spline64'), value = cmd('set scale spline64', 'scale_menu', 2) },
+                                    { title = 'lanczos (Classic)', active = active('scale', 'lanczos'), value = cmd('set scale lanczos', 'scale_menu', 3) },
+                                    { title = 'spline36 (Balanced)', active = active('scale', 'spline36'), value = cmd('set scale spline36', 'scale_menu', 4) },
+                                    { title = 'bilinear (Fast)', active = active('scale', 'bilinear'), value = cmd('set scale bilinear', 'scale_menu', 5) },
                                 }
                             },
-                            -- Downscaler
+                            -- Downscaler (Critical for 4K content)
                             {
                                 title = 'Downscale >',
                                 hint = prop('dscale'),
                                 id = 'dscale_menu',
                                 items = {
-                                    { title = 'mitchell', active = active('dscale', 'mitchell'), value = cmd('set dscale mitchell', 'dscale_menu', 1) },
-                                    { title = 'hermite', active = active('dscale', 'hermite'), value = cmd('set dscale hermite', 'dscale_menu', 2) },
-                                    { title = 'spline36', active = active('dscale', 'spline36'), value = cmd('set dscale spline36', 'dscale_menu', 3) },
-                                    { title = 'bilinear', active = active('dscale', 'bilinear'), value = cmd('set dscale bilinear', 'dscale_menu', 4) },
+                                    { title = 'spline64 (Best/Sharp)', active = active('dscale', 'spline64'), value = cmd('set dscale spline64', 'dscale_menu', 1) },
+                                    { title = 'mitchell (Smooth)', active = active('dscale', 'mitchell'), value = cmd('set dscale mitchell', 'dscale_menu', 2) },
+                                    { title = 'lanczos (Very Sharp)', active = active('dscale', 'lanczos'), value = cmd('set dscale lanczos', 'dscale_menu', 3) },
+                                    { title = 'spline36 (Balanced)', active = active('dscale', 'spline36'), value = cmd('set dscale spline36', 'dscale_menu', 4) },
+                                    { title = 'hermite (Soft)', active = active('dscale', 'hermite'), value = cmd('set dscale hermite', 'dscale_menu', 5) },
+                                    { title = 'bilinear (Fast)', active = active('dscale', 'bilinear'), value = cmd('set dscale bilinear', 'dscale_menu', 6) },
                                 }
                             },
-                            -- Chromascaler
+                            -- Chromascaler (Color)
                             {
                                 title = 'Chromascale >',
                                 hint = prop('cscale'),
                                 id = 'cscale_menu',
                                 items = {
-                                    { title = 'spline36', active = active('cscale', 'spline36'), value = cmd('set cscale spline36', 'cscale_menu', 1) },
-                                    { title = 'lanczos', active = active('cscale', 'lanczos'), value = cmd('set cscale lanczos', 'cscale_menu', 2) },
-                                    { title = 'bilinear', active = active('cscale', 'bilinear'), value = cmd('set cscale bilinear', 'cscale_menu', 3) },
+                                    { title = 'spline64 (Best)', active = active('cscale', 'spline64'), value = cmd('set cscale spline64', 'cscale_menu', 1) },
+                                    { title = 'spline36 (Balanced)', active = active('cscale', 'spline36'), value = cmd('set cscale spline36', 'cscale_menu', 2) },
+                                    { title = 'lanczos (Sharp)', active = active('cscale', 'lanczos'), value = cmd('set cscale lanczos', 'cscale_menu', 3) },
+                                    { title = 'bilinear (Fast)', active = active('cscale', 'bilinear'), value = cmd('set cscale bilinear', 'cscale_menu', 4) },
                                 }
                             },
                             -- Temporalscaler (Interpolation Method)
@@ -524,6 +529,7 @@ function create_controls_menu()
                             { title = 'Linear Downscaling', active = is_true('linear-downscaling'), value = cmd('cycle linear-downscaling', 'scaling_root', 8) },
                         }
                     },
+					
                     -- E. GPU API (Read-Only)
                     {
                         title = 'GPU API >',

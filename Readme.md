@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v1.9.5
+# 🎬 MPV Anime Build v1.9.6
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +10,40 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## [v1.9.6] – The "Scaling" Controls Update
+
+### ✨ New Features
+* **Expanded Scaling Menu:**
+    * **New Downscalers:** Added **`spline64`** and **`lanczos`** to the "Scaling" Section in Controls Menu.
+    * **Use Case:** Allows users playing 4K content on 1080p screens to match the sharp, high-quality downscaling.
+    * **New Upscalers:** Added **`spline64`** and **`lanczos`** as manual alternatives to the default `ewa_lanczossharp`.
+    * **Chroma Scalers:** Added **`spline64`** and **`lanczos`** to the "Chromascale" menu for users who want maximum color precision.
+
+### ⚡ Improvements
+* **Menu Completeness:** The "Controls" -> "Scaling" menu now features the full "Hall of Fame" of MPV native scalers, giving users total control over sharpness vs. ringing artifacts:
+    * **Sharp:** `ewa_lanczossharp`, `spline64`, `lanczos`
+    * **Balanced:** `spline36`
+    * **Soft:** `mitchell`, `hermite`
+
+---
+
+## 🎛️ Native Scalers Guide (Manual Controls)
+
+While this build uses AI Shaders (Anime4K, FSRCNNX) by default, the **Controls Menu** allows you to manually override the scaling engine for specific scenarios.
+
+| Scaler | Sharpness | Ringing (Artifacts) | Best Use Case |
+| :--- | :--- | :--- | :--- |
+| **ewa_lanczossharp** | ⭐⭐⭐⭐ | 📉 Low | **Best General Upscaler.** The "Gold Standard" for MPV. Sharp but clean. Default for non-AI upscaling. |
+| **spline64** | ⭐⭐⭐⭐⭐ | 📈 Medium | **Best Downscaler.** Retains maximum texture when watching 4K content on 1080p screens. |
+| **lanczos** | ⭐⭐⭐⭐⭐ | 📈 High | **Classic Sharp.** Very crisp, but can create visible halos around dark lines. Use if you love a "crunchy" image. |
+| **spline36** | ⭐⭐⭐ | 📉 Low | **Best Chroma Scaler.** The perfect balance for color resizing. High quality, zero visual artifacts, and fast. |
+| **mitchell** | ⭐ | ⛔ None | **Smooth.** A soft scaler that hides compression artifacts. Good for downscaling if you hate aliasing/flicker. |
+| **bilinear** | 🌑 | ⛔ None | **Emergency Only.** Blurry but extremely fast. Only use if your GPU is overheating or struggling. |
+
+> **Pro Tip:** For the Best Quality, set your **Downscaler** to `spline64` and your **Upscaler** to `ewa_lanczossharp`.
 
 ---
 
@@ -92,7 +126,7 @@ You now have two distinct engines for watching Anime. Switch between them instan
 | ![Anime4K](screenshots/anime-new-auto-anime4k.jpg) | ![Fidelity](screenshots/anime-new-auto-fsr.jpg) |
 
 ### 2. "Neon Glass" Stats Overlay
-Press `Shift+I` to see exactly what your build is doing.
+Press `CTRL+i` to see exactly what your build is doing.
 * **Real-time Shader Tracking:** See if you are running NNEDI3, FSRCNNX, or Anime4K.
 * **Audio Logic:** Check if 7.1 Upmix or Night Mode is active.
 * **HDR Status:** Instant confirmation of Tone-Mapping vs Passthrough.

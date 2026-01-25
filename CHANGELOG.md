@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.9.6] – The "Scaling" Update
+
+### ✨ New Features
+
+* **Expanded Scaling Menu:**
+* **New Downscalers:** Added **`spline64`** and **`lanczos`** to the "Scaling" Section in Controls Menu.
+* **Use Case:** This allows users playing 4K content on 1080p screens to match the sharp, high-quality downscaling.
+* **New Upscalers:** Added **`spline64`** and **`lanczos`** as manual alternatives to the default `ewa_lanczossharp`.
+
+### ⚡ Improvements
+
+* **Menu Completeness:** The "Controls" -> "Scaling" menu now features the full "Hall of Fame" of MPV native scalers, giving users total control over sharpness vs. ringing artifacts:
+* **Sharp:** `ewa_lanczossharp`, `spline64`, `lanczos`
+* **Balanced:** `spline36`
+* **Soft:** `mitchell`, `hermite`
+
+---
+
 ## [v1.9.5] – The "Synchronized Logic" Update
 
 ### ✨ New Features

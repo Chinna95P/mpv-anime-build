@@ -6,7 +6,7 @@
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.5"
+local BUILD_VERSION = "v1.9.6"
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -149,13 +149,13 @@ local function get_resolution_mode()
     local fn = mp.get_property("filename", ""):lower()
     
     -- 1. SD Logic
-    if h < 496 or w < 960 then 
+    if h < 577 or w < 960 then 
         return "SD" 
     end
 
     -- 2. HD (720p) Logic: Filename OR Resolution range
     if fn:find("720p") or fn:find("1280x720") 
-    or (h >= 540 and h <= 720) 
+    or (h >= 577 and h <= 720) 
     or (w >= 960 and w <= 1280) then 
         return "HD" 
     end
