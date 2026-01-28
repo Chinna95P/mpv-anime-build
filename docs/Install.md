@@ -3,10 +3,11 @@
 
 This guide is designed for users who are **new to MPV** or just want a **simple copy-paste setup** for high-quality anime and movie playback.
 
-> **⚠️ Critical: Folder Naming for Auto-Detection**
-> * **Anime:** Folder path MUST contain **`anime`**.
-> * **Live Action:** Folder path must NOT contain 'anime' (or must contain `live action`/`drama` if inside an anime folder).
-
+> **ℹ️ Note: Auto-Detection Logic (v2.0)**
+> This build is smart. It detects Anime automatically if:
+> 1.  **Audio:** The file has a **Japanese Audio Track** (e.g., `jpn`).
+> 2.  **Folder:** The folder path contains **`anime`** (case-insensitive).
+> 3.  **Live Action:** It defaults to Live Action for everything else (or if metadata contains `drama`/`live action`).
 ---
 
 ## ✅ Requirements

@@ -187,13 +187,16 @@ Toggle between them using the **`A`** (`Shift+a`) key:
 <details>
 <summary><b>The "Skip Intro" button is not appearing!</b></summary>
 
-The Skip Button relies on **Chapter Metadata**. It is not magic; it reads the chapter names inside the video file.
-
-* **Requirement:** The file *must* have chapters, and those chapters *must* be named correctly (e.g., "Intro", "OP", "Ending", "Preview").
+The Skip Button relies on **Chapter Metadata**.
+* **Requirement:** The file *must* have chapters.
+* **Supported Patterns (v2.0):** We now support complex names like:
+    * `OP`, `OP1`, `OP 2`, `Opening`
+    * `ED`, `ED1`, `Ending`, `Credits`
+    * `PV`, `Preview`, `Avant`
+    * `Intro`, `Theme Song`
 * **Why it fails:**
-    * The file has no chapters at all.
-    * The chapters are named generically (e.g., "Chapter 01", "Chapter 02") instead of "Opening" or "Ending".
-    * **Fix:** This is an issue with the file itself, not the player. Try downloading a "Release Group" version (e.g., Eraser, Judas, SubsPlease) which usually includes proper chapter names.
+    * The file has **no chapters** at all (common in raw web-rips).
+    * **Fix:** Use files from proper release groups (e.g., Erai-Raws, Judas, EMBER, SubsPlease) or use Stremio with the "SponsorBlock" plugin (if supported).
 </details>
 
 <details>
@@ -260,12 +263,14 @@ All files (`mpv.conf`, `input.conf`, `scripts/`, etc.) go into your MPV configur
 </details>
 
 <details>
-<summary><b>How does Auto-Detection for Anime work?</b></summary>
+<summary><b>How does Auto-Detection for Anime work? (Updated v2.0)</b></summary>
 
-The build looks at your folder names and file paths.
-* **Anime Mode:** Activates if the file is inside a folder named `Anime` (e.g., `D:/Media/Anime/Naruto/ep1.mkv`).
-* **Live Action:** Activates for everything else.
-* **Manual Override:** You can force modes using **`Ctrl+L`** (Auto), **`Ctrl+;`** (Force On), or **`Ctrl+'`** (Force Off).
+The build uses a **3-Layer Detection System**:
+1.  **Audio Scan:** It checks **all** audio tracks. If it finds `Japanese` (jpn/ja), it activates Anime Mode instantly (great for web streams).
+2.  **Folder Name:** It checks your file path. If it sees `Anime` in the folder name, it activates Anime Mode.
+3.  **Metadata:** It checks the internal title. If it sees `Live Action`, `Drama`, or `Movie`, it forces Live Action mode.
+
+* **Manual Override:** You can force modes using **`Ctrl+l`** (Auto), **`Ctrl+;`** (Force On), or **`Ctrl+'`** (Force Off).
 </details>
 
 <br>
