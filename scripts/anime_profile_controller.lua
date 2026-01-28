@@ -1,12 +1,16 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v1.9.4 (Fidelity Mode Persistence Added)
---    UPDATED:  2026-01-24
+--    VERSION:  v2.0 (Universal Stream & Folder Support)
+--    UPDATED:  2026-01-27
 -- ]]
 
 local mp = require("mp")
 local utils = require("mp.utils")
-local BUILD_VERSION = "v1.9.6"
+local opts = require("mp.options")
+
+local config = { version = "v0.0.0" }
+opts.read_options(config, "build_info")
+local BUILD_VERSION = config.version
 
 -------------------------------------------------
 -- CONFIG FILES
@@ -30,10 +34,10 @@ local anime_mode = "auto"
 local current_profile = ""
 local shaders_master_switch = true
 
--- Anime Fidelity State (New v1.9)
-local anime_fidelity = true -- [CHANGED] Default is now True
+-- Anime Fidelity State
+local anime_fidelity = true 
 
-local zoom_mode = "fit" -- [NEW]
+local zoom_mode = "fit" 
 
 -- Live Action States
 local sd_mode = "clean"          
@@ -93,10 +97,10 @@ local function sync_state()
         -- Fidelity State
         anime_fidelity = anime_fidelity,
         
-		-- [NEW] Zoom State
+        -- Zoom State
         zoom_mode = zoom_mode,
-		
-        -- [NEW] Send Context flag for Menu Locking
+        
+        -- Send Context flag for Menu Locking
         is_anime_context = is_anime_active,
         
         -- Live Action Logic
@@ -119,9 +123,9 @@ local function sync_state()
         anime4k_allowed = (is_anime_active and not anime_fidelity), 
         
         audio_upmix = (string.find(mp.get_property("af") or "", "surround") ~= nil),
-		-- [NEW] Detect Night Mode (DynAudNorm)
+        -- Detect Night Mode (DynAudNorm)
         night_mode = (string.find(mp.get_property("af") or "", "dynaudnorm") ~= nil),
-		
+        
         audio_passthrough = (function()
             local s = mp.get_property("audio-spdif")
             return (s ~= "no" and s ~= "" and s ~= nil)
@@ -141,38 +145,25 @@ local function sync_state()
 end
 
 -------------------------------------------------
--- RESOLUTION LOGIC (NEW ROBUST DETECTOR)
+-- RESOLUTION LOGIC
 -------------------------------------------------
 local function get_resolution_mode()
     local w = tonumber(mp.get_property("video-params/w")) or 0
     local h = tonumber(mp.get_property("video-params/h")) or 0
     local fn = mp.get_property("filename", ""):lower()
     
-    -- 1. SD Logic
-    if h < 577 or w < 960 then 
-        return "SD" 
-    end
+    if h < 577 or w < 960 then return "SD" end
 
-    -- 2. HD (720p) Logic: Filename OR Resolution range
     if fn:find("720p") or fn:find("1280x720") 
     or (h >= 577 and h <= 720) 
-    or (w >= 960 and w <= 1280) then 
-        return "HD" 
-    end
+    or (w >= 960 and w <= 1280) then return "HD" end
 
-    -- 3. FullHD (1080p) Logic
     if fn:find("1080p") or fn:find("1920x1080") 
     or (h > 720 and h <= 1080) 
-    or (w > 1280 and w <= 1920) then 
-        return "FHD" 
-    end
+    or (w > 1280 and w <= 1920) then return "FHD" end
 
-    -- 4. 2K/1440p (Logic Maintenance for Anime)
-    if h < 1450 then 
-        return "2K" 
-    end
+    if h < 1450 then return "2K" end
 
-    -- 5. 4K/UHD
     return "4K"
 end
 
@@ -192,15 +183,14 @@ local function profile_message()
     local part1 = C.YELLOW .. "{\\b1}Anime Mode:{\\b0} " .. C.WHITE .. mode_color .. anime_mode:upper()
     local sep = C.WHITE .. " | "
     local part2 = ""
-	
-	-- [PRIORITY 1] Check RTX VSR Status First
-    -- If VSR is active, it overrides all other profile text
+    
+    -- [PRIORITY 1] Check RTX VSR Status First
     if external_vsr_active then
          part2 = C.YELLOW .. "{\\b1}Nvidia VSR:{\\b0} " .. C.GREEN .. "Active (AI Upscaling)"
          return part1 .. sep .. part2
     end
-	
-	-- 2. [NEW] Check Power Mode immediately after
+    
+    -- 2. Check Power Mode immediately after
     if external_power_active then
         part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.GREEN .. "⚡Power Saving Mode (ECO)"
         return part1 .. sep .. part2
@@ -208,14 +198,13 @@ local function profile_message()
     
     if current_profile == "anime-shaders" then
         if anime_fidelity then
-            -- Determine resolution for OSD using new logic
             local res = get_resolution_mode()
             local res_label = "FSRCNNX"
             
-            if res == "SD" then res_label = "FSRCNNX (SD)"
-            elseif res == "HD" then res_label = "FSRCNNX (720p)"
-            elseif res == "FHD" or res == "2K" then res_label = "FSRCNNX (1080p/2K)"
-            else res_label = "Sharpen (4K)" end
+            if res == "SD" then res_label = "FSRCNNX (Anime SD)"
+            elseif res == "HD" then res_label = "FSRCNNX (Anime 720p)"
+            elseif res == "FHD" or res == "2K" then res_label = "FSRCNNX (Anime 1080p/2K)"
+            else res_label = "Sharpen 4K (Anime)" end
             
             part2 = C.YELLOW .. "{\\b1}Fidelity:{\\b0} " .. C.CYAN .. res_label
         else
@@ -244,25 +233,16 @@ local function load_anime_mode()
     for l in f:lines() do
         local v = l:match("anime_mode=(%S+)")
         if v then anime_mode = v end
-        
--- [NEW] Read Fidelity Setting
         local fid = l:match("fidelity=(%S+)")
         if fid then anime_fidelity = (fid == "true") end
-
-        -- [NEW] Read Live Action Persistence
         local sd_m = l:match("sd_mode=(%S+)")
         if sd_m then sd_mode = sd_m end
-        
         local sd_o = l:match("sd_override=(%S+)")
         if sd_o then sd_manual_override = (sd_o == "true") end
-        
         local hd_o = l:match("hd_override=(%S+)")
         if hd_o then hd_manual_override = (hd_o == "true") end
-		
-		-- [NEW] Read Master Switch
         local se = l:match("shaders_enabled=(%S+)")
         if se then shaders_master_switch = (se == "true") end
-		
     end
     f:close()
 end
@@ -272,15 +252,10 @@ local function save_anime_mode()
     if f then 
         f:write("anime_mode=" .. anime_mode .. "\n")
         f:write("fidelity=" .. tostring(anime_fidelity) .. "\n")
-        
-        -- [NEW] Save Live Action Persistence
         f:write("sd_mode=" .. sd_mode .. "\n")
         f:write("sd_override=" .. tostring(sd_manual_override) .. "\n")
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
-		
-		-- [NEW] Save Master Switch
         f:write("shaders_enabled=" .. tostring(shaders_master_switch) .. "\n")
-        
         f:close() 
     end
 end
@@ -306,25 +281,20 @@ local function save_anime4k()
     end
 end
 
--- Add this new variable
 local user_target_peak = "auto" 
 
--- Update load_hdr_mode() to read the new value
 local function load_hdr_mode()
     local f = io.open(hdr_opts_path, "r")
     if not f then return end
     for l in f:lines() do
         local v = l:match("tone_mapping=(%S+)")
         if v then user_hdr_mode = v end
-        
-        -- [NEW] Read Target Peak
         local p = l:match("target_peak=(%S+)")
         if p then user_target_peak = p end
     end
     f:close()
 end
 
--- Update save_hdr_mode() to write the new value
 local function save_hdr_mode()
     local f = io.open(hdr_opts_path, "w")
     if f then
@@ -335,7 +305,7 @@ local function save_hdr_mode()
 end
 
 -------------------------------------------------
--- HELPERS
+-- HELPERS (UPDATED v2.0)
 -------------------------------------------------
 local function is_anime_folder(p)
     if not p then return false end
@@ -343,10 +313,13 @@ local function is_anime_folder(p)
     return p:find("/anime/") or p:find("\\anime\\")
 end
 
+-- [UPDATED] Live Action now checks Path AND Title
 local function is_live_action(p)
     if not p then return false end
     p = p:lower()
-    return p:find("live action") or p:find("live%-action") or p:find("liveaction") or p:find("drama")
+    return p:find("live action") or p:find("live%-action") 
+        or p:find("liveaction") or p:find("drama") 
+        or p:find("movie")
 end
 
 mp.register_script_message("anime-state-broadcast", function(json)
@@ -385,92 +358,95 @@ local A4K = {
     }
 }
 
--------------------------------------------------
--- ANIME4K APPLIER
--------------------------------------------------
 local function apply_anime4k()
-    -- Safety check: Only run if we are actually in the anime profile
     if current_profile ~= "anime-shaders" then return end
-    
-    -- Safety check: Ensure the mode exists in the A4K table
-    if not A4K[anime4k_quality] or not A4K[anime4k_quality][anime4k_mode] then
-        mp.msg.warn("Anime4K Profile not found: " .. anime4k_quality .. " / " .. anime4k_mode)
-        return
-    end
-
+    if not A4K[anime4k_quality] or not A4K[anime4k_quality][anime4k_mode] then return end
     local chain = A4K[anime4k_quality][anime4k_mode]
     mp.commandv("change-list", "glsl-shaders", "set", chain)
 end
 
--------------------------------------------------
--- SHADERS (DEFINITIONS)
--------------------------------------------------
--- [UPDATED] Anime Fidelity (FSRCNNX) Shader Chains
 local FSRCNNX = {
-    -- SD Restoration (16-layer + Krig + Punchy Sharpen)
-    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
-    
-    -- 720p Line Art (8-layer + Krig + Moderate Sharpen)
-    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
-    
-    -- 1080p Line Art (8-layer + Krig + Subtle Sharpen)
-    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl",
-
-    -- 4K Native (No Upscale needed, just Sharpen)
-    UHD = "~~/shaders/adaptive-sharpen-anime-4K.glsl"
+    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
+    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
+    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl",
+    UHD = "~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl"
 }
 
--------------------------------------------------
--- SHADER APPLIERS
--------------------------------------------------
 local function apply_fsrcnnx()
     if current_profile ~= "anime-shaders" then return end
-    
     local res = get_resolution_mode()
     local chain = ""
     
-    -- LOGIC TREE FOR ANIME FIDELITY
-    if res == "SD" then
-        chain = FSRCNNX.SD
-    
-    elseif res == "HD" then
-        chain = FSRCNNX.HD_720
-        
-    elseif res == "FHD" or res == "2K" then
-        -- 1080p & 1440p use the same "Line Art" Logic
-        chain = FSRCNNX.HD_1080
-        
-    else
-        -- 4K Content
-        chain = FSRCNNX.UHD
-    end
+    if res == "SD" then chain = FSRCNNX.SD
+    elseif res == "HD" then chain = FSRCNNX.HD_720
+    elseif res == "FHD" or res == "2K" then chain = FSRCNNX.HD_1080
+    else chain = FSRCNNX.UHD end
     
     mp.commandv("change-list", "glsl-shaders", "clear", "")
     mp.commandv("change-list", "glsl-shaders", "set", chain)
 end
 
 -------------------------------------------------
--- CORE EVALUATION LOGIC
+-- CORE EVALUATION LOGIC (UNIVERSAL DETECTION)
 -------------------------------------------------
 local function evaluate()
-
-	-- [FIX] STAND DOWN if RTX VSR is Active
-    -- If VSR is handling the scaling, this script must do NOTHING.
+    -- 1. [SAFETY LOCKS]
     if external_vsr_active then return end
-	
     if not shaders_master_switch then return end
-	
-	-- [FIX] Stop evaluation if Power Saving is active
-    -- This prevents the stats overlay from forcing High-Quality shaders back on
     if external_power_active then return end
 
-    local path = mp.get_property("path")
+    -- 2. [GET METADATA]
+    local path = mp.get_property("path", "")
+    local title = mp.get_property("media-title", "")
     local res = get_resolution_mode()
+    
+    -- Check for Shiru App launch arg
+    local shiru_opt = mp.get_opt("mode") 
 
-    -- 1. Anime Logic (Anime4K OR FSRCNNX)
-    if anime_mode == "on"
-        or (anime_mode == "auto" and is_anime_folder(path) and not is_live_action(path)) then
-        
+    -- 3. [DETECT SIGNALS]
+    
+    -- A. Anime Signals (Logical OR)
+    local signal_folder = is_anime_folder(path)
+    local signal_syntax = (title:match("%[.*%]")) -- Checks for [release group] brackets
+    local signal_shiru  = (shiru_opt == "anime")
+
+    -- [UPDATED] Audio Scan: Check ALL tracks for Japanese, not just the current one
+    local signal_audio = false
+    local track_list = mp.get_property_native("track-list") or {}
+    for _, track in ipairs(track_list) do
+        if track.type == "audio" and track.lang then
+            local lang = track.lang:lower()
+            if lang == "jpn" or lang == "ja" then
+                signal_audio = true
+                break
+            end
+        end
+    end
+
+    -- B. Live Action Overrides (Logical OR)
+    -- Checks path AND title for keywords like "live action", "drama"
+    local signal_live_action = is_live_action(path, title)
+
+    -- 4. [DECISION LOGIC]
+    local is_anime = false
+
+    if anime_mode == "on" then
+        is_anime = true
+    elseif anime_mode == "auto" then
+        -- Priority 1: Explicit Live Action Signal overrides almost everything
+        if signal_live_action then
+            is_anime = false
+        -- Priority 2: Any positive Anime Signal
+        elseif signal_folder or signal_audio or signal_syntax or signal_shiru then
+            is_anime = true
+        else
+            -- Priority 3: Default fallback
+            is_anime = false
+        end
+    end
+
+    -- 5. [APPLY PROFILES]
+    if is_anime then
         apply_profile("anime-shaders")
         
         if anime_fidelity then
@@ -481,7 +457,7 @@ local function evaluate()
         return
     end
 
-    -- 2. Live Action Logic (Native Profiles)
+    -- 6. [LIVE ACTION FALLBACK]
     mp.commandv("change-list", "glsl-shaders", "clear", "")
 
     if res == "SD" then
@@ -499,7 +475,6 @@ local function evaluate()
     end
 
     if res == "2K" or res == "FHD" then
-        -- 1080p and 1440p use the same HQ profile
          apply_profile("High-Quality")
          return
     end
@@ -516,7 +491,6 @@ end
 -- EXTERNAL TOGGLES
 -------------------------------------------------
 mp.register_script_message("toggle-anime-fidelity", function()
-	-- [NEW] Lock check
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
@@ -524,17 +498,16 @@ mp.register_script_message("toggle-anime-fidelity", function()
 
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
     
-    -- Lock: Only works if Anime Mode is active
     if current_profile ~= "anime-shaders" then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Anime Mode Required.", 2)
         return
     end
     
-	anime_fidelity = not anime_fidelity
-    save_anime_mode() -- [NEW] Save preference immediately
-    evaluate() -- Re-run logic to switch shaders
+    anime_fidelity = not anime_fidelity
+    save_anime_mode() 
+    evaluate() 
     
-    local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
+    local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Anime Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
     show_temp_osd(C.YELLOW .. "Anime Shader: " .. status, 2)
     sync_state()
 end)
@@ -562,11 +535,8 @@ mp.register_script_message("toggle-audio-passthrough", function()
 end)
 
 mp.register_script_message("toggle-audio-nightmode", function()
-    -- We use 'af toggle' with a label (@nightmode) so it doesn't wipe other filters like Upmix
-    -- f=75:g=25:n=0:p=0.9 are standard values for natural sounding compression
     mp.command("no-osd af toggle @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
     
-    -- We delay the OSD slightly to allow the property to update
     mp.add_timeout(0.1, function()
         local af = mp.get_property("af") or ""
         if string.find(af, "dynaudnorm") then
@@ -580,9 +550,8 @@ end)
 
 mp.register_script_message("toggle-global-shaders", function()
     shaders_master_switch = not shaders_master_switch
-	
-	save_anime_mode() -- [NEW] Save immediately
-	
+    save_anime_mode() 
+    
     if not shaders_master_switch then
         mp.set_property("glsl-shaders", "") 
         current_profile = ""
@@ -602,21 +571,16 @@ mp.observe_property("target-colorspace-hint", "string", sync_state)
 -- UOSC MENU INTEGRATION
 -------------------------------------------------
 mp.add_key_binding(nil, "open-anime-menu", function()
-    -- 1. Gather Local State
     local s_on = shaders_master_switch
     local s_auto = (anime_mode == "auto")
     local s_force = (anime_mode == "on")
     local s_off = (anime_mode == "off")
-    
     local s_sd_tex = (sd_mode == "texture")
     local s_logic_fsr = (sd_manual_override or hd_manual_override)
     local s_a4k_hq = (anime4k_quality == "hq")
-    
     local s_fidelity = anime_fidelity
-    -- [LOGIC] Grey out Anime4K if Fidelity is Active OR Not in Anime Mode
     local s_anime4k_allowed = (current_profile == "anime-shaders" and not anime_fidelity)
 
-    -- Anime4K Modes
     local s_m_a = (anime4k_mode == "A")
     local s_m_b = (anime4k_mode == "B")
     local s_m_c = (anime4k_mode == "C")
@@ -626,95 +590,44 @@ mp.add_key_binding(nil, "open-anime-menu", function()
     
     local af = mp.get_property("af") or ""
     local s_upmix = string.find(af, "surround")
-	local s_night_mode = (string.find(af, "dynaudnorm") ~= nil)
+    local s_night_mode = (string.find(af, "dynaudnorm") ~= nil)
     local spdif = mp.get_property("audio-spdif") or "no"
     local s_pass = (spdif ~= "no" and spdif ~= "") 
     local s_hdr_active = (mp.get_property("target-colorspace-hint") == "yes")
     
     local s_vsr = external_vsr_active
     local s_power = external_power_active
-	
-						-- =============================================================================
-					-- LOGIC: HDR TONE-MAPPING MENU (With Memory)
-					-- =============================================================================
+    
+    -- HDR LOGIC
+    local primaries = mp.get_property("video-params/primaries")
+    local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
+    local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
+    local tm_locked = not (is_hdr and not hdr_passthrough)
+    local tm_status_hint = ""
 
-					-- 1. DETECT STATUS
-					local primaries = mp.get_property("video-params/primaries")
-					local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
-					local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
+    if not is_hdr then tm_status_hint = " (Locked: SDR Content)"
+    elseif hdr_passthrough then tm_status_hint = " (Locked: Passthrough Active)"
+    else tm_status_hint = " (Active)" end
 
-					-- 2. DETERMINE IF LOCKED
-					local tm_locked = not (is_hdr and not hdr_passthrough)
-					local tm_status_hint = ""
+    local current_tm = mp.get_property("tone-mapping") or "hable"
 
-					if not is_hdr then
-						tm_status_hint = " (Locked: SDR Content)"
-					elseif hdr_passthrough then
-						tm_status_hint = " (Locked: Passthrough Active)"
-					else
-						tm_status_hint = " (Active)"
-					end
-
-					-- 3. GET CURRENT ALGORITHM
-					local current_tm = mp.get_property("tone-mapping") or "hable"
-
--- 4. BUILD THE SUBMENU
     local tm_menu = {
         type = "submenu",
         title = "Tone-Mapping Mode" .. tm_status_hint,
         icon = "brightness_medium",
         active = not tm_locked,
         items = {
-            -- Standard Curves
-            { 
-                title = "BT.2390 (Recommended)", 
-                active = (current_tm == "bt.2390"), 
-                value = "script-message save-tone-mapping bt.2390" 
-            },
-            { 
-                title = "ST.2094-40 (Active)", 
-                active = (current_tm == "st2094-40"), 
-                value = "script-message save-tone-mapping st2094-40" 
-            },
-            { 
-                title = "BT.2446a (Static)", 
-                active = (current_tm == "bt.2446a"), 
-                value = "script-message save-tone-mapping bt.2446a" 
-            },
-            { 
-                title = "Spline (Neutral)", 
-                active = (current_tm == "spline"), 
-                value = "script-message save-tone-mapping spline" 
-            },
-            
-            -- Legacy / Artistic Curves
-            { 
-                title = "Hable", 
-                active = (current_tm == "hable"), 
-                value = "script-message save-tone-mapping hable" 
-            },
-            { 
-                title = "Mobius", 
-                active = (current_tm == "mobius"), 
-                value = "script-message save-tone-mapping mobius" 
-            },
-            { 
-                title = "Reinhard", 
-                active = (current_tm == "reinhard"), 
-                value = "script-message save-tone-mapping reinhard" 
-            },
-            
-            -- Utility
-            { 
-                title = "Clip (Hard Cut)", 
-                active = (current_tm == "clip"), 
-                value = "script-message save-tone-mapping clip" 
-            }
+            { title = "BT.2390 (Recommended)", active = (current_tm == "bt.2390"), value = "script-message save-tone-mapping bt.2390" },
+            { title = "ST.2094-40 (Active)", active = (current_tm == "st2094-40"), value = "script-message save-tone-mapping st2094-40" },
+            { title = "BT.2446a (Static)", active = (current_tm == "bt.2446a"), value = "script-message save-tone-mapping bt.2446a" },
+            { title = "Spline (Neutral)", active = (current_tm == "spline"), value = "script-message save-tone-mapping spline" },
+            { title = "Hable", active = (current_tm == "hable"), value = "script-message save-tone-mapping hable" },
+            { title = "Mobius", active = (current_tm == "mobius"), value = "script-message save-tone-mapping mobius" },
+            { title = "Reinhard", active = (current_tm == "reinhard"), value = "script-message save-tone-mapping reinhard" },
+            { title = "Clip (Hard Cut)", active = (current_tm == "clip"), value = "script-message save-tone-mapping clip" }
         }
     }
 
-
-    -- 2. Build Menu
     local items = {
         {
             title = "Anime Mode: " .. (s_force and "ON" or (s_off and "OFF" or "AUTO")),
@@ -745,8 +658,7 @@ mp.add_key_binding(nil, "open-anime-menu", function()
             title = "Fidelity & Restoration",
             icon = 'brush',
             items = {
-				{ title = "====(Display Tools)====", value = "ignore", bold = true },
-                -- [NEW] UltraWide Zoom Sub-Menu
+                { title = "====(Display Tools)====", value = "ignore", bold = true },
                 {
                     title = "UltraWide Zoom",
                     icon = 'aspect_ratio',
@@ -756,16 +668,13 @@ mp.add_key_binding(nil, "open-anime-menu", function()
                         { title = "3. Crop-to-Zoom (Smart)",   value = "script-message zoom-mode-crop", active = (zoom_mode == "crop") },
                     }
                 },
-				{ title = "====(Quality Toggles)====", value = "ignore", bold = true },
+                { title = "====(Quality Toggles)====", value = "ignore", bold = true },
                 { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = s_on },
                 { title = "SD Upscaler: " .. (s_sd_tex and "Texture" or "Clean"), value = "script-message toggle-hq-sd", active = s_sd_tex },
                 { title = "HD Upscaler: " .. (s_logic_fsr and "FSRCNNX" or "NNEDI3"), value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
-                -- Grey out Anime4K Quality toggle too
-				{ title = "====(Anime Options)====", value = "ignore", bold = true },
-                -- [NEW] Fidelity Toggle
+                { title = "====(Anime Options)====", value = "ignore", bold = true },
                 { title = "Anime Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
-				{ title = "Anime4K Quality: " .. (s_a4k_hq and "HQ" or "Fast"), value = "script-binding toggle-anime4k-quality", active = s_a4k_hq, muted = not s_anime4k_allowed },
-                
+                { title = "Anime4K Quality: " .. (s_a4k_hq and "HQ" or "Fast"), value = "script-binding toggle-anime4k-quality", active = s_a4k_hq, muted = not s_anime4k_allowed },
             }
         },
         {
@@ -780,44 +689,34 @@ mp.add_key_binding(nil, "open-anime-menu", function()
             title = "Audio & HDR",
             icon = 'volume_up',
             items = {
-				-- [NEW] Night Mode Button
                 { title = "Audio: Night Mode (DRC)", value = "script-message toggle-audio-nightmode", active = s_night_mode },
                 { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix },
                 { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass },
                 { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active },
-				
-				tm_menu,
-				
-				-- [NEW] Target Peak Sub-Menu
-            {
-                title = "Target Peak (Brightness)",
-                icon = "wb_sunny",
-                items = (function()
-                    -- Helper to detect if current peak is standard
-                    local p = user_target_peak
-                    local is_std = (p=="auto" or p=="100" or p=="200" or p=="300" or p=="400" or p=="600" or p=="1000")
-                    
-                    return {
-                       { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (p == "auto") },
-                       { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (p == "100") },
-                       { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (p == "200") },
-                       { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (p == "300") },
-                       { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (p == "400") },
-                       { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (p == "600") },
-                       { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (p == "1000") },
-                       
-                    }
-                end)()
-            },
-				
+                tm_menu,
+                {
+                    title = "Target Peak (Brightness)",
+                    icon = "wb_sunny",
+                    items = (function()
+                        local p = user_target_peak
+                        return {
+                           { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (p == "auto") },
+                           { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (p == "100") },
+                           { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (p == "200") },
+                           { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (p == "300") },
+                           { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (p == "400") },
+                           { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (p == "600") },
+                           { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (p == "1000") },
+                        }
+                    end)()
+                },
             }
         },
-		{
+        {
             title = "System",
             icon = 'build',
             items = {
                         { title = "Check for Updates", value = "script-message check-for-updates", icon = 'update' },
-                        -- [UPDATED] Replaced Version Info with Stats Overlay
                         { title = "Show Statistics", value = "script-binding toggle-stats", icon = 'info' },
                     }
         },
@@ -860,12 +759,10 @@ mp.add_key_binding(nil, "anime-mode-off", function()
 end)
 
 mp.add_key_binding(nil, "toggle-anime4k-quality", function()
-	-- [NEW] Lock check
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
     end
-	
     if current_profile ~= "anime-shaders" then return end
     if anime_fidelity then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Disable Fidelity Mode first.", 2)
@@ -883,13 +780,12 @@ mp.add_key_binding(nil, "show-profile-info", function()
 end)
 
 mp.register_script_message("anime4k-mode", function(mode)
-	-- [NEW] Lock check
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
     end
     if current_profile ~= "anime-shaders" then return end
-    if anime_fidelity then return end -- Double protection
+    if anime_fidelity then return end 
     if not A4K[anime4k_quality][mode] then return end
     anime4k_mode = mode
     save_anime4k()
@@ -899,14 +795,11 @@ mp.register_script_message("anime4k-mode", function(mode)
 end)
 
 mp.register_script_message("toggle-hq-sd", function()
-	-- [NEW] Lock check
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
     end
-	
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
-    
     if current_profile == "HQ-SD-FSRCNNX" then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Switch to NNEDI first.", 2)
         return
@@ -916,29 +809,24 @@ mp.register_script_message("toggle-hq-sd", function()
         return 
     end
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
-	save_anime_mode()
+    save_anime_mode()
     evaluate()
     show_temp_osd(C.YELLOW .. "SD Mode: " .. C.ORANGE .. sd_mode:upper(), 2)
     sync_state()
 end)
 
 mp.register_script_message("toggle-hq-hd-nnedi", function()
-	-- [NEW] Lock check
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
     end
-	
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
-    
     local res = get_resolution_mode()
-
     if current_profile == "anime-shaders" then return end
     if res == "FHD" or res == "2K" or res == "4K" then 
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "only for SD & HD.", 2)
         return 
     end
-
     local mode_name, mode_color = "", ""
     if res == "SD" then
         sd_manual_override = not sd_manual_override
@@ -946,13 +834,12 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
         mode_name = sd_manual_override and "FSRCNNX (Sharp)" or "NNEDI3 (Clean/Texture)"
         mode_color = sd_manual_override and C.CYAN or C.ORANGE
     else 
-        -- Assume HD
         hd_manual_override = not hd_manual_override
         evaluate()
         mode_name = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
         mode_color = hd_manual_override and C.CYAN or C.GOLD
     end
-	save_anime_mode()
+    save_anime_mode()
     show_temp_osd(C.YELLOW .. "Logic Switch: " .. mode_color .. mode_name, 2)
     sync_state()
 end)
@@ -967,7 +854,6 @@ mp.register_script_message("show-current-version", function()
     show_temp_osd(C.GREEN .. "Anime Build: " .. C.WHITE .. BUILD_VERSION, 3)
 end)
 
--- [NEW] Zoom State Listener
 mp.register_script_message("zoom-state-update", function(val)
     zoom_mode = val
     sync_state()
@@ -995,63 +881,49 @@ mp.register_event("file-loaded", function()
     sync_state()
 end)
 
--- [HDR PERSISTENCE LOGIC]
 local function apply_hdr_preference()
     local primaries = mp.get_property("video-params/primaries")
     local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
-    -- Only apply if HDR and we have a saved user preference
     if is_hdr and user_hdr_mode then
         mp.set_property("tone-mapping", user_hdr_mode)
     end
-	-- [NEW] Apply Target Peak
-        if user_target_peak and user_target_peak ~= "auto" then
-            mp.set_property("target-peak", user_target_peak)
-        else
-            mp.set_property("target-peak", "auto")
-        end
+    if user_target_peak and user_target_peak ~= "auto" then
+        mp.set_property("target-peak", user_target_peak)
+    else
+        mp.set_property("target-peak", "auto")
+    end
 end
 
 mp.register_script_message("save-tone-mapping", function(mode)
     user_hdr_mode = mode
     mp.set_property("tone-mapping", mode)
-    save_hdr_mode() -- Save to disk immediately
+    save_hdr_mode() 
     mp.osd_message("Tone-Mapping: " .. mode .. " (Saved)")
     sync_state()
 end)
 
--- Re-apply when file loads or color primaries change
 mp.observe_property("video-params/primaries", "string", function() 
     mp.add_timeout(0.5, apply_hdr_preference) 
 end)
 
 -------------------------------------------------
--- GLOBAL INTERPOLATION SYNC (Adaptive)
+-- GLOBAL INTERPOLATION SYNC
 -------------------------------------------------
--- 1. Capture your preferred sync mode (from mpv.conf) immediately on startup
 local user_preferred_sync = mp.get_property("video-sync")
 
 mp.observe_property("interpolation", "bool", function(_, enabled)
     if enabled then
-        -- [Active State]
-        -- Before overriding, check if the user manually changed sync while Interp was OFF.
-        -- If so, update our "Preferred" memory so we revert to the correct setting later.
         local current_sync = mp.get_property("video-sync")
         if current_sync ~= "display-resample" then
             user_preferred_sync = current_sync
         end
-        
-        -- Force the mode required for smooth motion
         mp.set_property("video-sync", "display-resample")
     else
-        -- [Resting State]
-        -- Interpolation turned OFF -> Restore the user's preferred setting
         if user_preferred_sync then
             mp.set_property("video-sync", user_preferred_sync)
         end
     end
 end)
 
--- Load the settings file when script starts
 load_hdr_mode()
-
 sync_state()

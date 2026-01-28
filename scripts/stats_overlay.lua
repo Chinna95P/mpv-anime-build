@@ -12,7 +12,10 @@ local active = false
 local timer = nil
 
 -- [VERSION INFO]
-local BUILD_VERSION = "v1.9.6"
+local opts = require 'mp.options'
+local config = { version = "v0.0.0" } -- Fallback default
+opts.read_options(config, "build_info")
+local BUILD_VERSION = config.version
 
 -- [STATE CACHE]
 local anime_state = {
@@ -47,7 +50,7 @@ local function get_active_shader()
     local shaders = mp.get_property("glsl-shaders") or ""
     if shaders == "" then return "Native (Lanczos/Spline)" end
     
-    if string.find(shaders, "anime_enhance") then return "FSRCNNX 16 (Anime)" end
+    if string.find(shaders, "enhance_anime") then return "FSRCNNX 16 (Anime)" end
     if string.find(shaders, "LineArt") then return "FSRCNNX 8 (Anime)" end
     if string.find(shaders, "Anime4K") then return "Anime4K (Active)" end
     

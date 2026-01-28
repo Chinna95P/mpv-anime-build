@@ -1,4 +1,5 @@
-# 🎬 MPV Anime Build v1.9.6
+# 🎬 MPV Anime Build v2.0
+> **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
@@ -10,6 +11,33 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## 🚀 What's New in v2.0 (The Universal Update)
+
+* **🌍 Universal Detection:** Anime Mode now works on **Web Streams** (Stremio, Debrid, URL) by automatically scanning audio tracks for Japanese language.
+* **⏩ Skip Intro v2.0:** The button is now multi-colored and context-aware.
+    * 🟢 **Green:** Opening (OP) | 🔵 **Blue:** Ending (ED) | 🟣 **Magenta:** Preview (PV)
+* **✨ Visual Finesse:** Optimized shader chain (`SSimSuperRes`) for cleaner 1080p upscaling and a dedicated **Native 4K** profile that skips unnecessary processing.
+* **📊 Stats Overlay v2.0:** Redesigned "Glass" overlay now shows **Input vs. Output Resolution** and doesn't block OSD messages.
+
+---
+
+## 🌊 The Recommended Streaming Ecosystem
+This build is designed to be the "Engine" for high-quality streaming apps.
+
+### 1. Recommended Apps
+| App | Best For | Why? |
+| :--- | :--- | :--- |
+| **Stremio** | **Movies, TV & Anime** | The ultimate hub. Supports 4K HDR, Dolby Vision, and real-time torrent streaming. Perfect for Live Action. |
+| **Hayase / Shiru** | **Anime Only** | Dedicated Anime clients with **Anilist/MAL sync**. They track your progress automatically while streaming. |
+
+### 2. How to Set MPV as External Player
+Since this is a portable build, you must manually point these apps to your `mpv.exe`.
+
+* **For Stremio:** Go to **Settings** → **Player** → Enable **"Play in external player"**.
+* **For Hayase / Shiru:** Go to **Settings** → **Player Settings** → Select the `mpv.exe` inside your portable folder.
 
 ---
 
@@ -142,7 +170,7 @@ Watching late at night? Toggle **Night Mode** to normalize audio volume.
 
 ---
 
-## ⏩ Smart Skip Intro (New in v1.8)
+## ⏩ Smart Skip Intro (v2.0)
 
 This build now features an intelligent **Skip Intro** button that appears automatically when a chapter starts.
 
@@ -155,6 +183,9 @@ The build reads chapter titles and categorizes them to give you context-aware op
 | **Ending** | `SKIP ED` | 🔵 **Blue** | "Finish the episode" |
 | **Preview** | `SKIP PV` | 🟣 **Magenta** | "Skip spoilers" |
 | **Intro** | `SKIP INTRO` | 🟠 **Orange** | "Generic Skip" |
+
+* **Comprehensive Detection:** Now supports complex naming patterns like **`OP1`**, **`ED 2`**, **`PV3`**, and **`Theme Song`**.
+* **Visuals:** High-contrast "Glass" style ensures visibility on both bright and dark scenes.
 
 | OP Detected | ED Detected | Feedback |
 | :---: | :---: | :---: |

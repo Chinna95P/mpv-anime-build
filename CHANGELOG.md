@@ -4,6 +4,46 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.0] – The "Universal" Update
+
+### 🌍 Universal Compatibility
+* **Stream-Aware Detection:**
+    * **The Fix:** The Anime Controller now scans **all** audio tracks (not just the active one) to find `jpn`/`ja` tags.
+    * **Benefit:** Web streams that default to English audio will now correctly trigger **Anime Mode** automatically if a Japanese track exists in the container.
+    * **Metadata Scan:** Added logic to check `media-title` (stream metadata) for keywords like "Live Action" or "Drama", ensuring URL-based playback is categorized correctly.
+* **Subtitle "Force" Mode:**
+    * **New:** Added `ytdl-raw-options=sub-langs=all` to `mpv.conf`.
+    * **Benefit:** Forces `yt-dlp` to download **all available subtitles** for a web stream, fixing the "Missing Subtitles" issue on pirate sites.
+
+### 🎨 Visual & Logic Polish
+* **"Visual Finesse" Shader Chain:**
+    * **Optimized:** Finalized the FSRCNNX chain order: `FSRCNNX` → `KrigBilateral` → **`SSimSuperRes`** → `Adaptive Sharpen`. This maximizes Luma refinement before final sharpening.
+* **Smart 4K Profile:**
+    * **Optimization:** The `[4K-Native]` profile now strictly bypasses heavy upscalers (NNEDI3/FSRCNNX) and uses only `SSimSuperRes` + `Adaptive Sharpen` for pure image refinement.
+* **Context-Aware Subtitles:**
+    * **New:** The subtitle selector now changes behavior based on content.
+        * **Anime:** Prioritizes "Dialogue", "Full", or Japanese tracks.
+        * **Live Action:** Defaults to the first English track found.
+
+### ✨ Features
+* **Skip Intro v2.0:**
+    * **Comprehensive Recognition:** Updated regex logic to detect complex chapter patterns.
+        * **Sequences:** Supports numbered chapters like `OP1`, `OP 2`, `ED3`, `PV4`.
+        * **Keywords:** Expanded library to catch diverse naming conventions (`Theme`, `Song`, `Avant`, `Ending`, `Preview`).
+    * **Multi-Color Context:** The button now changes color to indicate what it's skipping:
+        * 🟢 **Green:** OP (Opening)
+        * 🔵 **Blue:** ED (Ending)
+        * 🟣 **Magenta:** PV (Preview)
+        * 🟠 **Orange:** Intro (Generic)
+* **Stats Overlay v2.0:**
+    * **New Layout:** Shifted the glass overlay down to avoid blocking OSD messages.
+    * **New Data:** Now reports **Input vs. Output Resolution** and explicitly identifies the "Anime FSRCNNX" chain.
+
+### 🔧 System
+* **Centralized Versioning:** Created `script-opts/build_info.conf` as the single source of truth for the build version. All scripts (`update`, `stats`, `controller`) now sync from this one file.
+
+---
+
 ## [v1.9.6] – The "Scaling" Update
 
 ### ✨ New Features

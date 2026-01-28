@@ -1,8 +1,8 @@
 -- [[ 
 --    FILENAME: skip_intro.lua
---    VERSION:  v1.8 (Context-Aware Multi-Color Edition)
+--    VERSION:  v2.0 (Universal Language & Style Support)
 --    AUTHOR:   mpv-anime-build
---    DESC:     Auto-detects OP/ED/PV/Intro and displays a clickable skip button.
+--    DESC:     Comprehensive detection for OP/ED/PV/Intro/Avant in ENG/JPN/ROMAJI.
 -- ]]
 
 local mp = require("mp")
@@ -12,25 +12,74 @@ local opts = {
     timeout = 6
 }
 
+-- [COMPREHENSIVE PATTERN MATCHING]
+-- Covers English, Japanese (Kanji/Kana), Romaji, and common abbreviations.
 local categories = {
-    -- Added "ed%d" to catch ED1, ED2, etc.
-    { label = "ED", keywords = { "credits", "ending", " ed ", "^ed$", "ed%d" } },
+    { 
+        label = "OP", 
+        keywords = { 
+            -- English / Common
+            "opening", " op ", "^op$", "op%d", "theme song", "main theme",
+            -- Japanese (Katakana/Kanji)
+            "オープニング",         -- Opuningu (Opening)
+            "オープニングテーマ",   -- Opuningu Tema (Opening Theme)
+            "OPテーマ",             -- OP Tema
+            "主題歌",               -- Shudaika (Theme Song)
+            -- Romaji / Technical
+            "ncop", "creditless op", "creditless opening"
+        } 
+    },
     
-    -- Added "pv%d" to catch PV1, PV2, etc.
-    { label = "PV", keywords = { "preview", "pv", "^pv$", "pv%d" } },
+    { 
+        label = "ED", 
+        keywords = { 
+            -- English / Common
+            "ending", " ed ", "^ed$", "ed%d", "credits", "outro", "end roll",
+            -- Japanese (Katakana/Kanji)
+            "エンディング",         -- Endingu (Ending)
+            "エンディングテーマ",   -- Endingu Tema (Ending Theme)
+            "EDテーマ",             -- ED Tema
+            "結び",                 -- Musubi (Conclusion/Ending - Rare but exists)
+            -- Romaji / Technical
+            "nced", "creditless ed", "creditless ending"
+        } 
+    },
     
-    -- Added "op%d" to catch OP1, OP4, etc.
-    { label = "OP", keywords = { "opening", " op ", "^op$", "op%d", "song", "theme", "signs" } },
+    { 
+        label = "PV", 
+        keywords = { 
+            -- English / Common
+            "preview", " pv ", "^pv$", "pv%d", "trailer", "next episode",
+            -- Japanese (Katakana/Kanji)
+            "予告",                 -- Yokoku (Notice/Preview)
+            "次回予告",             -- Jikai Yokoku (Next Episode Preview)
+            "特報",                 -- Tokuho (Special News/Teaser)
+            "プロモーション",       -- Puromoshon (Promotion)
+            -- Romaji
+            "jikai", "yokoku"
+        } 
+    },
     
-    { label = "Intro", keywords = { "intro" } }
+    { 
+        label = "Intro", 
+        keywords = { 
+            -- English
+            "intro", "introduction", "prologue", "cold open", 
+            -- Japanese / Technical
+            "アバン",               -- Aban (Avant-title / Cold Open)
+            "アバンタイトル",       -- Aban Taitoru (Avant Title)
+            "序章",                 -- Joshou (Prologue)
+            "前説"                  -- Maesetsu (Introductory remarks)
+        } 
+    }
 }
 
--- [COLOR PALETTE] BGR Hex Codes
+-- [COLOR PALETTE] BGR Hex Codes (Assumed 0xBBGGRR)
 local label_colors = {
-    Intro = "0099FF", -- Orange (Theme Default)
+    Intro = "0099FF", -- Orange (Standard)
     OP    = "00FF00", -- Green (Start)
-    PV    = "FF00FF", -- Magenta (Special)
-    ED    = "FF8000"  -- Blue (Finish)
+    PV    = "FF00FF", -- Magenta (Teaser)
+    ED    = "FF8000"  -- Blue (End)
 }
 
 local state = {
@@ -45,10 +94,15 @@ local state = {
 
 local function get_chapter_label(title)
     if not title then return nil end
-    title = title:lower()
+    
+    -- Normalization: Lowercase for English matching
+    local title_lower = title:lower()
+    
     for _, category in ipairs(categories) do
         for _, keyword in ipairs(category.keywords) do
-            if title:find(keyword) then
+            -- Lua string.find works on bytes, so it handles UTF-8 Japanese text fine
+            -- We check against the lowercased English title OR the raw UTF-8 characters
+            if title_lower:find(keyword) or title:find(keyword) then
                 return category.label
             end
         end
@@ -63,47 +117,38 @@ end
 
 -- VISUAL: Construct the Button
 local function draw_button(label, remaining, is_hovering)
-    -- Position: Bottom Right
+    -- Position: Bottom Right (Adjusted for 1080p canvas)
     local cx, cy = 1650, 980
     
     local ass = "{\\an5}{\\pos(" .. cx .. "," .. cy .. ")}"
     ass = ass .. "{\\fnSource Sans Pro}{\\fs40}{\\b1}" -- Large, Bold Font
     
-    -- STYLING: High Contrast Border
-    -- \bord4: Thick black border for readability on any background
-    -- \shad2: Drop shadow
-    -- \blur4: Soft dark blur
-    -- \3c:    Black Border
+    -- STYLING: High Contrast Border for readability on any video
     ass = ass .. "{\\bord4}{\\shad2}{\\blur4}{\\3c&H000000&}{\\4c&H000000&}"
     
     -- COLOR LOGIC
     if is_hovering then
-        -- Hover State: Entire text turns Cyan
+        -- Hover State: Yellow text to indicate interactivity
         ass = ass .. "{\\1c&HFFFF00&}"
         ass = ass .. "▶ SKIP " .. string.upper(label) .. " [" .. opts.skip_key .. "] (" .. remaining .. ")"
     else
-        -- Normal State: Multi-Color Design
-        
-        -- Get the specific color for this label (default to Orange if unknown)
+        -- Normal State: Segmented Colors
         local specific_color = label_colors[label] or "0099FF"
         
-        -- Part 1: Arrow (Colored)
+        -- Icon
         ass = ass .. "{\\1c&H" .. specific_color .. "&}▶ "
-        
-        -- Part 2: "SKIP" (White)
+        -- "SKIP" text
         ass = ass .. "{\\1c&HFFFFFF&}SKIP "
-        
-        -- Part 3: Label (Colored)
+        -- Label name
         ass = ass .. "{\\1c&H" .. specific_color .. "&}" .. string.upper(label) .. " "
-        
-        -- Part 4: Key/Timer (White)
+        -- Hotkey hint
         ass = ass .. "{\\1c&HFFFFFF&}[" .. opts.skip_key .. "] (" .. remaining .. ")"
     end
     
     paint_canvas(ass)
 end
 
--- VISUAL: Feedback Message
+-- VISUAL: Feedback Message (When clicked)
 local function draw_feedback(label, color_hex)
     local cx, cy = 1650, 980
     
@@ -111,8 +156,6 @@ local function draw_feedback(label, color_hex)
     ass = ass .. "{\\fnSource Sans Pro}{\\fs40}{\\b1}"
     ass = ass .. "{\\bord4}{\\shad2}{\\blur4}{\\3c&H000000&}"
     
-    -- Icon + Text
-    -- "SKIPPED" is White, Label/Arrow matches the section color
     ass = ass .. "{\\1c&H" .. color_hex .. "&}▶ "
     ass = ass .. "{\\1c&HFFFFFF&}SKIPPED "
     ass = ass .. "{\\1c&H" .. color_hex .. "&}" .. string.upper(label)
@@ -124,9 +167,7 @@ local function skip_action()
     state.is_skipping = true
     mp.command("no-osd add chapter 1")
     
-    -- Dynamic Feedback Color
     local color = label_colors[state.active_label] or "0099FF"
-    
     draw_feedback(state.active_label or "Chapter", color)
     
     if state.key_bound then
@@ -150,13 +191,14 @@ local function check_mouse_hover()
     local osd_w, osd_h = mp.get_osd_size()
     if not osd_w or osd_w == 0 then return false end
     
+    -- Normalize mouse coordinates to 1920x1080 canvas
     local scale_x = 1920 / osd_w
     local scale_y = 1080 / osd_h
     
     local target_x = mx * scale_x
     local target_y = my * scale_y
     
-    -- Hitbox (Approx 1650, 980)
+    -- Hitbox area around the button (Approx 1650, 980)
     if target_x > 1400 and target_x < 1860 and target_y > 950 and target_y < 1010 then
         return true
     end

@@ -6,10 +6,13 @@
 local mp = require 'mp'
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
+local opts = require 'mp.options' -- Import options module
 
 -- [CONFIGURATION]
-local CURRENT_VERSION_STR = "v1.9.6"
-local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/version.txt" 
+local config = { version = "v0.0.0" }
+opts.read_options(config, "build_info")
+local CURRENT_VERSION_STR = config.version
+local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/portable_config/script-opts/build_info.conf" 
 
 local function parse_version(v)
     if not v then return 0 end
