@@ -12,7 +12,7 @@ local opts = require 'mp.options' -- Import options module
 local config = { version = "v0.0.0" }
 opts.read_options(config, "build_info")
 local CURRENT_VERSION_STR = config.version
-local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/portable_config/script-opts/build_info.conf" 
+local VERSION_URL = "https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/refs/heads/main/script-opts/build_info.conf" 
 
 local function parse_version(v)
     if not v then return 0 end
