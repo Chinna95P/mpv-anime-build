@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.0.1] – YouTube Streaming Hotfix
+
+### 🐛 Fixed
+* **YouTube Force Close:** Fixed a critical issue where pasting YouTube links caused MPV to close immediately due to HTTP 403 Forbidden errors.
+* **Stream Stability:** Updated `ytdl-raw-options` with **Client Spoofing** (`player_client=default,-android_sdkless`) to bypass new YouTube anti-bot protections.
+* **Format Selector:** Refined `ytdl-format` logic to allow **4K/8K WebM** streams (VP9/AV1) while maintaining stability.
+
+---
+
 ## [v2.0] – The "Universal" Update
 
 ### 🌍 Universal Compatibility

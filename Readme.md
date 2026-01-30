@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v2.0
+# 🎬 MPV Anime Build v2.0.1
 > **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
