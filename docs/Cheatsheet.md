@@ -119,6 +119,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
 | **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
 | **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD). |
+| **`CTRL+k`** | **Adaptive Sharpen Toggle** | Toggle Adaptive Sharpen ON/OFF (Works for Anime-Fidelity & Live-Action). |
 | **`CTRL+p`** | **Power Mode** | Toggle Low-Power Mode (Battery Saver) manually. |
 | **`CTRL+i`** | **Stats Overlay** | Toggle 'Statistics' Display. |
 | **`CTRL+b`** | **Anime-Fidelity** | Toggle Anime-Fidelity Mode [Anime4K <=> FSRCNNX (Anime Enhanced)] manually. |

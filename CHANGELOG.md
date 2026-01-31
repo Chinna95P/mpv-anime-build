@@ -4,6 +4,22 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.1] – The "Sharpen & Safety" Update
+
+### ✨ New Features
+* **Adaptive Sharpen Toggle:** * Users can now manually enable or disable the `adaptive-sharpen` shaders independently.
+    * Integrated a new toggle option directly into the **Anime Mode Button** and the **uosc Anime Build Options** menu.
+    * Added **`CTRL+k`** as the dedicated keyboard shortcut for this toggle.
+* **Visual Status Indicator ✨:** * A "Sparkle" emoji ✨ now appears in the Profile OSD when sharpening is active.
+    * The icon is context-aware and automatically hides when using **Anime4K**, as it does not use the adaptive-sharpen shaders.
+
+### ⚡ Improvements
+* **Safety Lockdown & Efficiency:** * The toggle is automatically locked when the **Master Shader Switch** is OFF.
+    * To conserve battery, sharpening is strictly disabled when **Power Saving Mode** is active.
+    * To prevent artifacts, the toggle is overridden if **Nvidia VSR** is enabled.
+
+---
+
 ## [v2.0.1] – YouTube Streaming Hotfix
 
 ### 🐛 Fixed

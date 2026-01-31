@@ -1,6 +1,6 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v2.0 (Universal Stream & Folder Support)
+--    VERSION:  v2.1 (Adaptive Sharpen Toggle)
 --    UPDATED:  2026-01-27
 -- ]]
 
@@ -43,6 +43,7 @@ local zoom_mode = "fit"
 local sd_mode = "clean"          
 local sd_manual_override = false 
 local hd_manual_override = false 
+local sharpen_enabled = true -- New state for Adaptive Sharpen
 
 -- External States (Synced via Broadcast)
 local external_vsr_active = false
@@ -99,6 +100,9 @@ local function sync_state()
         
         -- Zoom State
         zoom_mode = zoom_mode,
+		
+		-- Adaptive Sharpen
+		sharpen_active = sharpen_enabled,
         
         -- Send Context flag for Menu Locking
         is_anime_context = is_anime_active,
@@ -196,6 +200,11 @@ local function profile_message()
         return part1 .. sep .. part2
     end
     
+	-- Define the Sharpen Icon logic
+    -- Icon shows IF enabled AND (Not in Anime Mode OR using Fidelity/FSRCNNX)
+    local is_a4k = (current_profile == "anime-shaders" and not anime_fidelity)
+    local shp_icon = (sharpen_enabled and not is_a4k) and (C.CYAN .. " ✨") or ""
+	
     if current_profile == "anime-shaders" then
         if anime_fidelity then
             local res = get_resolution_mode()
@@ -203,13 +212,13 @@ local function profile_message()
             
             if res == "SD" then res_label = "FSRCNNX (Anime SD)"
             elseif res == "HD" then res_label = "FSRCNNX (Anime 720p)"
-            elseif res == "FHD" or res == "2K" then res_label = "FSRCNNX (Anime 1080p/2K)"
+            elseif res == "FHD" or res == "2K" then res_label = "FSRCNNX (Anime 1080p)"
             else res_label = "Sharpen 4K (Anime)" end
             
-            part2 = C.YELLOW .. "{\\b1}Fidelity:{\\b0} " .. C.CYAN .. res_label
+            part2 = C.YELLOW .. "{\\b1}Fidelity:{\\b0} " .. C.CYAN .. res_label .. shp_icon
         else
             local a4k_str = anime4k_quality:upper() .. " (" .. anime4k_mode .. ")"
-            part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.WHITE .. C.MAGENTA .. a4k_str
+            part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.MAGENTA .. a4k_str .. shp_icon
         end
     else
         local prof_color = C.WHITE
@@ -218,7 +227,7 @@ local function profile_message()
         elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
         elseif current_profile == "4K-Native" then prof_color = C.GREEN
         end
-        part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. C.WHITE .. prof_color .. current_profile
+        part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. prof_color .. current_profile .. shp_icon
     end
     
     return part1 .. sep .. part2
@@ -243,6 +252,8 @@ local function load_anime_mode()
         if hd_o then hd_manual_override = (hd_o == "true") end
         local se = l:match("shaders_enabled=(%S+)")
         if se then shaders_master_switch = (se == "true") end
+		local shp = l:match("sharpen_enabled=(%S+)")
+		if shp then sharpen_enabled = (shp == "true") end
     end
     f:close()
 end
@@ -256,6 +267,7 @@ local function save_anime_mode()
         f:write("sd_override=" .. tostring(sd_manual_override) .. "\n")
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
         f:write("shaders_enabled=" .. tostring(shaders_master_switch) .. "\n")
+		f:write("sharpen_enabled=" .. tostring(sharpen_enabled) .. "\n")
         f:close() 
     end
 end
@@ -336,6 +348,23 @@ local function apply_profile(p)
     end
 end
 
+local function finalize_shader_chain(chain)
+    if not sharpen_enabled then
+        -- 1. Remove if preceded by semicolon
+        chain = chain:gsub(";~~/shaders/adaptive%-sharpen.-%.glsl", "")
+        -- 2. Remove if followed by semicolon (New safety check)
+        chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl;", "")
+        -- 3. Remove if it's the only/first entry
+        chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl", "")
+    end
+    return chain
+end
+
+local function force_apply_profile(p)
+    mp.commandv("apply-profile", p)
+    current_profile = p
+end
+
 -------------------------------------------------
 -- SHADERS (DEFINITIONS)
 -------------------------------------------------
@@ -382,7 +411,9 @@ local function apply_fsrcnnx()
     elseif res == "FHD" or res == "2K" then chain = FSRCNNX.HD_1080
     else chain = FSRCNNX.UHD end
     
-    mp.commandv("change-list", "glsl-shaders", "clear", "")
+    -- Apply the toggle logic here
+    chain = finalize_shader_chain(chain)
+    
     mp.commandv("change-list", "glsl-shaders", "set", chain)
 end
 
@@ -402,7 +433,7 @@ local function evaluate()
     
     -- Check for Shiru App launch arg
     local shiru_opt = mp.get_opt("mode") 
-
+	
     -- 3. [DETECT SIGNALS]
     
     -- A. Anime Signals (Logical OR)
@@ -457,33 +488,35 @@ local function evaluate()
         return
     end
 
-    -- 6. [LIVE ACTION FALLBACK]
-    mp.commandv("change-list", "glsl-shaders", "clear", "")
+-- ... (Inside section 6. LIVE ACTION FALLBACK)
 
+	-- FORCE a shader clear before applying profiles to ensure clean re-injection
+    mp.set_property("glsl-shaders", "")
+	
+	-- Reset current_profile to force mpv to re-run the profile commands
+    current_profile = ""
+	
     if res == "SD" then
         if sd_manual_override then
             apply_profile("HQ-SD-FSRCNNX")
         else
             apply_profile(sd_mode == "texture" and "HQ-SD-Texture" or "HQ-SD-Clean")
         end
-        return
-    end
-
-    if res == "4K" then
+    elseif res == "4K" then
         apply_profile("4K-Native")
-        return
-    end
-
-    if res == "2K" or res == "FHD" then
+    elseif res == "2K" or res == "FHD" then
          apply_profile("High-Quality")
-         return
+    else -- HD 720p
+        apply_profile(hd_manual_override and "HQ-HD-FSRCNNX" or "HQ-HD-NNEDI")
     end
 
-    -- HD (720p) Logic
-    if not hd_manual_override then
-        apply_profile("HQ-HD-NNEDI")
-    else
-        apply_profile("HQ-HD-FSRCNNX")
+    -- 7. [POST-PROCESS TOGGLE]
+    -- If sharpening is disabled, strip it from the chain we just built
+    if not sharpen_enabled then
+        local current_shaders = mp.get_property("glsl-shaders", "")
+        if current_shaders ~= "" then
+            mp.set_property("glsl-shaders", finalize_shader_chain(current_shaders))
+        end
     end
 end
 
@@ -672,6 +705,13 @@ mp.add_key_binding(nil, "open-anime-menu", function()
                 { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = s_on },
                 { title = "SD Upscaler: " .. (s_sd_tex and "Texture" or "Clean"), value = "script-message toggle-hq-sd", active = s_sd_tex },
                 { title = "HD Upscaler: " .. (s_logic_fsr and "FSRCNNX" or "NNEDI3"), value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
+				{ 
+							title = "Adaptive Sharpen: " .. (sharpen_enabled and "ON" or "OFF"), 
+							value = "script-message toggle-adaptive-sharpen", 
+							active = sharpen_enabled,
+							muted = not shaders_master_switch,
+							hint = not shaders_master_switch and "Locked (Master OFF)" or ""
+				},
                 { title = "====(Anime Options)====", value = "ignore", bold = true },
                 { title = "Anime Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
                 { title = "Anime4K Quality: " .. (s_a4k_hq and "HQ" or "Fast"), value = "script-binding toggle-anime4k-quality", active = s_a4k_hq, muted = not s_anime4k_allowed },
@@ -899,6 +939,19 @@ mp.register_script_message("save-tone-mapping", function(mode)
     mp.set_property("tone-mapping", mode)
     save_hdr_mode() 
     mp.osd_message("Tone-Mapping: " .. mode .. " (Saved)")
+    sync_state()
+end)
+
+mp.register_script_message("toggle-adaptive-sharpen", function()
+    if not shaders_master_switch then 
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Master Shader Switch is OFF", 2)
+        return 
+    end
+    sharpen_enabled = not sharpen_enabled
+    save_anime_mode()
+    evaluate() -- Re-apply shaders without the sharpener
+    local status = sharpen_enabled and (C.GREEN .. "ON") or (C.RED .. "OFF")
+    show_temp_osd(C.YELLOW .. "Adaptive Sharpen: " .. status, 2)
     sync_state()
 end)
 

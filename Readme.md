@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v2.0.1
+# 🎬 MPV Anime Build v2.1
 > **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -11,6 +11,14 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+
+---
+
+## What's New in v2.1 (Adaptive Sharpen Toggle)
+
+* **🎯 Manual Sharpen Control:** Added a dedicated toggle for **Adaptive Sharpening ON/OFF** **`(CTRL+k)`** across all resolution tiers (SD, HD, 4K).
+* **🔋 Efficiency Safety:** Sharpening is now automatically disabled during **Power Saving Mode** or when **RTX VSR** is active to prevent hardware conflicts.
+* **✨ OSD Clarity:** A new "Sparkle" icon ✨ appears in the status overlay when sharpening is active.
 
 ---
 
@@ -491,6 +499,8 @@ This build scales based on your hardware, but high-quality upscaling requires a 
 | `H` | **HDR Mode** (Manual Override: Force Passthrough vs Tone Mapping) |
 | `V` | **Nvidia VSR** (Toggle RTX Video Super Resolution) |
 | `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues |
+| **`CTRL + k`** | **Toggle Adaptive Sharpen** (ON/OFF). Locked when Master Shader switch is OFF.  |
+
 
 ### 🔹 Anime Mode (Master Switch)
 Controls whether the build treats the file as Anime or Live-Action.

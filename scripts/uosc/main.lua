@@ -729,6 +729,14 @@ function create_default_menu_items()
                          { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime_state("shaders_enabled") },
                          { title = 'SD Upscaler: ' .. (get_anime_state("sd_texture") and "Texture" or "Clean"), value = 'script-message toggle-hq-sd', active = get_anime_state("sd_texture") },
                          { title = 'HD Upscaler: ' .. (get_anime_state("logic_fsrcnnx") and "FSRCNNX" or "NNEDI3"), value = 'script-message toggle-hq-hd-nnedi', active = get_anime_state("logic_fsrcnnx") },
+						 { 
+							title = "Adaptive Sharpen: " .. (get_anime_state("sharpen_active") and "ON" or "OFF"), 
+							value = "script-message toggle-adaptive-sharpen", 
+							active = get_anime_state("sharpen_active"),
+							-- [LOCK] Gray out if Master Switch is OFF
+							muted = not get_anime_state("shaders_enabled"), 
+							hint = not get_anime_state("shaders_enabled") and "Locked (Master OFF)" or ""
+						 },
                          
                          { title = "====(Anime Options)====", value = "ignore", bold = true },
 

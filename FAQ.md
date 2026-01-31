@@ -23,6 +23,20 @@ This is a **Read-Only** display found in the Controls menu.
 * **Why is it greyed out?** Changing the GPU backend requires a full player restart. We made it unclickable to prevent accidental crashes during playback.
 </details>
 
+<details>
+<summary><b>New FAQ Entry (v2.1): Adaptive Sharpen Toggle</b></summary>
+
+**Why is there a ✨ icon in my OSD?**
+This is the **Adaptive Sharpen** indicator. It means the build is currently applying a "Modern TV" style sharpening pass to the image. 
+
+**Why can't I turn Sharpening ON?**
+The toggle (**`CTRL+k`**) is locked in two scenarios:
+
+1. Your **Master Shader Switch** (`CTRL+g`) is OFF. 
+
+2. You are in **Power Saving Mode** or using **Nvidia VSR**. The build disables standard sharpening in these modes to prioritize battery life or AI-driven upscaling. 
+</details>
+
 <br>
 
 ## 📺 Video & Quality

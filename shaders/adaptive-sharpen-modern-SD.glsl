@@ -4,14 +4,14 @@
 
 //--------------------------------------- Settings ------------------------------------------------
 
-#define curve_height    0.75                 // "Punchy" strength.
+#define curve_height    0.4                 // "Punchy" strength.
                                              // Makes SD content look cleaner and more defined.
 
 #define overshoot_ctrl  true                 // ENABLED.
                                              // Critical for SD to prevent blocky artifacts when sharpening.
 
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
-#define curveslope      0.5                  // Sharpening curve slope, high edge values
+#define curveslope      0.3                  // Sharpening curve slope, high edge values
 
 // TIGHTER COMPRESSION FOR SD (Ignores background noise/grain)
 #define L_compr_low     0.190                
@@ -23,7 +23,7 @@
 #define scale_lim       0.1                  // Abs max change before compression [>0.01]
 #define scale_cs        0.056                // Compression slope above scale_lim
 
-#define pm_p            1.0                  // Power mean p-value [>0-1.0]
+#define pm_p            0.3                  // Power mean p-value [>0-1.0]
 
 //-------------------------------------------------------------------------------------------------
 
