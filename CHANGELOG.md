@@ -4,6 +4,29 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.2] – The "Logic & Swapper" Update
+
+### ✨ New Features
+* **Shader Swapper Menus:**
+    * **Instant Switching:** You can now swap specific shader variants on the fly via the Menu (e.g., Switch FSRCNNX from *Anime Mild* to *LineArt*, or NNEDI3 from *64-Neurons* to *256-Neurons*).
+    * **Context Aware:** The menu automatically shows valid options for your current content (Anime vs. Live Action).
+* **Split Live-Action Logic:**
+    * **SD Content:** Toggle between **NNEDI3** (Clean/Texture) and **FSRCNNX** (Sharp) independently.
+    * **HD Content:** Toggle between **NNEDI3** (Geometry focus) and **FSRCNNX** (Detail focus) independently.
+    * **Memory:** The build remembers your choice for SD and HD separately.
+* **Advanced Motion Control:**
+    * **Video Sync Menu:** New menu to toggle between `Audio` (Default), `Display Resample` (Smooth Motion), `Vdrop`, and `Desync`.
+    * **Temporal Scaler:** New menu to select the interpolation algorithm (e.g., `Oversample` for sharpness, `Sphinx` for balance).
+    * **Automation:** Enabling Interpolation now automatically forces `display-resample` mode to prevent stutter.
+
+### ⚡ Improvements
+* **Stats Overlay v2.1:**
+    * **Target Resolution:** The overlay now calculates the *actual* video area inside black bars (e.g., `1440x1080` on a 16:9 screen) instead of just showing the window size.
+    * **Detailed Identification:** Explicitly names the active variant (e.g., `"FSRCNNX 16 (Anime Mild)"` vs `"FSRCNNX 8 (LineArt)"`).
+* **Menu Logic:** Renamed "SD Upscaler" to **"SD Mode (NNEDI)"** and "HD Upscaler" to **"SD/HD Logic"** to better reflect their function. Checks are now based on the active profile name for 100% accuracy.
+
+---
+
 ## [v2.1] – The "Sharpen & Safety" Update
 
 ### ✨ New Features

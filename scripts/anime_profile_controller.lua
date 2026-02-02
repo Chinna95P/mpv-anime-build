@@ -27,6 +27,17 @@ local hdr_opts_path = mp.command_native({
 })
 local user_hdr_mode = nil -- Holds the saved setting
 
+-- v2.2 Persistent Shader Swaps
+-- Format: user_shaders[context][res] = "path/to/custom/shader.glsl"
+local user_fsrcnnx = {
+    anime = { SD = nil, HD = nil, FHD = nil },
+    live  = { SD = nil, HD = nil, FHD = nil }
+}
+local user_nnedi = {
+    anime = { SD = nil, HD = nil, FHD = nil },
+    live  = { SD = nil, HD = nil, FHD = nil }
+}
+
 -------------------------------------------------
 -- STATE
 -------------------------------------------------
@@ -69,6 +80,34 @@ local C = {
 }
 
 -------------------------------------------------
+-- RESOLUTION LOGIC (FIXED)
+-------------------------------------------------
+local function get_resolution_mode()
+    -- [Fix] Use get_property_number to prevent "bad argument #2" crash
+    local w = mp.get_property_number("video-params/w") or 0
+    local h = mp.get_property_number("video-params/h") or 0
+    
+    -- Safety check: If video hasn't loaded yet, return SD to prevent errors
+    if w == 0 or h == 0 then return "SD" end
+    
+    local fn = mp.get_property("filename", ""):lower()
+    
+    if h < 577 or w < 960 then return "SD" end
+
+    if fn:find("720p") or fn:find("1280x720") 
+    or (h >= 577 and h <= 720) 
+    or (w >= 960 and w <= 1280) then return "HD" end
+
+    if fn:find("1080p") or fn:find("1920x1080") 
+    or (h > 720 and h <= 1080) 
+    or (w > 1280 and w <= 1920) then return "FHD" end
+
+    if h < 1450 then return "2K" end
+
+    return "4K"
+end
+
+-------------------------------------------------
 -- OSD OVERLAY SYSTEM
 -------------------------------------------------
 local osd_overlay = mp.create_osd_overlay("ass-events")
@@ -89,6 +128,10 @@ end
 local function sync_state()
     -- 1. Determine active context
     local is_anime_active = (current_profile == "anime-shaders")
+	-- [v2.2 FIX] Determine Logic based strictly on Active Profile Name
+    local p = current_profile or ""
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and anime_fidelity)
+    local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
     
     -- 2. Define the state table
     local state = {
@@ -106,10 +149,13 @@ local function sync_state()
         
         -- Send Context flag for Menu Locking
         is_anime_context = is_anime_active,
+		
+		-- [NEW] Robust Profile State Flags
+        fsrcnnx_running = fsr_active,
+        nnedi_running = nnedi_active,
         
         -- Live Action Logic
         sd_texture = (sd_mode == "texture"),
-        logic_fsrcnnx = (sd_manual_override or hd_manual_override),
         
         mode_auto = (anime_mode == "auto"),
         mode_on = (anime_mode == "on"),
@@ -123,6 +169,14 @@ local function sync_state()
         a4k_mode_bb = (anime4k_mode == "BB"),
         a4k_mode_ca = (anime4k_mode == "CA"),
         
+		-- [v2.2] Selection Sync (Tells Main.lua what to checkmark)
+        current_res_label = get_resolution_mode(),
+        active_context_label = is_anime_active and "anime" or "live",
+        
+        -- Broadcast the specific active paths for the current res/context
+        active_fsrcnnx = user_fsrcnnx[is_anime_active and "anime" or "live"][get_resolution_mode()],
+        active_nnedi   = user_nnedi[is_anime_active and "anime" or "live"][get_resolution_mode()],
+		
         -- [LOGIC] Grey out Anime4K if: Not in Anime Mode OR Fidelity is ON
         anime4k_allowed = (is_anime_active and not anime_fidelity), 
         
@@ -148,28 +202,6 @@ local function sync_state()
     mp.set_property("user-data/anime_shaders_enabled", state.shaders_enabled and "yes" or "no")
 end
 
--------------------------------------------------
--- RESOLUTION LOGIC
--------------------------------------------------
-local function get_resolution_mode()
-    local w = tonumber(mp.get_property("video-params/w")) or 0
-    local h = tonumber(mp.get_property("video-params/h")) or 0
-    local fn = mp.get_property("filename", ""):lower()
-    
-    if h < 577 or w < 960 then return "SD" end
-
-    if fn:find("720p") or fn:find("1280x720") 
-    or (h >= 577 and h <= 720) 
-    or (w >= 960 and w <= 1280) then return "HD" end
-
-    if fn:find("1080p") or fn:find("1920x1080") 
-    or (h > 720 and h <= 1080) 
-    or (w > 1280 and w <= 1920) then return "FHD" end
-
-    if h < 1450 then return "2K" end
-
-    return "4K"
-end
 
 -------------------------------------------------
 -- PROFILE MESSAGE
@@ -254,6 +286,14 @@ local function load_anime_mode()
         if se then shaders_master_switch = (se == "true") end
 		local shp = l:match("sharpen_enabled=(%S+)")
 		if shp then sharpen_enabled = (shp == "true") end
+		-- [v2.2] Load Custom Shader Paths
+        -- Pattern: custom_TYPE_CONTEXT_RES=PATH
+        local s_type, s_ctx, s_res, s_path = l:match("custom_(%a+)_(%a+)_(%w+)=(%S+)")
+        if s_type == "fsrcnnx" then 
+            if user_fsrcnnx[s_ctx] then user_fsrcnnx[s_ctx][s_res] = s_path end
+        elseif s_type == "nnedi" then 
+            if user_nnedi[s_ctx] then user_nnedi[s_ctx][s_res] = s_path end
+        end
     end
     f:close()
 end
@@ -268,6 +308,18 @@ local function save_anime_mode()
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
         f:write("shaders_enabled=" .. tostring(shaders_master_switch) .. "\n")
 		f:write("sharpen_enabled=" .. tostring(sharpen_enabled) .. "\n")
+		-- [v2.2] Save Custom FSRCNNX Paths
+        for ctx, res_table in pairs(user_fsrcnnx) do
+            for res, path in pairs(res_table) do
+                if path then f:write("custom_fsrcnnx_" .. ctx .. "_" .. res .. "=" .. path .. "\n") end
+            end
+        end
+        -- [v2.2] Save Custom NNEDI Paths
+        for ctx, res_table in pairs(user_nnedi) do
+            for res, path in pairs(res_table) do
+                if path then f:write("custom_nnedi_" .. ctx .. "_" .. res .. "=" .. path .. "\n") end
+            end
+        end
         f:close() 
     end
 end
@@ -394,6 +446,9 @@ local function apply_anime4k()
     mp.commandv("change-list", "glsl-shaders", "set", chain)
 end
 
+-------------------------------------------------
+-- SHADERS (DEFINITIONS)
+-------------------------------------------------
 local FSRCNNX = {
     SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
     HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
@@ -401,20 +456,86 @@ local FSRCNNX = {
     UHD = "~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl"
 }
 
+-- [v2.2] Live Action Defaults (Mirrors mpv.conf)
+local LiveChains = {
+    -- SD: NNEDI3 256 + SSim + Adaptive
+    SD = "~~/shaders/nnedi3-nns256-win8x4.hook;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
+    
+    -- [v2.2 FIX] SD FSRCNNX: FSR + Krig + SSim + Adaptive SD (Matches HQ-SD-FSRCNNX)
+    SD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
+
+    -- HD: NNEDI3 64 + Krig + SSim + Adaptive
+    HD_NNEDI = "~~/shaders/nnedi3-nns64-win8x4.hook;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
+    
+    -- HD/FHD: FSRCNNX 16 + Krig + SSim + Adaptive
+    HD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
+    FHD = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-1080p.glsl"
+}
+
 local function apply_fsrcnnx()
-    if current_profile ~= "anime-shaders" then return end
     local res = get_resolution_mode()
+    local is_anime = (current_profile == "anime-shaders")
     local chain = ""
-    
-    if res == "SD" then chain = FSRCNNX.SD
-    elseif res == "HD" then chain = FSRCNNX.HD_720
-    elseif res == "FHD" or res == "2K" then chain = FSRCNNX.HD_1080
-    else chain = FSRCNNX.UHD end
-    
-    -- Apply the toggle logic here
-    chain = finalize_shader_chain(chain)
-    
-    mp.commandv("change-list", "glsl-shaders", "set", chain)
+    local custom_path = nil
+
+    -- 1. DETERMINE BASE CHAIN & CUSTOM PATH
+    if is_anime then
+        -- [ANIME LOGIC]
+        if not anime_fidelity then return end 
+        
+        -- A. Normalize Resolution Key (Treat 2K as FHD/1080p)
+        local lookup_res = res
+        if res == "2K" then lookup_res = "FHD" end
+
+        -- B. Select Base Chain
+        local key = "UHD"
+        if res == "SD" then key = "SD"
+        elseif res == "HD" then key = "HD_720"
+        elseif res == "FHD" or res == "2K" then key = "HD_1080"
+        end
+        chain = FSRCNNX[key] or ""
+        
+        -- C. Look for Custom Swap (Using Normalized Resolution)
+        -- This ensures 1440p content uses your 1080p settings
+        custom_path = user_fsrcnnx.anime[lookup_res] or user_nnedi.anime[lookup_res]
+        
+    else
+        -- [LIVE ACTION LOGIC]
+        if res == "SD" then
+            chain = LiveChains.SD
+            if sd_manual_override then 
+                chain = LiveChains.SD_FSR 
+                custom_path = user_fsrcnnx.live.SD 
+            else
+                custom_path = user_nnedi.live.SD 
+            end
+            
+        elseif res == "HD" then
+            if hd_manual_override then
+                chain = LiveChains.HD_FSR
+                custom_path = user_fsrcnnx.live.HD
+            else
+                chain = LiveChains.HD_NNEDI
+                custom_path = user_nnedi.live.HD
+            end
+            
+        elseif res == "FHD" or res == "2K" then
+            chain = LiveChains.FHD
+            -- Use .FHD for both 1080p and 1440p
+            custom_path = user_fsrcnnx.live.FHD or user_nnedi.live.FHD
+        end
+    end
+
+    -- 2. APPLY SWAP
+    if custom_path and chain ~= "" then
+        chain = chain:gsub("^[^;]+", custom_path)
+    end
+
+    -- 3. INJECT
+    if chain ~= "" then
+        chain = finalize_shader_chain(chain)
+        mp.commandv("change-list", "glsl-shaders", "set", chain)
+    end
 end
 
 -------------------------------------------------
@@ -490,9 +611,6 @@ local function evaluate()
 
 -- ... (Inside section 6. LIVE ACTION FALLBACK)
 
-	-- FORCE a shader clear before applying profiles to ensure clean re-injection
-    mp.set_property("glsl-shaders", "")
-	
 	-- Reset current_profile to force mpv to re-run the profile commands
     current_profile = ""
 	
@@ -518,102 +636,39 @@ local function evaluate()
             mp.set_property("glsl-shaders", finalize_shader_chain(current_shaders))
         end
     end
+	-- [v2.2] Run the Swapper for Live Action overrides (if applicable)
+    if not is_anime then apply_fsrcnnx() end
 end
 
 -------------------------------------------------
--- EXTERNAL TOGGLES
+-- MENU GENERATOR (Corrected: Uses Local Variables)
 -------------------------------------------------
-mp.register_script_message("toggle-anime-fidelity", function()
-    if external_power_active then
-        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
-        return
-    end
+local function get_anime_menu_json()
+    -- [v2.2 FIX] Force Context Detection if missing
+    if current_profile == "" then evaluate() end
 
-    if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
+    local res = get_resolution_mode()
+    local ctx = (current_profile == "anime-shaders" and "anime" or "live")
     
-    if current_profile ~= "anime-shaders" then
-        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Anime Mode Required.", 2)
-        return
-    end
-    
-    anime_fidelity = not anime_fidelity
-    save_anime_mode() 
-    evaluate() 
-    
-    local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Anime Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
-    show_temp_osd(C.YELLOW .. "Anime Shader: " .. status, 2)
-    sync_state()
-end)
-
-mp.register_script_message("toggle-audio-upmix", function()
-    mp.command('no-osd cycle-values af "lavfi=[surround=chl_out=7.1:lfe_low=80]" ""')
-    local af = mp.get_property("af")
-    if af and string.find(af, "surround") then
-        show_temp_osd(C.GREEN .. "7.1 Upmix: " .. C.WHITE .. "ON (Enhanced Bass)", 2)
-    else
-        show_temp_osd(C.RED .. "7.1 Upmix: " .. C.WHITE .. "OFF", 2)
-    end
-    sync_state()
-end)
-
-mp.register_script_message("toggle-audio-passthrough", function()
-    mp.command('no-osd cycle-values audio-spdif "ac3,dts,eac3,truehd,dtshd" "no"')
-    local spdif = mp.get_property("audio-spdif")
-    if spdif == "no" or spdif == "" then
-        show_temp_osd(C.CYAN .. "Audio: " .. C.WHITE .. "PCM (Upmix Active)", 2)
-    else
-        show_temp_osd(C.GOLD .. "Audio: " .. C.WHITE .. "Bitstream (Passthrough)", 2)
-    end
-    sync_state()
-end)
-
-mp.register_script_message("toggle-audio-nightmode", function()
-    mp.command("no-osd af toggle @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
-    
-    mp.add_timeout(0.1, function()
-        local af = mp.get_property("af") or ""
-        if string.find(af, "dynaudnorm") then
-            show_temp_osd(C.GREEN .. "Night Mode: " .. C.WHITE .. "ON (Dynamic Volume)", 2)
-        else
-            show_temp_osd(C.RED .. "Night Mode: " .. C.WHITE .. "OFF", 2)
-        end
-        sync_state()
-    end)
-end)
-
-mp.register_script_message("toggle-global-shaders", function()
-    shaders_master_switch = not shaders_master_switch
-    save_anime_mode() 
-    
-    if not shaders_master_switch then
-        mp.set_property("glsl-shaders", "") 
-        current_profile = ""
-        show_temp_osd(C.RED .. "Shaders: " .. C.WHITE .. "Disabled", 2)
-    else
-        evaluate()
-        show_temp_osd(C.GREEN .. "Shaders: " .. C.WHITE .. "Enabled", 2)
-    end
-    sync_state()
-end)
-
-mp.observe_property("af", "string", sync_state)
-mp.observe_property("audio-spdif", "string", sync_state)
-mp.observe_property("target-colorspace-hint", "string", sync_state)
-
--------------------------------------------------
--- UOSC MENU INTEGRATION
--------------------------------------------------
-mp.add_key_binding(nil, "open-anime-menu", function()
+    -- Gather States
     local s_on = shaders_master_switch
     local s_auto = (anime_mode == "auto")
     local s_force = (anime_mode == "on")
     local s_off = (anime_mode == "off")
-    local s_sd_tex = (sd_mode == "texture")
-    local s_logic_fsr = (sd_manual_override or hd_manual_override)
+    
+    -- [v2.2 FIX] Menu Visual State based strictly on Profile Name
+    local p = current_profile or ""
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and anime_fidelity)
+    local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
+
+    -- Logic for SD Mode Lock (Locked if we are in SD but FSRCNNX is running)
+    local s_sd_locked = (res == "SD" and fsr_active)
+
     local s_a4k_hq = (anime4k_quality == "hq")
     local s_fidelity = anime_fidelity
     local s_anime4k_allowed = (current_profile == "anime-shaders" and not anime_fidelity)
 
+    -- Anime4K Modes
     local s_m_a = (anime4k_mode == "A")
     local s_m_b = (anime4k_mode == "B")
     local s_m_c = (anime4k_mode == "C")
@@ -621,27 +676,22 @@ mp.add_key_binding(nil, "open-anime-menu", function()
     local s_m_bb = (anime4k_mode == "BB")
     local s_m_ca = (anime4k_mode == "CA")
     
+    -- Audio/HDR States
     local af = mp.get_property("af") or ""
     local s_upmix = string.find(af, "surround")
     local s_night_mode = (string.find(af, "dynaudnorm") ~= nil)
     local spdif = mp.get_property("audio-spdif") or "no"
     local s_pass = (spdif ~= "no" and spdif ~= "") 
     local s_hdr_active = (mp.get_property("target-colorspace-hint") == "yes")
-    
     local s_vsr = external_vsr_active
     local s_power = external_power_active
     
-    -- HDR LOGIC
+    -- HDR Logic
     local primaries = mp.get_property("video-params/primaries")
     local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
     local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
     local tm_locked = not (is_hdr and not hdr_passthrough)
-    local tm_status_hint = ""
-
-    if not is_hdr then tm_status_hint = " (Locked: SDR Content)"
-    elseif hdr_passthrough then tm_status_hint = " (Locked: Passthrough Active)"
-    else tm_status_hint = " (Active)" end
-
+    local tm_status_hint = not is_hdr and " (Locked: SDR)" or (hdr_passthrough and " (Locked: Passthrough)" or " (Active)")
     local current_tm = mp.get_property("tone-mapping") or "hable"
 
     local tm_menu = {
@@ -703,20 +753,74 @@ mp.add_key_binding(nil, "open-anime-menu", function()
                 },
                 { title = "====(Quality Toggles)====", value = "ignore", bold = true },
                 { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = s_on },
-                { title = "SD Upscaler: " .. (s_sd_tex and "Texture" or "Clean"), value = "script-message toggle-hq-sd", active = s_sd_tex },
-                { title = "HD Upscaler: " .. (s_logic_fsr and "FSRCNNX" or "NNEDI3"), value = "script-message toggle-hq-hd-nnedi", active = s_logic_fsr },
-				{ 
-							title = "Adaptive Sharpen: " .. (sharpen_enabled and "ON" or "OFF"), 
-							value = "script-message toggle-adaptive-sharpen", 
-							active = sharpen_enabled,
-							muted = not shaders_master_switch,
-							hint = not shaders_master_switch and "Locked (Master OFF)" or ""
-				},
+                
+                -- [RENAMED] SD Mode (NNEDI)
+                { 
+                    title = "SD Mode (NNEDI): " .. (s_sd_tex and "Texture" or "Clean"), 
+                    value = "script-message toggle-hq-sd", 
+                    active = s_sd_tex,
+                    muted = s_sd_locked,
+                    hint = s_sd_locked and "(Locked by FSRCNNX)" or ""
+                },
+                
+                -- [RENAMED] SD/HD Logic
+                { 
+                    title = "SD/HD Logic: " .. (fsr_active and "FSRCNNX" or "NNEDI3"), 
+                    value = "script-message toggle-hq-hd-nnedi", 
+                    active = fsr_active 
+                },
+
+                { 
+                    title = "Adaptive Sharpen: " .. (sharpen_enabled and "ON" or "OFF"), 
+                    value = "script-message toggle-adaptive-sharpen", 
+                    active = sharpen_enabled,
+                    muted = not shaders_master_switch,
+                    hint = not shaders_master_switch and "Locked (Master OFF)" or ""
+                },
+                
+                -- [v2.2] FSRCNNX Swapper (Controller Version)
+                {
+                    title = "Swap FSRCNNX (" .. res .. " / " .. ctx:upper() .. ")",
+                    icon = "shutter_speed",
+                    muted = not fsr_active,
+                    items = {
+                        { title = "== " .. res .. " Variants ==", value = "ignore", bold = true },
+                        -- Standard
+                        { title = "FSRCNNX (Standard 16)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1.glsl" },
+                        { title = "FSRCNNX (Standard 8)",  active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1.glsl" },
+                        -- Custom
+                        { title = "FSRCNNX (Anime Mild)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl" },
+                        { title = "FSRCNNX (Anime Aggressive)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl" },
+                        { title = "FSRCNNX (Anime Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl" },
+                        { title = "FSRCNNX (Line Art)",      active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
+                        { title = "FSRCNNX (General Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl" },        
+                        { title = "FSRCNNX (Enhance General)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
+                        { title = "RESET TO DEFAULT",        value = "script-message reset-resolution-shader fsrcnnx " .. ctx .. " " .. res, bold = true }
+                    }
+                },
+                -- [v2.2] NNEDI3 Swapper (Controller Version)
+                {
+                    title = "Swap NNEDI3 (" .. res .. " / " .. ctx:upper() .. ")",
+                    icon = "architecture",
+                    muted = not nnedi_active,
+                    items = {
+                        { title = "== " .. res .. " Neurons ==", value = "ignore", bold = true },
+                        { title = "NNEDI3 (256 - Ultra)", active = (user_nnedi[ctx][res] == "~~/shaders/nnedi3-nns256-win8x4.hook"), value = "script-message set-resolution-shader nnedi " .. ctx .. " " .. res .. " ~~/shaders/nnedi3-nns256-win8x4.hook" },
+                        { title = "NNEDI3 (128 - High)",  active = (user_nnedi[ctx][res] == "~~/shaders/nnedi3-nns128-win8x4.hook"), value = "script-message set-resolution-shader nnedi " .. ctx .. " " .. res .. " ~~/shaders/nnedi3-nns128-win8x4.hook" },
+                        { title = "NNEDI3 (64 - Mid)",    active = (user_nnedi[ctx][res] == "~~/shaders/nnedi3-nns64-win8x4.hook"),  value = "script-message set-resolution-shader nnedi " .. ctx .. " " .. res .. " ~~/shaders/nnedi3-nns64-win8x4.hook" },
+                        { title = "NNEDI3 (32 - Low)",    active = (user_nnedi[ctx][res] == "~~/shaders/nnedi3-nns32-win8x4.hook"),  value = "script-message set-resolution-shader nnedi " .. ctx .. " " .. res .. " ~~/shaders/nnedi3-nns32-win8x4.hook" },
+                        { title = "== Window Variants ==", value = "ignore", bold = true },
+                        { title = "NNEDI3 (nns256 win8x6)", active = (user_nnedi[ctx][res] == "~~/shaders/nnedi3-nns256-win8x6.hook"), value = "script-message set-resolution-shader nnedi " .. ctx .. " " .. res .. " ~~/shaders/nnedi3-nns256-win8x6.hook" },
+                        { title = "RESET TO DEFAULT",       value = "script-message reset-resolution-shader nnedi " .. ctx .. " " .. res, bold = true }
+                    }
+                },
+                
                 { title = "====(Anime Options)====", value = "ignore", bold = true },
                 { title = "Anime Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
                 { title = "Anime4K Quality: " .. (s_a4k_hq and "HQ" or "Fast"), value = "script-binding toggle-anime4k-quality", active = s_a4k_hq, muted = not s_anime4k_allowed },
             }
         },
+        
         {
             title = "Hardware & Power",
             icon = 'memory',
@@ -737,18 +841,15 @@ mp.add_key_binding(nil, "open-anime-menu", function()
                 {
                     title = "Target Peak (Brightness)",
                     icon = "wb_sunny",
-                    items = (function()
-                        local p = user_target_peak
-                        return {
-                           { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (p == "auto") },
-                           { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (p == "100") },
-                           { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (p == "200") },
-                           { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (p == "300") },
-                           { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (p == "400") },
-                           { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (p == "600") },
-                           { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (p == "1000") },
-                        }
-                    end)()
+                    items = {
+                       { title = "Auto (Default)", value = "script-message save-target-peak auto", active = (user_target_peak == "auto") },
+                       { title = "100 nits (Dim Monitor)", value = "script-message save-target-peak 100", active = (user_target_peak == "100") },
+                       { title = "200 nits (Standard)", value = "script-message save-target-peak 200", active = (user_target_peak == "200") },
+                       { title = "300 nits (Bright LCD)", value = "script-message save-target-peak 300", active = (user_target_peak == "300") },
+                       { title = "400 nits (HDR400)", value = "script-message save-target-peak 400", active = (user_target_peak == "400") },
+                       { title = "600 nits (HDR600)", value = "script-message save-target-peak 600", active = (user_target_peak == "600") },
+                       { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (user_target_peak == "1000") },
+                    }
                 },
             }
         },
@@ -763,13 +864,103 @@ mp.add_key_binding(nil, "open-anime-menu", function()
         { title = "Advanced Controls...", icon = 'tune', value = "script-binding uosc/open-menu-controls", bold = true, active = true },
     }
 
-    local menu_json = utils.format_json({
+    return utils.format_json({
         type = "menu",
         title = "Anime Build Options",
         items = items
     })
-    mp.commandv("script-message-to", "uosc", "open-menu", menu_json)
+end
+
+local function update_uosc_menu()
+    mp.commandv("script-message-to", "uosc", "update-menu", get_anime_menu_json())
+end
+
+mp.add_key_binding(nil, "open-anime-menu", function()
+    mp.commandv("script-message-to", "uosc", "open-menu", get_anime_menu_json())
 end)
+
+-------------------------------------------------
+-- EXTERNAL TOGGLES
+-------------------------------------------------
+mp.register_script_message("toggle-anime-fidelity", function()
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+
+    if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
+    
+    if current_profile ~= "anime-shaders" then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Anime Mode Required.", 2)
+        return
+    end
+    
+    anime_fidelity = not anime_fidelity
+    save_anime_mode() 
+    evaluate() 
+    
+    local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Anime Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
+    show_temp_osd(C.YELLOW .. "Anime Shader: " .. status, 2)
+    sync_state()
+	update_uosc_menu()
+end)
+
+mp.register_script_message("toggle-audio-upmix", function()
+    mp.command('no-osd cycle-values af "lavfi=[surround=chl_out=7.1:lfe_low=80]" ""')
+    local af = mp.get_property("af")
+    if af and string.find(af, "surround") then
+        show_temp_osd(C.GREEN .. "7.1 Upmix: " .. C.WHITE .. "ON (Enhanced Bass)", 2)
+    else
+        show_temp_osd(C.RED .. "7.1 Upmix: " .. C.WHITE .. "OFF", 2)
+    end
+    sync_state()
+end)
+
+mp.register_script_message("toggle-audio-passthrough", function()
+    mp.command('no-osd cycle-values audio-spdif "ac3,dts,eac3,truehd,dtshd" "no"')
+    local spdif = mp.get_property("audio-spdif")
+    if spdif == "no" or spdif == "" then
+        show_temp_osd(C.CYAN .. "Audio: " .. C.WHITE .. "PCM (Upmix Active)", 2)
+    else
+        show_temp_osd(C.GOLD .. "Audio: " .. C.WHITE .. "Bitstream (Passthrough)", 2)
+    end
+    sync_state()
+end)
+
+mp.register_script_message("toggle-audio-nightmode", function()
+    mp.command("no-osd af toggle @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
+    
+    mp.add_timeout(0.1, function()
+        local af = mp.get_property("af") or ""
+        if string.find(af, "dynaudnorm") then
+            show_temp_osd(C.GREEN .. "Night Mode: " .. C.WHITE .. "ON (Dynamic Volume)", 2)
+        else
+            show_temp_osd(C.RED .. "Night Mode: " .. C.WHITE .. "OFF", 2)
+        end
+        sync_state()
+    end)
+end)
+
+mp.register_script_message("toggle-global-shaders", function()
+    shaders_master_switch = not shaders_master_switch
+    save_anime_mode() 
+    
+    if not shaders_master_switch then
+        mp.set_property("glsl-shaders", "") 
+        current_profile = ""
+        show_temp_osd(C.RED .. "Shaders: " .. C.WHITE .. "Disabled", 2)
+    else
+        evaluate()
+        show_temp_osd(C.GREEN .. "Shaders: " .. C.WHITE .. "Enabled", 2)
+    end
+    sync_state()
+	update_uosc_menu()
+end)
+
+mp.observe_property("af", "string", sync_state)
+mp.observe_property("audio-spdif", "string", sync_state)
+mp.observe_property("target-colorspace-hint", "string", sync_state)
+
 
 -------------------------------------------------
 -- SCRIPT-BINDINGS
@@ -845,7 +1036,7 @@ mp.register_script_message("toggle-hq-sd", function()
         return
     end
     if not current_profile or not string.find(current_profile, "HQ%-SD") then 
-        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Only for SD.", 2)
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Only for SD (Live-Action).", 2)
         return 
     end
     sd_mode = (sd_mode == "clean") and "texture" or "clean"
@@ -862,9 +1053,11 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
     end
     if not shaders_master_switch then show_temp_osd(profile_message(), 2) return end
     local res = get_resolution_mode()
-    if current_profile == "anime-shaders" then return end
+    if current_profile == "anime-shaders" then 
+		show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "only for SD & HD (Live-Action).", 2)
+		return end
     if res == "FHD" or res == "2K" or res == "4K" then 
-        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "only for SD & HD.", 2)
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "only for SD & HD (Live-Action).", 2)
         return 
     end
     local mode_name, mode_color = "", ""
@@ -882,6 +1075,7 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
     save_anime_mode()
     show_temp_osd(C.YELLOW .. "Logic Switch: " .. mode_color .. mode_name, 2)
     sync_state()
+	update_uosc_menu()
 end)
 
 mp.register_script_message("force-evaluate-profile", function()
@@ -916,9 +1110,12 @@ mp.register_event("file-loaded", function()
     load_anime_mode()
     load_anime4k()
     
-    evaluate()
-    show_temp_osd(profile_message(), 2)
-    sync_state()
+    -- [v2.2 Fix] Small delay to ensure video-params are ready before evaluating
+    mp.add_timeout(0.1, function()
+        evaluate()
+        show_temp_osd(profile_message(), 2)
+        sync_state()
+    end)
 end)
 
 local function apply_hdr_preference()
@@ -976,6 +1173,36 @@ mp.observe_property("interpolation", "bool", function(_, enabled)
             mp.set_property("video-sync", user_preferred_sync)
         end
     end
+end)
+
+-------------------------------------------------
+-- v2.2 RESOLUTION SHADER API
+-------------------------------------------------
+mp.register_script_message("set-resolution-shader", function(type, context, res, path)
+    -- type is 'fsrcnnx' or 'nnedi'
+    if type == "fsrcnnx" then
+        user_fsrcnnx[context][res] = path
+    elseif type == "nnedi" then
+        user_nnedi[context][res] = path
+    end
+    save_anime_mode()
+    evaluate()
+    sync_state()
+	update_uosc_menu()
+    show_temp_osd("Shader Updated [" .. res .. "]: " .. path:match("([^/]+)$"), 2)
+end)
+
+mp.register_script_message("reset-resolution-shader", function(type, context, res)
+    if type == "fsrcnnx" then
+        user_fsrcnnx[context][res] = nil
+    elseif type == "nnedi" then
+        user_nnedi[context][res] = nil
+    end
+    save_anime_mode()
+    evaluate()
+    sync_state()
+	update_uosc_menu()
+    show_temp_osd("Shader Reset to Default [" .. res .. "]", 2)
 end)
 
 load_hdr_mode()

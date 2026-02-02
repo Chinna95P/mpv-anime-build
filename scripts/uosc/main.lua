@@ -22,7 +22,7 @@ local anime_cache = {}
 -- 2. Define the Reader Helper (Uses cache instead of get_property)
 function get_anime_state(key)
     -- Return true if the key exists and is true
-    return anime_cache[key] == true
+    return anime_cache[key]
 end
 
 -- 3. Listen for the Broadcast (Merged Logic)
@@ -436,7 +436,8 @@ function create_controls_menu()
                             { title = 'Audio', active = active('video-sync', 'audio'), value = cmd('set video-sync audio', 'vsync_menu', 1) },
                             { title = 'Display Resample', active = active('video-sync', 'display-resample'), value = cmd('set video-sync display-resample', 'vsync_menu', 2) },
                             { title = 'Display Resample (Vdrop)', active = active('video-sync', 'display-resample-vdrop'), value = cmd('set video-sync display-resample-vdrop', 'vsync_menu', 3) },
-                            { title = 'Desync', active = active('video-sync', 'desync'), value = cmd('set video-sync desync', 'vsync_menu', 4) },
+							{ title = 'Display Vdrop', active = active('video-sync', 'display-vdrop'), value = cmd('set video-sync display-vdrop', 'vsync_menu', 4) },
+                            { title = 'Desync', active = active('video-sync', 'desync'), value = cmd('set video-sync desync', 'vsync_menu', 5) },
                         }
                     },
                     -- B. Dither
@@ -515,11 +516,15 @@ function create_controls_menu()
                                 hint = prop('tscale'),
                                 id = 'tscale_menu',
                                 items = {
-                                    { title = 'oversample', active = active('tscale', 'oversample'), value = cmd('set tscale oversample', 'tscale_menu', 1) },
+                                    { title = 'oversample (Sharpest)', active = active('tscale', 'oversample'), value = cmd('set tscale oversample', 'tscale_menu', 1) },
                                     { title = 'linear', active = active('tscale', 'linear'), value = cmd('set tscale linear', 'tscale_menu', 2) },
                                     { title = 'catmull_rom', active = active('tscale', 'catmull_rom'), value = cmd('set tscale catmull_rom', 'tscale_menu', 3) },
-                                    { title = 'mitchell', active = active('tscale', 'mitchell'), value = cmd('set tscale mitchell', 'tscale_menu', 4) },
+                                    { title = 'mitchell (Soft)', active = active('tscale', 'mitchell'), value = cmd('set tscale mitchell', 'tscale_menu', 4) },
                                     { title = 'bicubic', active = active('tscale', 'bicubic'), value = cmd('set tscale bicubic', 'tscale_menu', 5) },
+									{ title = 'sphinx (Balanced)', active = active('tscale', 'sphinx'), value = cmd('set tscale sphinx', 'tscale_menu', 6) },
+									{ title = 'box', active = active('tscale', 'box'), value = cmd('set tscale box', 'tscale_menu', 7) },
+									{ title = 'quadric', active = active('tscale', 'quadric'), value = cmd('set tscale quadric', 'tscale_menu', 8) },
+									{ title = 'spline16', active = active('tscale', 'spline16'), value = cmd('set tscale spline16', 'tscale_menu', 9) },
                                 }
                             },
                             -- Toggles
@@ -727,16 +732,72 @@ function create_default_menu_items()
                          },
 						 { title = "====(Quality Toggles)====", value = "ignore", bold = true },
                          { title = "Shaders: Toggle ON/OFF", value = "script-message toggle-global-shaders", active = get_anime_state("shaders_enabled") },
-                         { title = 'SD Upscaler: ' .. (get_anime_state("sd_texture") and "Texture" or "Clean"), value = 'script-message toggle-hq-sd', active = get_anime_state("sd_texture") },
-                         { title = 'HD Upscaler: ' .. (get_anime_state("logic_fsrcnnx") and "FSRCNNX" or "NNEDI3"), value = 'script-message toggle-hq-hd-nnedi', active = get_anime_state("logic_fsrcnnx") },
-						 { 
-							title = "Adaptive Sharpen: " .. (get_anime_state("sharpen_active") and "ON" or "OFF"), 
-							value = "script-message toggle-adaptive-sharpen", 
-							active = get_anime_state("sharpen_active"),
-							-- [LOCK] Gray out if Master Switch is OFF
-							muted = not get_anime_state("shaders_enabled"), 
-							hint = not get_anime_state("shaders_enabled") and "Locked (Master OFF)" or ""
-						 },
+                         -- [RENAMED] SD Mode (NNEDI)
+                         { 
+                            title = 'SD Mode (NNEDI): ' .. (get_anime_state("sd_texture") and "Texture" or "Clean"), 
+                            value = 'script-message toggle-hq-sd', 
+                            active = get_anime_state("sd_texture"),
+                            -- Locked if we are in SD and FSRCNNX profile is running
+                            muted = (get_anime_state("current_res_label") == "SD" and get_anime_state("fsrcnnx_running")),
+                            hint = (get_anime_state("current_res_label") == "SD" and get_anime_state("fsrcnnx_running")) and "(Locked by FSRCNNX)" or ""
+                         },
+                         
+                         -- [RENAMED] SD/HD Logic
+                         { 
+                            title = 'SD/HD Logic: ' .. (get_anime_state("fsrcnnx_running") and "FSRCNNX" or "NNEDI3"), 
+                            value = 'script-message toggle-hq-hd-nnedi', 
+                            active = get_anime_state("fsrcnnx_running") 
+                         },
+                         
+                         { 
+                            title = "Adaptive Sharpen: " .. (get_anime_state("sharpen_active") and "ON" or "OFF"), 
+                            value = "script-message toggle-adaptive-sharpen", 
+                            active = get_anime_state("sharpen_active"),
+                            muted = not get_anime_state("shaders_enabled"), 
+                            hint = not get_anime_state("shaders_enabled") and "Locked (Master OFF)" or ""
+                         },
+						 
+		-- [v2.2] FSRCNNX Swapper (Main Menu Version)
+        {
+            -- [FIXED] Title now matches Controller (Res / Context)
+            title = "Swap FSRCNNX (" .. (get_anime_state("current_res_label") or "N/A") .. " / " .. (get_anime_state("active_context_label") or "LIVE"):upper() .. ")",
+            icon = "shutter_speed",
+            muted = not get_anime_state("fsrcnnx_running"),
+            items = {
+                { title = "== Variants (" .. (get_anime_state("active_context_label") or ""):upper() .. ") ==", value = "ignore", bold = true },
+                
+                -- Standard Variants
+                { title = "FSRCNNX (Standard 16)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1.glsl" },
+                { title = "FSRCNNX (Standard 8)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_8-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_8-0-4-1.glsl" },
+
+                -- Custom Variants
+                { title = "FSRCNNX (Anime Mild)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl" },
+                { title = "FSRCNNX (Anime Aggressive)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl" },
+                { title = "FSRCNNX (Anime Distort)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl" },
+                { title = "FSRCNNX (Line Art)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
+                { title = "FSRCNNX (General Distort)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl" },
+                { title = "FSRCNNX (Enhance General)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
+                { title = "RESET TO DEFAULT", value = "script-message reset-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD"), bold = true }
+            }
+        },
+
+        -- [v2.2] NNEDI3 Swapper (Main Menu Version)
+        {
+            -- [FIXED] Title now matches Controller (Res / Context)
+            title = "Swap NNEDI3 (" .. (get_anime_state("current_res_label") or "N/A") .. " / " .. (get_anime_state("active_context_label") or "LIVE"):upper() .. ")",
+            icon = "architecture",
+            muted = not get_anime_state("nnedi_running"), 
+            items = {
+                { title = "== Neurons (" .. (get_anime_state("active_context_label") or ""):upper() .. ") ==", value = "ignore", bold = true },
+                { title = "NNEDI3 (256 - Ultra)", active = (get_anime_state("active_nnedi") == "~~/shaders/nnedi3-nns256-win8x4.hook"), value = "script-message set-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/nnedi3-nns256-win8x4.hook" },
+                { title = "NNEDI3 (128 - High)",  active = (get_anime_state("active_nnedi") == "~~/shaders/nnedi3-nns128-win8x4.hook"), value = "script-message set-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/nnedi3-nns128-win8x4.hook" },
+                { title = "NNEDI3 (64 - Mid)",    active = (get_anime_state("active_nnedi") == "~~/shaders/nnedi3-nns64-win8x4.hook"),  value = "script-message set-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/nnedi3-nns64-win8x4.hook" },
+                { title = "NNEDI3 (32 - Low)",    active = (get_anime_state("active_nnedi") == "~~/shaders/nnedi3-nns32-win8x4.hook"),  value = "script-message set-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/nnedi3-nns32-win8x4.hook" },
+                { title = "== Window Variants ==", value = "ignore", bold = true },
+                { title = "NNEDI3 (nns256 win8x6)", active = (get_anime_state("active_nnedi") == "~~/shaders/nnedi3-nns256-win8x6.hook"), value = "script-message set-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/nnedi3-nns256-win8x6.hook" },
+                { title = "RESET TO DEFAULT",       value = "script-message reset-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD"), bold = true }
+            }
+        },
                          
                          { title = "====(Anime Options)====", value = "ignore", bold = true },
 

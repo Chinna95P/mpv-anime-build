@@ -46,25 +46,44 @@ local function get_anime_mode_string()
     else return GN .. "AUTO (Detection)" end
 end
 
+-- [v2.2] ADVANCED SHADER DETECTION
 local function get_active_shader()
     local shaders = mp.get_property("glsl-shaders") or ""
     if shaders == "" then return "Native (Lanczos/Spline)" end
     
-    if string.find(shaders, "enhance_anime") then return "FSRCNNX 16 (Anime)" end
-    if string.find(shaders, "LineArt") then return "FSRCNNX 8 (Anime)" end
+    -- 1. Anime4K Detection
     if string.find(shaders, "Anime4K") then return "Anime4K (Active)" end
     
-    if string.find(shaders, "nnedi3") then 
-        if string.find(shaders, "256") then return "NNEDI3 (High-256)" end
-        return "NNEDI3 (Standard)"
-    end
+    -- 2. FSRCNNX Detection (Specific Variants First)
     if string.find(shaders, "FSRCNNX") then
-        if string.find(shaders, "16%-0%-4%-1") then return "FSRCNNX 16 (Live)" end
-        if string.find(shaders, "8%-0%-4%-1") then return "FSRCNNX 8 (Live)" end
+        -- Anime Specific
+        if string.find(shaders, "LineArt") then return "FSRCNNX 8 (Anime LineArt)" end
+        if string.find(shaders, "enhance_anime") then return "FSRCNNX 16 (Anime Mild)" end
+        if string.find(shaders, "anime_enhance") then return "FSRCNNX 16 (Anime Aggro)" end
+        if string.find(shaders, "anime_distort") then return "FSRCNNX 16 (Anime Distort)" end
+        
+        -- Live/General Specific
+        if string.find(shaders, "distort") then return "FSRCNNX 16 (Live Distort)" end
+        if string.find(shaders, "enhance") then return "FSRCNNX 16 (Live Enhance)" end
+        
+        -- Standard / Live Default
+        if string.find(shaders, "16%-0%-4%-1") then return "FSRCNNX 16 (Live/Std)" end
+        if string.find(shaders, "8%-0%-4%-1") then return "FSRCNNX 8 (Live/Std)" end
+        
         return "FSRCNNX (Generic)"
     end
 
-    if string.find(shaders, "adaptive%-sharpen") then return "Adaptive Sharpen" end
+    -- 3. NNEDI3 Detection (Neuron Count)
+    if string.find(shaders, "nnedi3") then 
+        if string.find(shaders, "nns256%-win8x6") then return "NNEDI3 256 (Win8x6)" end
+        if string.find(shaders, "nns256") then return "NNEDI3 256 (Ultra)" end
+        if string.find(shaders, "nns128") then return "NNEDI3 128 (High)" end
+        if string.find(shaders, "nns64") then return "NNEDI3 64 (Mid)" end
+        if string.find(shaders, "nns32") then return "NNEDI3 32 (Low)" end
+        return "NNEDI3 (Standard)"
+    end
+
+    if string.find(shaders, "adaptive%-sharpen") then return "Adaptive Sharpen (Only)" end
     return "Custom Shaders"
 end
 
@@ -103,9 +122,28 @@ function update_osd()
     local w_in = mp.get_property_number("video-params/w") or 0
     local h_in = mp.get_property_number("video-params/h") or 0
     
-    -- [NEW] OUTPUT RESOLUTION (Window Size)
+    -- [v2.2 FIX] OUTPUT RESOLUTION (Calculated Target Size)
+    -- Start with Window Size (OSD Size)
     local w_out = mp.get_property_number("osd-width") or 0
     local h_out = mp.get_property_number("osd-height") or 0
+    
+    -- Get Video Aspect Ratio (Display AR)
+    local par = mp.get_property_number("video-params/aspect") or 0
+    
+    -- Calculate actual fit if we have valid dimensions
+    if w_out > 0 and h_out > 0 and par > 0 then
+        local osd_ar = w_out / h_out
+        
+        if osd_ar > par then
+            -- Window is wider than video (Pillarbox) -> Video fills Height, Width is scaled
+            -- Example: 1920x1080 screen playing 4:3 content
+            w_out = math.floor(h_out * par + 0.5)
+        else
+            -- Window is narrower than video (Letterbox) -> Video fills Width, Height is scaled
+            -- Example: 1920x1080 screen playing 2.35:1 content
+            h_out = math.floor(w_out / par + 0.5)
+        end
+    end
     
     local drop_count = mp.get_property("frame-drop-count") or 0
     local fps = mp.get_property("estimated-vf-fps") or 0
@@ -166,7 +204,7 @@ function update_osd()
     content = content .. GR .. "Mode:      " .. WH .. mode_str .. "\\N"
     content = content .. GR .. "Scaler:    " .. scaler_color .. scaler .. "\\N"
     
-    -- [NEW] RESOLUTION LINE
+    -- RESOLUTION LINE
     content = content .. GR .. "Res:       " .. WH .. w_in .. "x" .. h_in .. GR .. " -> " .. WH .. w_out .. "x" .. h_out .. "\\N"
     
     content = content .. GR .. "FPS:       " .. WH .. string.format("%.2f", fps) .. GR .. " (Drops: " .. RD .. drop_count .. GR .. ")\\N"

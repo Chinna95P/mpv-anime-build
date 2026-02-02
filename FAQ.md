@@ -42,6 +42,23 @@ The toggle (**`CTRL+k`**) is locked in two scenarios:
 ## 📺 Video & Quality
 
 <details>
+<summary><b>What is the "Shader Swapper"? (New in v2.2)</b></summary>
+
+Found in the **Anime Build Options** menu, these sub-menus allow you to fine-tune the active engine:
+* **Swap FSRCNNX:** Choose between *Anime Mild*, *LineArt*, *Distort*, or *Enhance*.
+* **Swap NNEDI3:** Choose the neuron count (*32, 64, 128, 256*) to balance quality vs. performance.
+* **Note:** The build remembers your selection for the current resolution.
+</details>
+
+<details>
+<summary><b>Why did my Video Sync change to "Display Resample"?</b></summary>
+
+In **v2.2**, if you enable **Interpolation** (Motion Smoothing), the build automatically switches `video-sync` to `display-resample`.
+* **Why:** Interpolation requires this mode to function correctly without dropped frames.
+* **Restore:** Turning off Interpolation restores your previous sync mode (e.g., Audio).
+</details>
+
+<details>
 <summary><b>What is "Fidelity Mode"? (New in v1.9)</b></summary>
 
 By default, the build uses **Anime4K** (Mode A), which is fantastic for upscaling 720p or older anime to 4K. 

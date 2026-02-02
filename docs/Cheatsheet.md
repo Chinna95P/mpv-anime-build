@@ -118,7 +118,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+6`** | **Mode CA** | Anime4K Mode C+A (Denoise+Restore). |
 | **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
 | **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
-| **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD). |
+| **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD seperately). <br>*(Remembers the preference for the SD/HD resolution: NNEDI3 ↔ FSRCNNX)* |
 | **`CTRL+k`** | **Adaptive Sharpen Toggle** | Toggle Adaptive Sharpen ON/OFF (Works for Anime-Fidelity & Live-Action). |
 | **`CTRL+p`** | **Power Mode** | Toggle Low-Power Mode (Battery Saver) manually. |
 | **`CTRL+i`** | **Stats Overlay** | Toggle 'Statistics' Display. |

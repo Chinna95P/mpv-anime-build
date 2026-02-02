@@ -1,9 +1,9 @@
-# 🎬 MPV Anime Build v2.1
+# 🎬 MPV Anime Build v2.2
 > **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
-> **Anime-aware MPV configuration with automatic Anime Fidelity, Power Management, Nvidia VSR, and Universal HDR support.**
+> **Anime-aware MPV configuration with Automatic Anime Fidelity Detection, Power Management, Nvidia VSR, and Universal HDR support.**
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
@@ -11,6 +11,15 @@ For the auto-switching logic to function correctly, your files must follow these
     * *Example:* `D:\Media\Anime\One Piece\video.mkv` -> **Activates Anime4K**
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
+4. **Universal Detection:** Anime Mode Auto-Detection now works on Local Files apart from above 3 conditions and **Web Streams** (Stremio, Debrid, URL) by automatically scanning audio tracks for Japanese language. **`(New in v2.0+)`**
+
+---
+
+## What's New in v2.2 (Logic & Swapper)
+
+* **🔀 Shader Swapper:** New menus to swap specific shader variants instantly (e.g., `LineArt` vs `Enhance`, `NNEDI3-64` vs `256`).
+* **🧠 Split Logic:** Separate "Sharpness vs. Smoothness" preferences for **SD** and **HD** Live Action content.
+* **🌊 Advanced Motion:** Dedicated controls for **Video Sync** modes and **Temporal Scalers** (Interpolation algorithms).
 
 ---
 
@@ -499,6 +508,7 @@ This build scales based on your hardware, but high-quality upscaling requires a 
 | `H` | **HDR Mode** (Manual Override: Force Passthrough vs Tone Mapping) |
 | `V` | **Nvidia VSR** (Toggle RTX Video Super Resolution) |
 | `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues |
+| `Q` | **SD & HD** | **SD/HD Logic Switch**. <br>*(Toggles the Master Upscaler preference for the current resolution: NNEDI3 ↔ FSRCNNX)* |
 | **`CTRL + k`** | **Toggle Adaptive Sharpen** (ON/OFF). Locked when Master Shader switch is OFF.  |
 
 
@@ -534,11 +544,11 @@ Anime4K is applied **only when anime shaders are active**. It never affects live
 
 Non-anime content uses a **completely separate processing path** featuring "Modern TV" adaptive sharpening.
 
-### Resolution Tiers (v1.9.3 Logic)
-| Resolution | Profile | Technology |
+### Resolution Tiers (v2.2 Logic)
+| Resolution | Profile | Options |
 | :--- | :--- | :--- |
-| **< 576p** | `HQ-SD` | **NNEDI3-256** (Max Quality) or **FSRCNNX** (Sharp Mode) |
-| **576p – <1080p** | `HQ-HD` | **NNEDI3-64** (Balanced) or **FSRCNNX** (Sharp Mode) |
+| **< 576p** | `HQ-SD` | **NNEDI3** (Clean/Texture) **OR** **FSRCNNX** (Sharp Mode) |
+| **576p – <1080p** | `HQ-HD` | **NNEDI3** (Geometry) **OR** **FSRCNNX** (Detail/Sharp) |
 | **≥ 1080p** | `High-Quality` | Native + Adaptive Sharpen + Glaze (Film Grain) |
 
 ### 🎮 Controls
