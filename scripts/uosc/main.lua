@@ -840,6 +840,7 @@ function create_default_menu_items()
                     items = {
 						-- [NEW] Night Mode
                         { title = 'Audio: Night Mode (DRC)', value = 'script-message toggle-audio-nightmode', active = get_anime_state("night_mode") },
+						{ title = 'Audio: Spatial Mode', value = 'script-message toggle-audio-spatial', active = get_anime_state("spatial_active") },
                         { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
                         { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
                         { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },

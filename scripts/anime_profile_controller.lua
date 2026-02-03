@@ -50,6 +50,11 @@ local anime_fidelity = true
 
 local zoom_mode = "fit" 
 
+-- Audio Logic States
+local spatial_active = false
+local upmix_active = false
+local night_mode_active = false
+
 -- Live Action States
 local sd_mode = "clean"          
 local sd_manual_override = false 
@@ -153,6 +158,11 @@ local function sync_state()
 		-- [NEW] Robust Profile State Flags
         fsrcnnx_running = fsr_active,
         nnedi_running = nnedi_active,
+		
+		-- [UPDATED AUDIO STATES]
+        audio_upmix = upmix_active,
+        night_mode = night_mode_active,
+        spatial_active = spatial_active,
         
         -- Live Action Logic
         sd_texture = (sd_mode == "texture"),
@@ -286,6 +296,15 @@ local function load_anime_mode()
         if se then shaders_master_switch = (se == "true") end
 		local shp = l:match("sharpen_enabled=(%S+)")
 		if shp then sharpen_enabled = (shp == "true") end
+		
+		-- [NEW] Load Audio States
+        local spa = l:match("spatial_active=(%S+)")
+        if spa then spatial_active = (spa == "true") end
+        local upm = l:match("upmix_active=(%S+)")
+        if upm then upmix_active = (upm == "true") end
+        local ngt = l:match("night_mode_active=(%S+)")
+        if ngt then night_mode_active = (ngt == "true") end
+		
 		-- [v2.2] Load Custom Shader Paths
         -- Pattern: custom_TYPE_CONTEXT_RES=PATH
         local s_type, s_ctx, s_res, s_path = l:match("custom_(%a+)_(%a+)_(%w+)=(%S+)")
@@ -308,6 +327,12 @@ local function save_anime_mode()
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
         f:write("shaders_enabled=" .. tostring(shaders_master_switch) .. "\n")
 		f:write("sharpen_enabled=" .. tostring(sharpen_enabled) .. "\n")
+		
+		-- [NEW] Save Audio States
+        f:write("spatial_active=" .. tostring(spatial_active) .. "\n")
+        f:write("upmix_active=" .. tostring(upmix_active) .. "\n")
+        f:write("night_mode_active=" .. tostring(night_mode_active) .. "\n")
+		
 		-- [v2.2] Save Custom FSRCNNX Paths
         for ctx, res_table in pairs(user_fsrcnnx) do
             for res, path in pairs(res_table) do
@@ -655,6 +680,8 @@ local function get_anime_menu_json()
     local s_auto = (anime_mode == "auto")
     local s_force = (anime_mode == "on")
     local s_off = (anime_mode == "off")
+	
+	local s_spatial = spatial_active
     
     -- [v2.2 FIX] Menu Visual State based strictly on Profile Name
     local p = current_profile or ""
@@ -834,6 +861,7 @@ local function get_anime_menu_json()
             icon = 'volume_up',
             items = {
                 { title = "Audio: Night Mode (DRC)", value = "script-message toggle-audio-nightmode", active = s_night_mode },
+				{ title = "Audio: Spatial Mode", value = "script-message toggle-audio-spatial", active = s_spatial },
                 { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix },
                 { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass },
                 { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active },
@@ -880,6 +908,43 @@ mp.add_key_binding(nil, "open-anime-menu", function()
 end)
 
 -------------------------------------------------
+-- SMART AUDIO ENGINE (Spatial + Upmix)
+-------------------------------------------------
+local function evaluate_audio()
+    if spatial_active then
+        if upmix_active then
+            -- Case 1: Virtual 7.1 (Spatial + Upmix)
+            mp.commandv("apply-profile", "Cinema-Virtual-7.1")
+            show_temp_osd("🎧 Audio: Virtual 7.1 Spatial (Immersive)", 2)
+        else
+            -- Case 2: Native Spatial (Spatial Only)
+            mp.commandv("apply-profile", "Cinema-Spatial-Pure")
+            show_temp_osd("🎧 Audio: Spatial (Native Source)", 2)
+        end
+    else
+        if upmix_active then
+            -- Case 3: Standard 7.1 Upmix (Speakers)
+            mp.commandv("apply-profile", "Standard-Audio-PC")
+            mp.command('no-osd af set "lavfi=[surround=chl_out=7.1:lfe_low=80]"')
+            mp.set_property("audio-channels", "7.1")
+            show_temp_osd("🔊 Audio: 7.1 Upmix (Bass Boost)", 2)
+        else
+            -- Case 4: Standard (Default)
+            mp.commandv("apply-profile", "Standard-Audio-PC")
+            show_temp_osd("🔊 Audio: Standard", 2)
+        end
+    end
+    
+    -- Restore Night Mode if active (since profiles clear filters)
+    if night_mode_active then
+        mp.command("no-osd af add @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
+    end
+    
+    sync_state()
+    update_uosc_menu()
+end
+
+-------------------------------------------------
 -- EXTERNAL TOGGLES
 -------------------------------------------------
 mp.register_script_message("toggle-anime-fidelity", function()
@@ -906,14 +971,30 @@ mp.register_script_message("toggle-anime-fidelity", function()
 end)
 
 mp.register_script_message("toggle-audio-upmix", function()
-    mp.command('no-osd cycle-values af "lavfi=[surround=chl_out=7.1:lfe_low=80]" ""')
-    local af = mp.get_property("af")
-    if af and string.find(af, "surround") then
-        show_temp_osd(C.GREEN .. "7.1 Upmix: " .. C.WHITE .. "ON (Enhanced Bass)", 2)
+    upmix_active = not upmix_active
+    save_anime_mode() -- [PERSISTENCE]
+    evaluate_audio()
+end)
+
+mp.register_script_message("toggle-audio-spatial", function()
+    spatial_active = not spatial_active
+    save_anime_mode() -- [PERSISTENCE]
+    evaluate_audio()
+end)
+
+mp.register_script_message("toggle-audio-nightmode", function()
+    night_mode_active = not night_mode_active
+    save_anime_mode() -- [PERSISTENCE]
+    
+    if night_mode_active then
+        mp.command("no-osd af add @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
+        show_temp_osd(C.GREEN .. "Night Mode: " .. C.WHITE .. "ON", 2)
     else
-        show_temp_osd(C.RED .. "7.1 Upmix: " .. C.WHITE .. "OFF", 2)
+        mp.command("no-osd af remove @nightmode")
+        show_temp_osd(C.RED .. "Night Mode: " .. C.WHITE .. "OFF", 2)
     end
     sync_state()
+    update_uosc_menu()
 end)
 
 mp.register_script_message("toggle-audio-passthrough", function()
@@ -925,20 +1006,6 @@ mp.register_script_message("toggle-audio-passthrough", function()
         show_temp_osd(C.GOLD .. "Audio: " .. C.WHITE .. "Bitstream (Passthrough)", 2)
     end
     sync_state()
-end)
-
-mp.register_script_message("toggle-audio-nightmode", function()
-    mp.command("no-osd af toggle @nightmode:lavfi=[dynaudnorm=f=75:g=25:n=0:p=0.9]")
-    
-    mp.add_timeout(0.1, function()
-        local af = mp.get_property("af") or ""
-        if string.find(af, "dynaudnorm") then
-            show_temp_osd(C.GREEN .. "Night Mode: " .. C.WHITE .. "ON (Dynamic Volume)", 2)
-        else
-            show_temp_osd(C.RED .. "Night Mode: " .. C.WHITE .. "OFF", 2)
-        end
-        sync_state()
-    end)
 end)
 
 mp.register_script_message("toggle-global-shaders", function()
@@ -1113,6 +1180,7 @@ mp.register_event("file-loaded", function()
     -- [v2.2 Fix] Small delay to ensure video-params are ready before evaluating
     mp.add_timeout(0.1, function()
         evaluate()
+		evaluate_audio()
         show_temp_osd(profile_message(), 2)
         sync_state()
     end)

@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.2.1] – The "Spatial Audio & Android" Update
+
+### ✨ New Features
+* **Spatial Audio Mode:**
+    * **Virtual Surround:** Added a new audio profile `Cinema-Spatial` designed for headphones. It uses HRTF-based virtual surround to simulate a 7.1 cinema experience.
+    * **Toggle:** Switch instantly between **Standard Stereo** and **Spatial Audio** via the Audio menu.
+* **Android Build Release:**
+    * **Mobile Optimized:** Officially released the **mpvEX Android Config** (available on the [`android`](https://github.com/Chinna95P/mpv-anime-build/tree/android) branch).
+    * **Features:** Includes Auto-Detection, Smart Shaders, and Gesture-based UI ported specifically for mobile devices.
+
+---
+
 ## [v2.2] – The "Logic & Swapper" Update
 
 ### ✨ New Features
