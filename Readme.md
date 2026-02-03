@@ -1,9 +1,14 @@
-# 🎬 MPV Anime Build v2.2
+# 🎬 MPV Anime Build v2.2.1
 > **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 
 > **Anime-aware MPV configuration with Automatic Anime Fidelity Detection, Power Management, Nvidia VSR, and Universal HDR support.**
+
+### 📱 New: Android Support
+The MPV Anime Build is now available for **Android (mpvEX)**!
+* **Features:** Gesture Controls, Smart Auto-Detection, and Optimized Shaders for mobile.
+* **Download:** Switch to the [**Android Branch**](https://github.com/Chinna95P/mpv-anime-build/tree/android) to get the mobile-specific files.
 
 ### ⚠️ Important: How Automatic Detection Works
 For the auto-switching logic to function correctly, your files must follow these simple naming rules:
