@@ -23,7 +23,15 @@ An advanced configuration for **mpv-android (mpvEX)** that brings high-end PC fe
 For the shaders to load, **mpvEX** needs full storage access.
 * *Android Settings > Apps > mpvEX > Permissions > Files > **Allow all time/Management**.*
 
-### 2. Configure Gestures (Required for Skip Intro)
+### 2. Activate Config (Important):
+* Open **mpvEX** and go to **Settings** -> **Advanced**.
+* Tap **Pick Configuration Storage location**.
+* Select the folder where you extracted the files (e.g., `mpv`) and tap **USE THIS FOLDER** -> **ALLOW**.
+* In the same menu, check **Enable Lua scripts**.
+* Tap **Manage Lua scripts** and ensure all scripts (`anime_auto_detect.lua`, `skip_intro.lua`) are ticked.
+
+
+### 3. Configure Gestures (Required for Skip Intro)
 The skip intro script relies on the App's native gesture system to bypass Android touch limitations.
 
 1.  Open **mpvEX Settings > Controls > Gestures**.
