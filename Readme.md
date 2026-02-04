@@ -6,8 +6,10 @@ An advanced configuration for **mpv-android (mpvEX)** that brings high-end PC fe
 * **Spatial Audio:** Virtual Surround Sound for headphones.
 * **Gesture UI:** "Double Tap to Skip Intro" with visual feedback.
 
-![Anime Mode](screenshots/mpv%20(3).jpg)
-![Live-Action Mode](screenshots/mpv%20(1).jpg)
+| Anime (Anime4K) | Anime (FSRCNNX) | Live Action | Battery Saver |
+| :---: | :---: | :---: | :---: |
+| ![Anime4K](screenshots/mpv%20(9).jpg) | ![FSRCNNX](screenshots/mpv%20(3).jpg) | ![Live](screenshots/mpv%20(1).jpg) | ![Battery](screenshots/mpv%20(11).jpg) |
+| **Modern / Stylized** | **Purist / Fidelity** | **Natural Detail** | **Zero Drain** |
 
 ## 📥 Installation
 
@@ -28,8 +30,7 @@ For the shaders to load, **mpvEX** needs full storage access.
 * Tap **Pick Configuration Storage location**.
 * Select the folder where you extracted the files (e.g., `mpv`) and tap **USE THIS FOLDER** -> **ALLOW**.
 * In the same menu, check **Enable Lua scripts**.
-* Tap **Manage Lua scripts** and ensure all scripts (`anime_auto_detect.lua`, `skip_intro.lua`) are ticked.
-
+* Tap **Manage Lua scripts** and ensure all scripts (`anime_auto_detect.lua`, `skip_intro.lua`, `subtitle-selector.lua`) are ticked.
 
 ### 3. Configure Gestures (Required for Skip Intro)
 The skip intro script relies on the App's native gesture system to bypass Android touch limitations.
@@ -52,10 +53,10 @@ The skip intro script relies on the App's native gesture system to bypass Androi
     * **Action:** Double-tap Right side.
     * **Result:** Toggles **Spatial Audio** (Cinema Surround vs Standard).
 
-![Skip Intro (OP)](screenshots/mpv%20(5).jpg)
-![Skip Intro (ED)](screenshots/mpv%20(7).jpg)
-![Skip Intro (Feedback)](screenshots/mpv%20(8).jpg)
-
+| Skip Intro (OP) | Skip Intro (ED) | Visual Feedback |
+| :---: | :---: | :---: |
+| ![OP Skip](screenshots/mpv%20(5).jpg) | ![ED Skip](screenshots/mpv%20(7).jpg) | ![Feedback](screenshots/mpv%20(8).jpg) |
+| **Green Indicator** | **Blue Indicator** | **Instant Confirmation** |
 
 ### 🖥️ Smart Video Profiles
 The build automatically detects what you are watching:

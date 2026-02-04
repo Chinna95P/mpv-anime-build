@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.2] – The "Visuals & Logic" Update
+
+### 🎨 Visual Experience (OSD 2.0)
+* **Color-Coded Overlay:** Replaced the plain white text with a rich **ASS Overlay** engine, matching the visual style of the `Skip Intro` button.
+    * **Status Colors:** Instant visual feedback for your current mode:
+        * ![](https://img.shields.io/badge/_-Magenta-FF00FF) **Anime4K Active**
+        * ![](https://img.shields.io/badge/_-Green-00FF00) **FSRCNNX (Fidelity) Active**
+        * ![](https://img.shields.io/badge/_-Cyan-00FFFF) **Live Action**
+        * ![](https://img.shields.io/badge/_-Red-FF0000) **Battery Saver / Off**
+    * **Emoji Fix:** Resolved rendering issues where status icons (✨, 🎧, ⚡) appeared as "blocks" on some Android devices.
+
+### 🧠 Logic Upgrades
+* **Smart Fallback (Sticky Shaders):**
+    * **The Change:** Toggling **OFF** the built-in Anime4K shaders no longer results in a "No Shaders" state.
+    * **The Result:** The system now intelligently falls back to **FSRCNNX (Anime Fidelity)** automatically. This ensures your Anime content always looks enhanced, treating FSRCNNX as the "Baseline" quality.
+* **Snapshot & Restore:**
+    * **Fixed:** Solved an issue where manually toggling back to **High Performance Mode** (after using Battery Saver) would fail to re-enable Anime4K.
+    * **How:** The script now "snapshots" your exact Anime4K shader configuration and restores it 1:1 when you disable Eco Mode.
+* **User Intent Detection:** The script now distinguishes between a **System Reset** (Eco Mode) and a **Manual Toggle**, preventing logic loops where the script would fight against your changes.
+
+---
+
 ## [v1.1] – The "Subtitles & Stability" Update
 
 ### ✨ New Features
