@@ -870,6 +870,16 @@ function create_default_menu_items()
 					}
                 },
 				
+				-- [NEW] Smart Features
+                {
+                    title = 'Smart Cards',
+                    icon = 'smart_toy',
+                    items = {
+                        { title = 'Skip Intro/OP/ED CARD', value = 'script-message toggle-skip-intro', active = get_anime_state("skip_intro_enabled") },
+                        { title = 'Up Next CARD', value = 'script-message toggle-up-next', active = get_anime_state("up_next_enabled") },
+                    }
+                },
+				
 				{
 					title = 'System',
 					icon = 'build',

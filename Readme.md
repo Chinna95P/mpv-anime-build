@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v2.2.1
+# 🎬 MPV Anime Build v2.2.2
 > **The Universal Update: Stream-Aware, Smart-Detection, and Visual Finesse.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -17,6 +17,18 @@ For the auto-switching logic to function correctly, your files must follow these
 2.  **Live Action:** Any file path *without* the word 'anime' is automatically treated as Live Action.
 3.  **Exceptions:** To play Live Action content located *inside* an Anime folder, the filename must contain **`live action`**, **`live-action`**, **`liveaction`**, or **`drama`**.
 4. **Universal Detection:** Anime Mode Auto-Detection now works on Local Files apart from above 3 conditions and **Web Streams** (Stremio, Debrid, URL) by automatically scanning audio tracks for Japanese language. **`(New in v2.0+)`**
+
+---
+
+## 🖱️ What's New in v2.2.2 (Smart & Interactive)
+
+* **✨ New "Up Next" Card:** A sleek, interactive notification appears before the episode ends.
+    * **Visuals:** Shows the next episode title and a countdown timer.
+    * **Interactive:** Hover to highlight, **Click to Play** instantly.
+    * **Smart Stack:** Automatically positions itself above the "Skip Intro" button for a clean layout.
+* **⏩ Clickable Skip Intro:** The Skip Intro button is now mouse-interactive (Click to Skip), matching the new Up Next UI.
+* **🧠 3D & Donghua Support:** Auto-detection now recognizes keywords like `donghua`, `3d_anime`, and `cartoon`.
+* **🎛️ Smart Menu:** Added a dedicated **"Smart Cards"** submenu to toggle these cards ON/OFF globally.
 
 ---
 
@@ -577,5 +589,6 @@ Non-anime content uses a **completely separate processing path** featuring "Mode
 - **Anime4K:** bloc97
 - **UOSC Skin:** tomasklaen
 - **Thumbfast:** po5
+- **Up Next Script:** @WaruiDevil (Telegram User)
 - **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral),
 - **Config & Logic:** Customized and built for MPV Anime Build by Chinna95P

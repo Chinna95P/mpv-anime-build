@@ -4,6 +4,25 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.2.2] – The "Smart & Interactive" Update
+
+### ✨ New Features
+* **Up Next Notification:** Introduced `Up_Next.lua`, a new smart overlay that displays the next file in your playlist 10 seconds before the current one ends.
+    * **Interactive:** Fully clickable (mouse support) for instant skipping.
+    * **Zero-Lag:** Uses internal playlist data instead of disk scanning for instant performance.
+    * **Menu Toggle:** Can be enabled/disabled via the new "Smart Features" menu.
+* **Interactive Skip Intro:** Updated `skip_intro.lua` to support mouse hovering and clicking.
+* **Smart Feature Menu:** Added a new submenu in **Anime Build Options** to toggle "Auto Skip" and "Up Next" features without editing files.
+
+### 🧠 Logic Improvements
+* **3D Animation Support:** Added `donghua`, `cartoon`, and `3d_anime` to the Anime auto-detection logic. These now correctly trigger the **Anime Profile** (Clean Upscaling) instead of falling back to Live Action.
+* **Live Action Override:** Refined detection to check both Folder Path and Filename for "Live Action" keywords, preventing false positives on Anime Movies.
+
+### 🔧 Credits
+* **Up Next Script:** Core logic adapted from the original script by **@WaruiDevil** (Telegram).
+
+---
+
 ## [v2.2.1] – The "Spatial Audio & Android" Update
 
 ### ✨ New Features

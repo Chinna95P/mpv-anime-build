@@ -1,6 +1,6 @@
 -- [[ 
 --    FILENAME: skip_intro.lua
---    VERSION:  v2.0 (Universal Language & Style Support)
+--    VERSION:  v2.1 (PC - Universal Language & Style Support + Menu Toggle)
 --    AUTHOR:   mpv-anime-build
 --    DESC:     Comprehensive detection for OP/ED/PV/Intro/Avant in ENG/JPN/ROMAJI.
 -- ]]
@@ -206,7 +206,9 @@ local function check_mouse_hover()
 end
 
 local function on_tick()
+    -- [NEW] Master Switch Check
     if not opts.enabled then return end
+    
     if state.is_skipping then return end
 
     local current = mp.get_property_number("chapter")
@@ -276,6 +278,26 @@ local function on_tick()
         end
     end
 end
+
+-- [NEW] LISTENER: Toggles the script on/off from the Controller
+mp.register_script_message("toggle-state", function(val)
+    opts.enabled = (val == "true")
+    if not opts.enabled then
+        -- Force Clear UI if disabled
+        paint_canvas("")
+        state.is_skipping = false
+        state.current_chapter_idx = -1
+        -- Remove bindings immediately
+        if state.key_bound then
+            mp.remove_key_binding("skip-intro-action")
+            state.key_bound = false
+        end
+        if state.mouse_bound then
+            mp.remove_key_binding("mouse-skip-action")
+            state.mouse_bound = false
+        end
+    end
+end)
 
 mp.add_periodic_timer(0.1, on_tick)
 mp.register_event("file-loaded", function()

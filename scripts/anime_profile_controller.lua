@@ -69,6 +69,10 @@ local external_power_active = false
 local anime4k_quality = "fast"
 local anime4k_mode = "A"
 
+-- [NEW] System States
+local up_next_enabled = true
+local skip_intro_enabled = true
+
 -------------------------------------------------
 -- COLORS (BGR Hex)
 -------------------------------------------------
@@ -163,6 +167,10 @@ local function sync_state()
         audio_upmix = upmix_active,
         night_mode = night_mode_active,
         spatial_active = spatial_active,
+		
+		-- [NEW] Sync Smart Features
+        up_next_enabled = up_next_enabled,
+        skip_intro_enabled = skip_intro_enabled,
         
         -- Live Action Logic
         sd_texture = (sd_mode == "texture"),
@@ -313,6 +321,13 @@ local function load_anime_mode()
         elseif s_type == "nnedi" then 
             if user_nnedi[s_ctx] then user_nnedi[s_ctx][s_res] = s_path end
         end
+		
+		-- [NEW] Load Smart Features
+        local un = l:match("up_next_enabled=(%S+)")
+        if un then up_next_enabled = (un == "true") end
+        local si = l:match("skip_intro_enabled=(%S+)")
+        if si then skip_intro_enabled = (si == "true") end
+		
     end
     f:close()
 end
@@ -345,6 +360,11 @@ local function save_anime_mode()
                 if path then f:write("custom_nnedi_" .. ctx .. "_" .. res .. "=" .. path .. "\n") end
             end
         end
+		
+		-- [NEW] Save Smart Features
+        f:write("up_next_enabled=" .. tostring(up_next_enabled) .. "\n")
+        f:write("skip_intro_enabled=" .. tostring(skip_intro_enabled) .. "\n")
+		
         f:close() 
     end
 end
@@ -400,15 +420,16 @@ local function is_anime_folder(p)
     if not p then return false end
     p = p:lower()
     return p:find("/anime/") or p:find("\\anime\\")
+        or p:find("donghua") or p:find("cartoon") 
+        or p:find("animation") or or p:find("3d_anime")
 end
 
 -- [UPDATED] Live Action now checks Path AND Title
 local function is_live_action(p)
     if not p then return false end
     p = p:lower()
-    return p:find("live action") or p:find("live%-action") 
-        or p:find("liveaction") or p:find("drama") 
-        or p:find("movie")
+    return search_str:find("live action") or search_str:find("live%-action") 
+        or search_str:find("liveaction") or search_str:find("drama")
 end
 
 mp.register_script_message("anime-state-broadcast", function(json)
@@ -575,6 +596,7 @@ local function evaluate()
     -- 2. [GET METADATA]
     local path = mp.get_property("path", "")
     local title = mp.get_property("media-title", "")
+    local filename = mp.get_property("filename", "") -- [NEW] Get filename for Hash check
     local res = get_resolution_mode()
     
     -- Check for Shiru App launch arg
@@ -587,7 +609,13 @@ local function evaluate()
     local signal_syntax = (title:match("%[.*%]")) -- Checks for [release group] brackets
     local signal_shiru  = (shiru_opt == "anime")
 
-    -- [UPDATED] Audio Scan: Check ALL tracks for Japanese, not just the current one
+    -- [NEW] CRC32 Hash Check (The "Super Signal")
+    -- Matches 8-digit Hex codes inside brackets (e.g., [A1B2C3D4])
+    -- This is extremely specific to Anime releases.
+    local crc_pattern = "%[%x%x%x%x%x%x%x%x%]"
+    local signal_crc = filename:match(crc_pattern) or title:match(crc_pattern)
+
+    -- [UPDATED] Audio Scan: Check ALL tracks for Japanese
     local signal_audio = false
     local track_list = mp.get_property_native("track-list") or {}
     for _, track in ipairs(track_list) do
@@ -613,11 +641,16 @@ local function evaluate()
         -- Priority 1: Explicit Live Action Signal overrides almost everything
         if signal_live_action then
             is_anime = false
-        -- Priority 2: Any positive Anime Signal
+            
+        -- Priority 2: CRC32 "Super Signal" (Strongest Anime indicator)
+        elseif signal_crc then
+            is_anime = true
+            
+        -- Priority 3: Standard Anime Signals
         elseif signal_folder or signal_audio or signal_syntax or signal_shiru then
             is_anime = true
         else
-            -- Priority 3: Default fallback
+            -- Priority 4: Default fallback
             is_anime = false
         end
     end
@@ -634,9 +667,8 @@ local function evaluate()
         return
     end
 
--- ... (Inside section 6. LIVE ACTION FALLBACK)
-
-	-- Reset current_profile to force mpv to re-run the profile commands
+    -- 6. [LIVE ACTION FALLBACK]
+    -- Reset current_profile to force mpv to re-run the profile commands
     current_profile = ""
 	
     if res == "SD" then
@@ -879,6 +911,14 @@ local function get_anime_menu_json()
                        { title = "1000 nits (High-End)", value = "script-message save-target-peak 1000", active = (user_target_peak == "1000") },
                     }
                 },
+            }
+        },
+		{
+            title = "Smart Cards",
+            icon = 'smart_toy',
+            items = {
+                { title = "Skip Intro/OP/ED CARD", value = "script-message toggle-skip-intro", active = skip_intro_enabled },
+                { title = "Up Next CARD", value = "script-message toggle-up-next", active = up_next_enabled },
             }
         },
         {
@@ -1271,6 +1311,27 @@ mp.register_script_message("reset-resolution-shader", function(type, context, re
     sync_state()
 	update_uosc_menu()
     show_temp_osd("Shader Reset to Default [" .. res .. "]", 2)
+end)
+
+-- [NEW] Smart Feature Toggles
+mp.register_script_message("toggle-up-next", function()
+    up_next_enabled = not up_next_enabled
+    save_anime_mode()
+    -- Send command to Up_Next.lua
+    mp.commandv("script-message-to", "Up_Next", "toggle-state", tostring(up_next_enabled))
+    show_temp_osd("Up Next: " .. (up_next_enabled and "Enabled" or "Disabled"), 2)
+    sync_state()
+    update_uosc_menu()
+end)
+
+mp.register_script_message("toggle-skip-intro", function()
+    skip_intro_enabled = not skip_intro_enabled
+    save_anime_mode()
+    -- Send command to skip_intro.lua
+    mp.commandv("script-message-to", "skip_intro", "toggle-state", tostring(skip_intro_enabled))
+    show_temp_osd("Skip Intro: " .. (skip_intro_enabled and "Enabled" or "Disabled"), 2)
+    sync_state()
+    update_uosc_menu()
 end)
 
 load_hdr_mode()
