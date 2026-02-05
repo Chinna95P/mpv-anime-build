@@ -421,15 +421,17 @@ local function is_anime_folder(p)
     p = p:lower()
     return p:find("/anime/") or p:find("\\anime\\")
         or p:find("donghua") or p:find("cartoon") 
-        or p:find("animation") or or p:find("3d_anime")
+        or p:find("animation") or p:find("3d_anime")
 end
 
 -- [UPDATED] Live Action now checks Path AND Title
-local function is_live_action(p)
-    if not p then return false end
-    p = p:lower()
+local function is_live_action(p, t)
+    -- Combine path and title into one search string, handling potential nil values
+    local search_str = ((p or "") .. " " .. (t or "")):lower()
+    
     return search_str:find("live action") or search_str:find("live%-action") 
         or search_str:find("liveaction") or search_str:find("drama")
+        or search_str:find("real person")
 end
 
 mp.register_script_message("anime-state-broadcast", function(json)
