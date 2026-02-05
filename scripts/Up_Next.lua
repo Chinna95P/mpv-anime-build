@@ -13,7 +13,7 @@ local mp = require 'mp'
 local opts = {
     enabled      = true,        -- Default State (Master Switch)
     trigger_time = 10,          -- Seconds before end to appear
-    wrap_limit   = 26,          -- Characters per line before wrapping
+    wrap_limit   = 24,          -- Characters per line before wrapping
     
     -- COLORS (BGR Hex)
     text_color   = "FFFF00",    -- Yellow/White
@@ -37,12 +37,62 @@ local state = {
 function get_smart_details(filename, title)
     local display = filename
     if display then display = display:match("([^/\\]+)$") or display end
-    if title and title ~= "" then display = title end
-    if not display then return "Unknown", "" end
+    
+    -- Priority: Use Title if valid
+    if title and title ~= "" then 
+        display = title 
+    else
+        -- FALLBACK: Aggressive Filename Cleaning
+        if display then
+            -- 1. Remove File Extension
+            display = display:gsub("%.%w+$", "") 
+            
+            -- 2. Remove Tech Specs
+            -- We replace with a SPACE " " to prevent text merging (e.g., S01E01BluRay)
+            -- Resolution
+            display = display:gsub("[%s._-][0-9]*[pP][%s._-]", " ")      -- .1080p.
+            display = display:gsub("[%s._-][0-9]*[kK][%s._-]", " ")       -- .4k.
+            
+            -- Codecs
+            display = display:gsub("[%s._-][xX][2]6[45]", " ")           -- x265
+            display = display:gsub("[%s._-][hH][2]6[45]", " ")           -- h265
+            display = display:gsub("[%s._-][hH][eE][vV][cC]", " ")       -- HEVC
+            display = display:gsub("[%s._-][aA][vV]1", " ")              -- AV1
+            
+            -- Audio (Fix for FLAC2.0, AAC, etc.)
+            display = display:gsub("[%s._-][fF][lL][aA][cC][%w%.]*", " ") -- FLAC, FLAC2.0
+            display = display:gsub("[%s._-][aA][aA][cC][%w%.]*", " ")     -- AAC, AAC2.0
+            display = display:gsub("[%s._-][dD][dD][pP]?[%w%.]*", " ")    -- DDP5.1
+            display = display:gsub("[%s._-][aA][cC]3", " ")               -- AC3
+            display = display:gsub("[%s._-][dD][tT][sS]", " ")            -- DTS
+            display = display:gsub("[%s._-][tT][rR][uU][eE][hH][dD]", " ")-- TrueHD
+            
+            -- Video Quality / Bitrate (Fix for 10-Bit, BluRay)
+            display = display:gsub("[%s._-][bB]lu[rR]ay", " ")           -- BluRay
+            display = display:gsub("[%s._-][bB][dD][rR][iI][pP]", " ")    -- BDRip
+            display = display:gsub("[%s._-][wW][eE][bB].*", "")           -- WEB-DL (Cut rest)
+            display = display:gsub("[%s._-][hH][dD][tT][vV]", " ")        -- HDTV
+            display = display:gsub("[%s._-][0-9]+[%s-]*[bB]it", " ")      -- 10-Bit, 10bit, 8bit
+            
+            -- 3. Remove Brackets [] and Parentheses ()
+            display = display:gsub("%b[]", ""):gsub("%b()", "")
+            
+            -- 4. Clean up Release Groups (Trailing dash + text)
+            -- e.g., "Show -Group" -> "Show"
+            display = display:gsub("[%s._-]*-[%s._-]*[%w]*$", "")
 
-    display = display:gsub("%.%w+$", "") 
-    display = display:gsub("%b[]", ""):gsub("%b()", "")
-    display = display:gsub("^%s+", ""):gsub("%s+$", "")
+            -- 5. Replace remaining dots/underscores with spaces
+            display = display:gsub("[._-]", " ")
+        end
+    end
+
+    -- Final whitespace cleanup
+    if display then
+        display = display:gsub("^%s+", ""):gsub("%s+$", "")
+        display = display:gsub("%s+", " ") -- Collapse multiple spaces
+    else
+        display = "Unknown"
+    end
 
     local name, ep = display:match("^(.*)%s+-%s+(.*)$")
     return name or display, ep or ""
