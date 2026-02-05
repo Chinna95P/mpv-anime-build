@@ -498,26 +498,26 @@ end
 -- SHADERS (DEFINITIONS)
 -------------------------------------------------
 local FSRCNNX = {
-    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
-    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
-    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl",
-    UHD = "~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl"
+    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
+    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
+    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl",
+    UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl"
 }
 
 -- [v2.2] Live Action Defaults (Mirrors mpv.conf)
 local LiveChains = {
     -- SD: NNEDI3 256 + SSim + Adaptive
-    SD = "~~/shaders/nnedi3-nns256-win8x4.hook;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
+    SD = "~~/shaders/nnedi3-nns256-win8x4.hook;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
     
     -- [v2.2 FIX] SD FSRCNNX: FSR + Krig + SSim + Adaptive SD (Matches HQ-SD-FSRCNNX)
-    SD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
+    SD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-modern-SD.glsl",
 
     -- HD: NNEDI3 64 + Krig + SSim + Adaptive
-    HD_NNEDI = "~~/shaders/nnedi3-nns64-win8x4.hook;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
+    HD_NNEDI = "~~/shaders/nnedi3-nns64-win8x4.hook;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
     
     -- HD/FHD: FSRCNNX 16 + Krig + SSim + Adaptive
-    HD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
-    FHD = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/adaptive-sharpen-modern-1080p.glsl"
+    HD_FSR = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-modern-HD.glsl",
+    FHD = "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-modern-1080p.glsl"
 }
 
 local function apply_fsrcnnx()
@@ -1215,18 +1215,36 @@ mp.register_script_message("save-target-peak", function(val)
     sync_state()
 end)
 
+-- [NEW] Loading Lock Variable
+local loading_lock = false
+
+mp.register_script_message("force-evaluate-profile", function()
+    -- IGNORE request if we are already running the main load process
+    if loading_lock then return end 
+    
+    current_profile = "" 
+    evaluate()
+    show_temp_osd(profile_message(), 2)
+end)
+
+-- [UPDATED] File Loaded Logic
 mp.register_event("file-loaded", function()
+    loading_lock = true -- Lock out external requests
+    
     load_anime_mode()
     load_anime4k()
     
-    -- [v2.2 Fix] Small delay to ensure video-params are ready before evaluating
+	evaluate_audio()
+	
     mp.add_timeout(0.1, function()
         evaluate()
-		evaluate_audio()
-		mp.commandv("script-message-to", "skip_intro", "toggle-state", tostring(skip_intro_enabled))
+        
+        mp.commandv("script-message-to", "skip_intro", "toggle-state", tostring(skip_intro_enabled))
         mp.commandv("script-message-to", "Up_Next", "toggle-state", tostring(up_next_enabled))
         show_temp_osd(profile_message(), 2)
         sync_state()
+        
+        loading_lock = false -- Unlock after everything is done
     end)
 end)
 

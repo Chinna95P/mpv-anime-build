@@ -4,6 +4,51 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.3] – The "Visuals & Performance" Update
+
+### 🔥 Critical Fixes
+
+* **"Infinite Wait" / Startup Deadlock:**
+* **The Issue:** Fixed a race condition where the Audio Engine (`evaluate_audio`) and Video Engine (`evaluate`) tried to initialize simultaneously at startup. Because `video-sync=audio` was enabled, resetting the audio clock while the video was waiting for it caused the player to freeze at 00:00.
+* **The Fix:** Audio profiles now load **immediately** (synchronously) upon file load, while heavy video shaders are slightly delayed (0.1s). This ensures the audio clock is stable before the GPU begins processing.
+
+* **Subtitle Pre-roll Hang:**
+* Disabled `demuxer-mkv-subtitle-preroll` in `mpv.conf`. This prevents MPV from stalling while scanning for subtitles in files with complex muxing or delayed subtitle tracks.
+
+### ✨ Visual Improvements
+
+* **New Shader: SSimDownscaler:**
+* Added `SSimDownscaler.glsl` (Structural Similarity Downscaling) to the shader chain.
+* **Benefit:** When content is upscaled (supersampled) by FSRCNNX/NNEDI3 and then clamped back to your screen size, SSimDownscaler preserves perceptual details better than standard `mitchell` or `lanczos`, significantly reducing ringing artifacts.
+
+
+* **Optimized Shader Chain Order:**
+* Re-ordered the processing pipeline for maximum efficiency and quality:
+`Upscaler (FSR/NNEDI)` → `KrigBilateral` → `SSimSuperRes` → **`SSimDownscaler`** → `Adaptive Sharpen`.
+
+### ⚡ Performance & Logic
+
+* **Skip Intro Optimization (Caching):**
+* **Previous:** The script queried the internal chapter list 10 times every second, causing unnecessary CPU overhead.
+* **New:** The chapter list is now read **once** when the file loads and cached. The tick loop now only compares timestamps, resulting in near-zero CPU usage.
+
+* **Up Next "Clean Mode" Parsing:**
+* Rewrote the text cleaner regex for the "Up Next" card. It now intelligently strips:
+* Release Group tags (`-YURASUKA`, `[SubsPlease]`).
+* Tech specs (`1080p`, `10-Bit`, `FLAC2.0`, `x265`).
+* Dots replacement (`Grand.Blue` → `Grand Blue`).
+
+* **Result:** You get a clean Title and Episode number even if the file lacks metadata.
+
+* **Startup Safety:** Added a safety delay (5 seconds) to the "Up Next" script to prevent it from scanning the playlist before the current file has fully initialized.
+
+### 🧠 Smart Features
+
+* **Menu Integration:**
+* The "Up Next" and "Skip Intro" cards now listen for state toggles from the UOSC Menu immediately. You can enable/disable them mid-video without needing to restart the player.
+
+---
+
 ## [v2.2.2] – The "Smart & Interactive" Update
 
 ### ✨ New Features
