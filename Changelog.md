@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.3] – The "Up Next" Update
+
+### ✨ New Features
+* **Up Next Notification:** Ported the `Up_Next` logic to Android. A notification now appears before the episode ends, showing the next file in the playlist.
+* **Mobile Layout:** Optimized the OSD positioning to sit perfectly above Android gesture bars and navigation elements.
+
+### 🔧 Credits
+* **Up Next Script:** Core logic adapted from the original script by **@WaruiDevil** (Telegram).
+
+---
+
 ## [v1.2] – The "Visuals & Logic" Update
 
 ### 🎨 Visual Experience (OSD 2.0)
