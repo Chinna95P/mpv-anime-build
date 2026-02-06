@@ -1,8 +1,7 @@
 -- [[ 
---    ANDROID MANAGER v1.2: SMART FALLBACK
---    * Logic: 'OFF' now defaults to 'FSRCNNX' instead of 'No Shaders'.
---    * Result: Toggling off Anime4K instantly activates FSRCNNX.
---    * Note: To disable shaders completely, use 'Battery Saver' mode.
+--    ANDROID MANAGER v1.4: STARTUP DEADLOCK FIX
+--    * Fix: Applied Audio profiles IMMEDIATELY on file load.
+--    * Why: Waiting 0.5s to change audio channels caused A/V sync freeze.
 -- ]]
 
 local mp = require 'mp'
@@ -44,7 +43,6 @@ local function show_status(header_text, color_code)
 
     mp.add_timeout(0.1, function()
         local shaders = mp.get_property("glsl-shaders") or ""
-        local af = mp.get_property("af") or ""
         
         -- SHADER STATUS
         local shader_status = ""
@@ -56,9 +54,9 @@ local function show_status(header_text, color_code)
             shader_status = C.RED .. "🎞️ Switching..."
         end
         
-        -- AUDIO STATUS
+        -- AUDIO STATUS (Trust Logic State)
         local audio_status = ""
-        if af:find("surround") then
+        if audio_mode == "spatial" then
             audio_status = C.GOLD .. "🎧 Spatial Audio"
         else
             audio_status = C.WHITE .. "🔊 Standard Audio"
@@ -155,7 +153,6 @@ end
 local function enforce_rules()
     if ignore_change or not detection_done then return end
 
-    -- Power Mode Check
     if power_mode == "eco" then
         if mp.get_property("glsl-shaders") ~= "" then
              mp.command("no-osd change-list glsl-shaders clr \"\"")
@@ -167,30 +164,20 @@ local function enforce_rules()
     local current_shaders = mp.get_property("glsl-shaders", "")
     
     if is_anime_content then
-        -- ANIME LOGIC
         if current_shaders:find("Anime4K") then
-            -- Active Anime4K
             show_status("Mode: Anime (Anime4K)", C.MAGENTA)
-            
         elseif current_shaders:find("FSRCNNX") or current_shaders:find("SSim") then
             -- Active Custom Shaders
-            
         else
-            -- [v20 LOGIC] No Shaders found?
-            -- It means user turned off Anime4K, so we FALLBACK to FSRCNNX.
-            
             if pref_anime4k and saved_shader_string ~= "" then
-                -- This path is for restoring AFTER Battery Mode
                 restore_shaders(saved_shader_string)
                 show_status("Mode: Anime (Restored)", C.MAGENTA)
             else
-                -- This path is for Manual Disable -> Auto Re-enable
                 safe_apply("Anime-FSR", true)
                 show_status("Mode: Anime (FSRCNNX)", C.GREEN)
             end
         end
     else
-        -- LIVE ACTION LOGIC
         if current_shaders:find("Anime4K") or current_shaders == "" then
             safe_apply("Live-Action", true)
             show_status("Mode: Live Action (HQ)", C.CYAN)
@@ -235,35 +222,31 @@ end
 -- 5. LISTENERS
 mp.observe_property("glsl-shaders", "string", function(name, val)
     local v = val or ""
-    
-    -- [v20] Logic: Detect Manual Disable
     if power_mode == "hq" and not ignore_change then
-        
         if v == "" then
-            -- Shaders Cleared -> Reset preference to FSRCNNX
-            -- This triggers enforce_rules -> applies Anime-FSR
             pref_anime4k = false
             saved_shader_string = "" 
-            
         elseif v:find("Anime4K") then
-            -- User manually enabled Anime4K
             pref_anime4k = true
             saved_shader_string = v 
-            
         elseif v:find("FSRCNNX") or v:find("SSim") then
-            -- User manually enabled Custom Shaders
             pref_anime4k = false
         end
     end
-
     if v and not ignore_change then enforce_rules() end
 end)
 
 mp.register_event("file-loaded", function()
+    -- [CRITICAL FIX] Apply Audio IMMEDIATELY
+    -- Waiting 0.5s causes deadlock if the audio clock resets mid-sync
+    apply_audio()
+    
     detection_done = false 
+    
+    -- Delay ONLY the heavy detection/shader logic
     mp.add_timeout(0.5, function()
         run_detection()  
-        apply_audio()    
+        -- Audio is already applied, so we don't call it here
         enforce_rules()  
     end)
 end)

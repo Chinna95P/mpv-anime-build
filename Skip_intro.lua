@@ -1,6 +1,7 @@
 -- [[ 
---    FILENAME: skip_intro.lua (Android Smart-Action v3.3)
+--    FILENAME: skip_intro.lua (Android Smart-Action v3.7)
 --    LOGIC: Handles "Smart Context" (Skip vs Audio Toggle)
+--    FIX: Strict State Reset (Prevents ghost skips when OSD is gone)
 -- ]]
 
 local mp = require("mp")
@@ -29,7 +30,8 @@ local state = {
     active_label = nil,
     current_chapter_idx = -1,
     remaining_seconds = 0,
-    feedback_timer = nil
+    feedback_timer = nil,
+    cached_chapters = nil -- [FIX] Cache Storage
 }
 
 -- UTILS
@@ -77,11 +79,13 @@ local function smart_context_action()
     if state.feedback_timer then state.feedback_timer:kill() end
 
     -- CHECK: Is the Intro Timer active?
+    -- [CRITICAL] This variable must be 0 if OSD is not visible
     if state.remaining_seconds > 0 then
         -- === PATH A: SKIP INTRO ===
         mp.command("no-osd add chapter 1")
         draw_feedback(state.active_label or "CHAPTER")
         state.remaining_seconds = 0
+        state.active_label = nil -- Reset immediately
         
         -- Clear feedback after 1.5s
         state.feedback_timer = mp.add_timeout(1.5, function() paint("") end)
@@ -92,6 +96,14 @@ local function smart_context_action()
     end
 end
 
+-- [FIX] RESET CACHE (Does NOT fetch, just clears old data)
+local function reset_cache()
+    state.cached_chapters = nil
+    state.remaining_seconds = 0
+    state.active_label = nil
+    paint("")
+end
+
 -- REGISTER LISTENER
 mp.register_script_message("smart-skip-audio", smart_context_action)
 
@@ -99,15 +111,30 @@ mp.register_script_message("smart-skip-audio", smart_context_action)
 local function on_tick()
     if not opts.enabled then return end
 
+    -- [OPTIMIZATION] Don't check during initial loading
+    local time = mp.get_property_number("time-pos")
+    if not time or time < 0.5 then return end
+
     local current = mp.get_property_number("chapter")
     if current == nil then 
         paint("") 
         state.current_chapter_idx = -1
+        state.remaining_seconds = 0 -- Safety Reset
         return 
     end 
     
-    local list = mp.get_property_native("chapter-list")
-    if not list or not list[current+1] then return end
+    -- [FIX] LAZY CACHING STRATEGY
+    -- If cache is empty, try to fetch it.
+    if not state.cached_chapters then
+        state.cached_chapters = mp.get_property_native("chapter-list")
+        
+        -- If STILL empty (race condition), return and try again next tick
+        if not state.cached_chapters then return end
+    end
+    
+    local list = state.cached_chapters
+    -- Safety check: index might be out of bounds if file changed rapidly or list is stale
+    if not list[current+1] then return end
     
     local label = get_chapter_label(list[current+1].title) 
     
@@ -128,9 +155,17 @@ local function on_tick()
             if not state.feedback_timer or not state.feedback_timer:is_enabled() then paint("") end
         end
     else
+        -- [CRITICAL FIX] We are NOT in an intro chapter.
+        -- We must strictly reset the timer so double-tap doesn't skip.
         state.current_chapter_idx = -1
+        state.remaining_seconds = 0
+        state.active_label = nil
+        
         if not state.feedback_timer or not state.feedback_timer:is_enabled() then paint("") end
     end
 end
 
 mp.add_periodic_timer(0.2, on_tick)
+
+-- [FIX] Only reset cache on file load, don't fetch yet
+mp.register_event("file-loaded", reset_cache)

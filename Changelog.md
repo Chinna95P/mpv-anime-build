@@ -4,6 +4,38 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v1.4] – The "Stability & Logic" Update
+
+### 🔥 Critical Fixes (Startup Freeze)
+
+* **Fixed "Infinite Wait" / Deadlock:**
+* Resolved a race condition where the Audio Engine and Video Shaders tried to initialize simultaneously.
+* **Solution:** Audio profiles now load *immediately* (synchronously), while heavy detection logic is delayed by 0.5s. This prevents the A/V clock from desyncing at 00:00.
+
+* **Fixed Subtitle Preroll Hang:**
+* Disabled `demuxer-mkv-subtitle-preroll`. This stops the player from freezing on MKVs while trying to scan for subtitles before the first frame.
+
+### 🧠 Smart Logic & Interactions
+
+* **Audio Toggle Logic Fix:**
+* The OSD now correctly reports "Spatial Audio" based on the *intended logic state* rather than the hardware state. This fixes the issue where the toggle appeared to fail (showing "Standard") on devices that reject 7.1 channels.
+
+* **Skip Intro "Ghost" Fix:**
+* Fixed a logic gap where the "Double Tap to Skip" action remained active even after the "Skip Intro" button disappeared. The timer now strictly resets to 0 instantly when the OSD vanishes.
+
+### ⚡ Performance
+
+* **Lazy Caching (Skip Intro):**
+* The script no longer spams the Android API for chapter lists every 0.2s. It now fetches the list **once** per file and caches it, significantly reducing background CPU usage.
+
+* **Startup Guard (Up Next):**
+* Added a safety delay to the "Up Next" script to prevent it from scanning the filesystem while the video is still initializing.
+
+---
+
+
+---
+
 ## [v1.3] – The "Up Next" Update
 
 ### ✨ New Features
