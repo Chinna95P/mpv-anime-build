@@ -4,6 +4,42 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v3.0] – The "Performance & Audio" Update
+
+### ✨ New Features
+
+* **Audio-Only Profile:**
+* Added a dedicated `[Audio-Only]` profile specifically for music and audio playback.
+* **Zero Overhead:** Automatically disables heavy video shaders, scaling algorithms, and hardware decoding to minimize CPU/GPU usage.
+* **Visuals:** Features built-in support for audio visualizers and natively displays embedded album art.
+
+* **Ambient Crop Shader:**
+* Introduced a new Ambient Crop button/shader version for a highly immersive viewing experience that fills the screen with ambient colors.
+* > **⚠️ Note for SVP Users:** You do not need to enable this shader! Instead, use SVP's dedicated "Fill black bars" feature to achieve a similar effect natively alongside motion interpolation.
+
+* **Picture-in-Picture (PIP) Mode:**
+* Added a dedicated PIP toggle, allowing you to seamlessly pop the video out into a floating window for multitasking.
+
+* **On-the-Fly Equalizer:**
+* Added a new Equalizer button to the interface, giving you instant access to fine-tune your audio frequencies without leaving the player.
+
+### ⚡ Performance & Logic
+
+* **8K Optimized Mode:**
+* The build now automatically detects massive 8K resolution files.
+* When triggered, it instantly applies the `[8K-Optimized]` profile, bypassing all heavy upscaling shaders (like Anime4K or FSRCNNX) to ensure smooth, hardware-accelerated playback and prevent GPU crashes.
+
+* **Core Performance Optimizations:**
+* Refined the underlying controller scripts and evaluation logic. The build now transitions between states faster and handles startup routines with significantly less overhead.
+
+### 🎨 UI & Menus
+
+* **Complete Menu Overhaul:**
+* The UOSC menu has been heavily reorganized and expanded to accommodate all the new features. 
+* The layout is now cleaner and groups the new PIP, Ambient, and Equalizer options into intuitive, easy-to-reach submenus.
+
+---
+
 ## [v2.3] – The "Visuals & Performance" Update
 
 ### 🔥 Critical Fixes

@@ -132,7 +132,7 @@ function evaluate_hdr_state()
     elseif target == "tonemap" then
         print("[HDR-Auto] Mode: TONE-MAP (Windows is SDR)")
         mp.set_property("target-colorspace-hint", "no")
-        mp.set_property("target-trc", "srgb")
+        mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", get_saved_tone_mapping())
         show_hdr_osd(C.BLUE .. "HDR Mode: " .. C.WHITE .. "Tone-Mapping (Auto)")
 

@@ -397,7 +397,20 @@ function create_controls_menu()
             -- 1. MAIN TOGGLES
             { title = 'Interpolation (Motion)', active = is_true('interpolation'), value = cmd('cycle interpolation', 'controls_root', 1) },
             { title = 'Deband', active = is_true('deband'), value = cmd('cycle deband', 'controls_root', 2) },
-            { title = 'Deinterlace', active = is_true('deinterlace'), value = cmd('cycle deinterlace', 'controls_root', 3) },
+			{
+                title = 'Deband Settings >',
+                id = 'deband_settings_menu',
+                muted = not is_true('deband'),
+                hint = is_true('deband') and 'Active' or 'Locked',
+                items = {
+                    create_adjust_menu('Iterations', 'deband-iterations', 1, 1, nil, 'deband_iter_menu'),
+                    create_adjust_menu('Threshold', 'deband-threshold', 4, 32, nil, 'deband_thresh_menu'),
+                    create_adjust_menu('Range', 'deband-range', 2, 16, nil, 'deband_range_menu'),
+                    create_adjust_menu('Grain', 'deband-grain', 4, 48, nil, 'deband_grain_menu'),
+                    { title = 'Reset Deband to Defaults', value = cmd('set deband-iterations 1; set deband-threshold 32; set deband-range 16; set deband-grain 48', 'deband_settings_menu', 5) },
+                }
+            },
+            { title = 'Deinterlace', active = is_true('deinterlace'), value = cmd('cycle deinterlace', 'controls_root', 4) },
             
             -- 2. SYNC & COLORS
             {
@@ -457,16 +470,91 @@ function create_controls_menu()
                     -- C. Hardware Decoding
                     {
                         title = 'Hardware Decoding >',
-                        hint = prop('hwdec'),
+                        hint = prop('hwdec') or 'auto',
                         id = 'hwdec_menu',
                         items = {
-                            { title = 'auto-copy (Best)', active = active('hwdec', 'auto-copy'), value = cmd('set hwdec auto-copy', 'hwdec_menu', 1) },
-                            { title = 'd3d11va', active = active('hwdec', 'd3d11va'), value = cmd('set hwdec d3d11va', 'hwdec_menu', 2) },
-                            { title = 'vulkan', active = active('hwdec', 'vulkan'), value = cmd('set hwdec vulkan', 'hwdec_menu', 3) },
-                            { title = 'OFF (Software)', active = active('hwdec', 'no'), value = cmd('set hwdec no', 'hwdec_menu', 4) },
+                            { title = 'auto (Recommended)', active = active('hwdec', 'auto'), value = cmd('set hwdec auto', 'hwdec_menu', 1) },
+                            { title = 'auto-copy', active = active('hwdec', 'auto-copy'), value = cmd('set hwdec auto-copy', 'hwdec_menu', 2) },
+                            
+                            { title = '=== Windows ===', value = 'ignore', bold = true },
+                            { title = 'd3d11va (Modern Best)', active = active('hwdec', 'd3d11va'), value = cmd('set hwdec d3d11va', 'hwdec_menu', 4) },
+                            { title = 'd3d11va-copy', active = active('hwdec', 'd3d11va-copy'), value = cmd('set hwdec d3d11va-copy', 'hwdec_menu', 5) },
+                            { title = 'dxva2 (Legacy)', active = active('hwdec', 'dxva2'), value = cmd('set hwdec dxva2', 'hwdec_menu', 6) },
+                            { title = 'dxva2-copy', active = active('hwdec', 'dxva2-copy'), value = cmd('set hwdec dxva2-copy', 'hwdec_menu', 7) },
+                            
+                            { title = '=== Linux ===', value = 'ignore', bold = true },
+                            { title = 'vaapi (AMD/Intel Best)', active = active('hwdec', 'vaapi'), value = cmd('set hwdec vaapi', 'hwdec_menu', 9) },
+                            { title = 'vaapi-copy', active = active('hwdec', 'vaapi-copy'), value = cmd('set hwdec vaapi-copy', 'hwdec_menu', 10) },
+                            { title = 'vdpau (Legacy)', active = active('hwdec', 'vdpau'), value = cmd('set hwdec vdpau', 'hwdec_menu', 11) },
+                            { title = 'vdpau-copy', active = active('hwdec', 'vdpau-copy'), value = cmd('set hwdec vdpau-copy', 'hwdec_menu', 12) },
+
+                            { title = '=== Cross-Platform ===', value = 'ignore', bold = true },
+                            { title = 'nvdec (Nvidia)', active = active('hwdec', 'nvdec'), value = cmd('set hwdec nvdec', 'hwdec_menu', 14) },
+                            { title = 'nvdec-copy', active = active('hwdec', 'nvdec-copy'), value = cmd('set hwdec nvdec-copy', 'hwdec_menu', 15) },
+                            { title = 'vulkan', active = active('hwdec', 'vulkan'), value = cmd('set hwdec vulkan', 'hwdec_menu', 16) },
+                            { title = 'vulkan-copy', active = active('hwdec', 'vulkan-copy'), value = cmd('set hwdec vulkan-copy', 'hwdec_menu', 17) },
+
+                            { title = '=== Software ===', value = 'ignore', bold = true },
+                            { title = 'OFF (CPU Decoding)', active = active('hwdec', 'no'), value = cmd('set hwdec no', 'hwdec_menu', 19) },
                         }
                     },
-                    -- D. Scaling (FULL SUITE - UPDATED v1.9.6)
+					
+					-- D. GPU API
+                    {
+                        title = 'GPU API >',
+                        hint = prop('gpu-api') or 'auto',
+                        id = 'gpu_api_menu',
+                        items = {
+                            { title = 'auto (Default)', active = active('gpu-api', 'auto'), value = cmd('set gpu-api auto', 'gpu_api_menu', 1) },
+                            { title = 'vulkan (Modern/Fast)', active = active('gpu-api', 'vulkan'), value = cmd('set gpu-api vulkan', 'gpu_api_menu', 2) },
+                            { title = 'd3d11 (Windows)', active = active('gpu-api', 'd3d11'), value = cmd('set gpu-api d3d11', 'gpu_api_menu', 3) },
+                            { title = 'opengl (Legacy)', active = active('gpu-api', 'opengl'), value = cmd('set gpu-api opengl', 'gpu_api_menu', 4) },
+                        }
+                    },
+                    -- E. GPU Context
+                    {
+                        title = 'GPU Context >',
+                        hint = prop('gpu-context') or 'auto',
+                        id = 'gpu_context_menu',
+                        items = {
+                            { title = 'auto (Default)', active = active('gpu-context', 'auto'), value = cmd('set gpu-context auto', 'gpu_context_menu', 1) },
+                            { title = '=== Windows ===', value = 'ignore', bold = true },
+                            { title = 'd3d11', active = active('gpu-context', 'd3d11'), value = cmd('set gpu-context d3d11', 'gpu_context_menu', 3) },
+                            { title = 'winvk (Vulkan)', active = active('gpu-context', 'winvk'), value = cmd('set gpu-context winvk', 'gpu_context_menu', 4) },
+                            { title = 'win (OpenGL)', active = active('gpu-context', 'win'), value = cmd('set gpu-context win', 'gpu_context_menu', 5) },
+                            { title = '=== Linux ===', value = 'ignore', bold = true },
+                            { title = 'waylandvk (Wayland Vulkan)', active = active('gpu-context', 'waylandvk'), value = cmd('set gpu-context waylandvk', 'gpu_context_menu', 7) },
+                            { title = 'wayland (Wayland OpenGL)', active = active('gpu-context', 'wayland'), value = cmd('set gpu-context wayland', 'gpu_context_menu', 8) },
+                            { title = 'x11vk (X11 Vulkan)', active = active('gpu-context', 'x11vk'), value = cmd('set gpu-context x11vk', 'gpu_context_menu', 9) },
+                            { title = 'x11egl (X11 EGL/OpenGL)', active = active('gpu-context', 'x11egl'), value = cmd('set gpu-context x11egl', 'gpu_context_menu', 10) },
+                        }
+                    },
+					
+					-- F. Vulkan Settings
+                    {
+                        title = 'Vulkan Settings >',
+                        id = 'vulkan_settings_menu',
+                        muted = not active('gpu-api', 'vulkan'),
+                        hint = active('gpu-api', 'vulkan') and 'Active' or 'Locked',
+                        items = {
+                            { title = '=== Async Compute ===', value = 'ignore', bold = true },
+                            { title = 'yes (Default)', active = active('vulkan-async-compute', 'yes'), value = cmd('set vulkan-async-compute yes', 'vulkan_settings_menu', 2) },
+                            { title = 'no', active = active('vulkan-async-compute', 'no'), value = cmd('set vulkan-async-compute no', 'vulkan_settings_menu', 3) },
+                            
+                            { title = '=== Queue Count ===', value = 'ignore', bold = true },
+                            { title = '1 (Default)', active = active('vulkan-queue-count', '1'), value = cmd('set vulkan-queue-count 1', 'vulkan_settings_menu', 5) },
+                            { title = '2', active = active('vulkan-queue-count', '2'), value = cmd('set vulkan-queue-count 2', 'vulkan_settings_menu', 6) },
+                            { title = '3', active = active('vulkan-queue-count', '3'), value = cmd('set vulkan-queue-count 3', 'vulkan_settings_menu', 7) },
+
+                            { title = '=== Async Transfer ===', value = 'ignore', bold = true },
+                            { title = 'yes (Default)', active = active('vulkan-async-transfer', 'yes'), value = cmd('set vulkan-async-transfer yes', 'vulkan_settings_menu', 9) },
+                            { title = 'no', active = active('vulkan-async-transfer', 'no'), value = cmd('set vulkan-async-transfer no', 'vulkan_settings_menu', 10) },
+
+                            { title = 'Reset to Defaults', value = cmd('set vulkan-async-compute yes; set vulkan-queue-count 1; set vulkan-async-transfer yes', 'vulkan_settings_menu', 12) },
+                        }
+                    },
+					
+                    -- G. Scaling (FULL SUITE - UPDATED v1.9.6)
                     {
                         title = 'Scaling',
                         id = 'scaling_root',
@@ -491,11 +579,12 @@ function create_controls_menu()
                                 id = 'dscale_menu',
                                 items = {
                                     { title = 'spline64 (Best/Sharp)', active = active('dscale', 'spline64'), value = cmd('set dscale spline64', 'dscale_menu', 1) },
-                                    { title = 'mitchell (Smooth)', active = active('dscale', 'mitchell'), value = cmd('set dscale mitchell', 'dscale_menu', 2) },
+                                    { title = 'mitchell (Smoothest)', active = active('dscale', 'mitchell'), value = cmd('set dscale mitchell', 'dscale_menu', 2) },
                                     { title = 'lanczos (Very Sharp)', active = active('dscale', 'lanczos'), value = cmd('set dscale lanczos', 'dscale_menu', 3) },
                                     { title = 'spline36 (Balanced)', active = active('dscale', 'spline36'), value = cmd('set dscale spline36', 'dscale_menu', 4) },
                                     { title = 'hermite (Soft)', active = active('dscale', 'hermite'), value = cmd('set dscale hermite', 'dscale_menu', 5) },
                                     { title = 'bilinear (Fast)', active = active('dscale', 'bilinear'), value = cmd('set dscale bilinear', 'dscale_menu', 6) },
+									{ title = 'catmull_rom (Smooth)', active = active('dscale', 'catmull_rom'), value = cmd('set dscale catmull_rom', 'dscale_menu', 7) },
                                 }
                             },
                             -- Chromascaler (Color)
@@ -535,17 +624,6 @@ function create_controls_menu()
                         }
                     },
 					
-                    -- E. GPU API (Read-Only)
-                    {
-                        title = 'GPU API >',
-                        hint = prop('gpu-api') or 'auto',
-                        id = 'gpu_menu',
-                        items = {
-                            { title = 'd3d11 (Windows)', active = active('gpu-api', 'd3d11'), muted = not active('gpu-api', 'd3d11'), value = '' },
-                            { title = 'vulkan (Linux)', active = active('gpu-api', 'vulkan'), muted = not active('gpu-api', 'vulkan'), value = '' },
-                            { title = 'opengl', active = active('gpu-api', 'opengl'), muted = not active('gpu-api', 'opengl'), value = '' },
-                        }
-                    },
                 }
             },
         }
@@ -774,8 +852,10 @@ function create_default_menu_items()
                 { title = "FSRCNNX (Anime Mild)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl" },
                 { title = "FSRCNNX (Anime Aggressive)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl" },
                 { title = "FSRCNNX (Anime Distort)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl" },
+                { title = "FSRCNNX (Anime Distort 1x Filter)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl" },
                 { title = "FSRCNNX (Line Art)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
                 { title = "FSRCNNX (General Distort)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl" },
+                { title = "FSRCNNX (General Distort 1x Filter)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl" },
                 { title = "FSRCNNX (Enhance General)", active = (get_anime_state("active_fsrcnnx") == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD") .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
                 { title = "RESET TO DEFAULT", value = "script-message reset-resolution-shader fsrcnnx " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD"), bold = true }
             }

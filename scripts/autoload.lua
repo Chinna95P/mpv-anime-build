@@ -332,7 +332,7 @@ local function find_and_add_entries()
         extensions = EXTENSIONS
     end
     if not extensions then
-        msg.debug("stopping: no matched extentions list")
+        msg.debug("stopping: no matched extensions list")
         return
     end
 
@@ -371,6 +371,9 @@ local function find_and_add_entries()
     for _, entry in ipairs(pl) do
         added_entries[entry.filename] = true
     end
+
+    -- stop initial file from being added twice
+    added_entries[path] = true
 
     local append = {[-1] = {}, [1] = {}}
     for direction = -1, 1, 2 do -- 2 iterations, with direction = -1 and +1

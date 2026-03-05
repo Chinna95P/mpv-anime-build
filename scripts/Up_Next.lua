@@ -50,7 +50,6 @@ function get_smart_details(filename, title)
             display = display:gsub("[%s._-][hH][dD][tT][vV]", " ")
             display = display:gsub("[%s._-][0-9]+[%s-]*[bB]it", " ")
             display = display:gsub("%b[]", ""):gsub("%b()", "")
-            display = display:gsub("[%s._-]*-[%s._-]*[%w]*$", "")
             display = display:gsub("[._-]", " ")
         end
     end

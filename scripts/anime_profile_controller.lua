@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v2.1 (Adaptive Sharpen Toggle)
---    UPDATED:  2026-01-27
+--    VERSION:  v3.0 (Performance improvements + New Major additions)
+--    UPDATED:  2026-02-27
 -- ]]
 
 local mp = require("mp")
@@ -112,6 +112,8 @@ local function get_resolution_mode()
     or (w > 1280 and w <= 1920) then return "FHD" end
 
     if h < 1450 then return "2K" end
+	
+	if w > 3840 or h > 2160 then return "8K" end
 
     return "4K"
 end
@@ -276,6 +278,8 @@ local function profile_message()
         elseif current_profile and current_profile:find("HQ%-HD") then prof_color = C.GOLD
         elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
         elseif current_profile == "4K-Native" then prof_color = C.GREEN
+		elseif current_profile == "8K-Optimized" then prof_color = C.MAGENTA -- [NEW] Color for 8K
+		elseif current_profile == "Audio-Only" then prof_color = C.CYAN -- [NEW] Color for Audio
         end
         part2 = C.YELLOW .. "{\\b1}Profile:{\\b0} " .. prof_color .. current_profile .. shp_icon
     end
@@ -629,11 +633,38 @@ local function evaluate()
             end
         end
     end
+	
+	-- [NEW] AUDIO PRIORITY OVERRIDE
+    -- If no video is present, or if it's strictly audio/album art, apply Audio profile and exit.
+    local vid_state = mp.get_property("vid")
+    local has_real_video = false
+    
+    for _, track in ipairs(track_list) do
+        -- A real video track is of type "video" but is NOT an image attachment
+        if track.type == "video" and not track.image then
+            has_real_video = true
+            break
+        end
+    end
+
+    -- Apply Audio-Only ONLY if video is explicitly disabled or no real video track exists
+    if vid_state == "no" or not has_real_video then
+        apply_profile("Audio-Only")
+        return
+    end
 
     -- B. Live Action Overrides (Logical OR)
     -- Checks path AND title for keywords like "live action", "drama"
     local signal_live_action = is_live_action(path, title)
-
+	
+	-- [NEW] 8K PRIORITY OVERRIDE
+    -- If 8K is detected, force the optimized profile and exit immediately.
+    -- This prevents heavy shaders (FSRCNNX/Anime4K) from crashing the GPU.
+	if res == "8K" then
+        apply_profile("8K-Optimized")
+        return
+    end
+	
     -- 4. [DECISION LOGIC]
     local is_anime = false
 
@@ -853,9 +884,11 @@ local function get_anime_menu_json()
                         { title = "FSRCNNX (Anime Mild)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl" },
                         { title = "FSRCNNX (Anime Aggressive)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl" },
                         { title = "FSRCNNX (Anime Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl" },
-                        { title = "FSRCNNX (Line Art)",      active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
+                        { title = "FSRCNNX (Anime Distort 1x Filter)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl" },
+						{ title = "FSRCNNX (Line Art)",      active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
                         { title = "FSRCNNX (General Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl" },        
-                        { title = "FSRCNNX (Enhance General)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
+                        { title = "FSRCNNX (General Distort 1x Filter)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl" },
+						{ title = "FSRCNNX (Enhance General)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
                         { title = "RESET TO DEFAULT",        value = "script-message reset-resolution-shader fsrcnnx " .. ctx .. " " .. res, bold = true }
                     }
                 },
@@ -1354,6 +1387,77 @@ mp.register_script_message("toggle-skip-intro", function()
     show_temp_osd("Skip Intro: " .. (skip_intro_enabled and "Enabled" or "Disabled"), 2)
     sync_state()
     update_uosc_menu()
+end)
+
+-------------------------------------------------
+-- AUDIO METADATA OVERLAY
+-------------------------------------------------
+local function display_audio_metadata()
+    -- Read metadata (accounting for upper/lowercase tag variations)
+    local title = mp.get_property("metadata/by-key/title") or mp.get_property("metadata/by-key/TITLE") or mp.get_property("media-title", "Unknown Title")
+    local artist = mp.get_property("metadata/by-key/artist") or mp.get_property("metadata/by-key/ARTIST", "Unknown Artist")
+    local album = mp.get_property("metadata/by-key/album") or mp.get_property("metadata/by-key/ALBUM", "")
+    local date = mp.get_property("metadata/by-key/date") or mp.get_property("metadata/by-key/DATE", "")
+    
+    -- Format the date to only show the year (e.g., "2026" instead of a full timestamp)
+    if date ~= "" then date = " [" .. date:sub(1,4) .. "]" end
+    
+    -- Format album string to hide it if blank
+    local album_string = ""
+    if album ~= "" then album_string = "\\N" .. C.CYAN .. "{\\i1}" .. album .. date .. "{\\i0}" end
+
+    -- Assemble the final overlay using your custom color table (C)
+    local text = C.YELLOW .. "{\\fs34}{\\b1}" .. title .. "{\\b0}\\N" ..
+                 C.WHITE .. "{\\fs26}" .. artist .. album_string
+                 
+    -- Display for 5 seconds
+    show_temp_osd(text, 5) 
+end
+
+-- Triggered by the UOSC "Track Info" button
+mp.register_script_message("show-audio-metadata", function()
+    display_audio_metadata()
+end)
+
+-------------------------------------------------
+-- ALBUM ART CYCLE
+-------------------------------------------------
+mp.register_script_message("cycle-album-art", function()
+    local track_list = mp.get_property_native("track-list") or {}
+    local video_tracks = {}
+    local current_vid = tostring(mp.get_property("vid"))
+
+    -- Collect all embedded images
+    for _, track in ipairs(track_list) do
+        if track.type == "video" and track.image then
+            table.insert(video_tracks, tostring(track.id))
+        end
+    end
+
+    -- If no images exist, notify the user and exit
+    if #video_tracks == 0 then
+        show_temp_osd("🖼️ No Album Art Found", 2)
+        return
+    end
+
+    -- Find current image index
+    local next_idx = 1
+    for i, vid in ipairs(video_tracks) do
+        if vid == current_vid then
+            next_idx = i + 1
+            break
+        end
+    end
+
+    -- Loop back to the first image if we reach the end
+    if next_idx > #video_tracks then
+        next_idx = 1
+    end
+
+    -- Switch the track
+    mp.set_property("vid", video_tracks[next_idx])
+    show_temp_osd("🖼️ Album Art (" .. next_idx .. "/" .. #video_tracks .. ")", 2)
+    display_audio_metadata()
 end)
 
 load_hdr_mode()

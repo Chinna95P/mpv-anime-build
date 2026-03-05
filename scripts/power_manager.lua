@@ -112,14 +112,19 @@ local function disable_low_power()
     msg.info("Power Manager: Handing control to Anime Profile Controller")
     show_power_osd(C.YELLOW .. "🔌 {\\b1}AC Power:{\\b0} " .. C.CYAN .. "Restoring Smart Profile...")
     
-    mp.set_property("hwdec", "auto-copy")
+    -- [FIX] Check Resolution before applying decoder
+    -- If 8K (Width > 3840), force Native D3D11. Otherwise use Auto-Copy for SVP.
+    local w = mp.get_property_number("video-params/w") or 0
+    if w > 3840 then
+        mp.set_property("hwdec", "d3d11va")
+    else
+        mp.set_property("hwdec", "auto-copy")
+    end
     
     -- [STEP 1] Update Status immediately so VSR knows it can resume
     update_menu_status(false)
     
     -- [STEP 2] INCREASED DELAY (0.5s)
-    -- We give VSR Auto 500ms to wake up and broadcast its status.
-    -- This guarantees that when 'force-evaluate' runs, it sees VSR is active.
     mp.add_timeout(0.5, function()
         mp.commandv("script-message", "force-evaluate-profile")
     end)
