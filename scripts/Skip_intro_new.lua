@@ -1,7 +1,9 @@
 -- [[ 
---    FILENAME: skip_intro.lua (Android Smart-Action v3.7)
---    LOGIC: Handles "Smart Context" (Skip vs Audio Toggle)
---    FIX: Strict State Reset (Prevents ghost skips when OSD is gone)
+--    FILENAME: skip_intro.lua (Android Smart-Action v4.0)
+--    LOGIC: Handles "Smart Context" (Skip vs Seek +85s)
+--    FIX: OSD OVERLAY (Isolated Layer)
+--         * Uses mp.create_osd_overlay instead of set_osd_ass.
+--         * Prevents this script from wiping other scripts' OSD.
 -- ]]
 
 local mp = require("mp")
@@ -31,8 +33,15 @@ local state = {
     current_chapter_idx = -1,
     remaining_seconds = 0,
     feedback_timer = nil,
-    cached_chapters = nil -- [FIX] Cache Storage
+    cached_chapters = nil 
 }
+
+-- [FIX] CREATE DEDICATED OVERLAY
+-- This creates a private layer just for this script.
+-- It will NOT interfere with the Anime Mode OSD.
+local overlay = mp.create_osd_overlay("ass-events")
+overlay.res_x = 1920
+overlay.res_y = 1080
 
 -- UTILS
 local function get_chapter_label(title)
@@ -48,9 +57,11 @@ local function get_chapter_label(title)
     return nil
 end
 
--- PAINTER
+-- [FIX] UPDATED PAINTER
+-- Now updates the specific overlay instead of the global OSD
 local function paint(ass_text)
-    mp.set_osd_ass(1920, 1080, ass_text)
+    overlay.data = ass_text
+    overlay:update()
 end
 
 -- VISUALS: Button
@@ -79,24 +90,47 @@ local function smart_context_action()
     if state.feedback_timer then state.feedback_timer:kill() end
 
     -- CHECK: Is the Intro Timer active?
-    -- [CRITICAL] This variable must be 0 if OSD is not visible
     if state.remaining_seconds > 0 then
         -- === PATH A: SKIP INTRO ===
         mp.command("no-osd add chapter 1")
         draw_feedback(state.active_label or "CHAPTER")
         state.remaining_seconds = 0
-        state.active_label = nil -- Reset immediately
+        state.active_label = nil 
         
-        -- Clear feedback after 1.5s
         state.feedback_timer = mp.add_timeout(1.5, function() paint("") end)
     else
-        -- === PATH B: TOGGLE AUDIO ===
-        -- The intro timer is NOT running, so we pass the command to the other script
-        mp.command("script-message toggle-audio-mode")
+        -- === PATH B: SMART SEEK (Fixed for End of File) ===
+        
+        -- Check how much time is left in the video
+        local rem = mp.get_property_number("time-remaining") or 100 -- Default to 100 if unknown
+        
+        if rem < 86 then
+            -- [SCENARIO 1] Near End of Video -> Skip to last 1 second to trigger natural EOF
+            local duration = mp.get_property_number("duration")
+            if duration and duration > 1 then
+                -- "exact" is used so it doesn't snap to a keyframe that might be past the EOF
+                mp.commandv("seek", duration - 1, "absolute", "exact")
+            end
+            
+            -- Feedback: Skipping to End
+            local ass = "{\\an9}{\\pos(1880,950)}{\\fnSans-Serif}{\\fs60}{\\b1}{\\bord5}{\\3c&H000000&}{\\shad2}"
+            ass = ass .. "{\\1c&HFFFFFF&}⏭️ SKIPPING TO END" 
+            paint(ass)
+        else
+            -- [SCENARIO 2] Normal Seek -> Seek +85s
+            mp.command("no-osd seek 85 relative")
+            
+            -- Feedback: Seek 85s
+            local ass = "{\\an9}{\\pos(1880,950)}{\\fnSans-Serif}{\\fs60}{\\b1}{\\bord5}{\\3c&H000000&}{\\shad2}"
+            ass = ass .. "{\\1c&HFFFFFF&}⏩ Seek +85 Secs" 
+            paint(ass)
+        end
+        
+        state.feedback_timer = mp.add_timeout(1.5, function() paint("") end)
     end
 end
 
--- [FIX] RESET CACHE (Does NOT fetch, just clears old data)
+-- RESET CACHE
 local function reset_cache()
     state.cached_chapters = nil
     state.remaining_seconds = 0
@@ -111,7 +145,6 @@ mp.register_script_message("smart-skip-audio", smart_context_action)
 local function on_tick()
     if not opts.enabled then return end
 
-    -- [OPTIMIZATION] Don't check during initial loading
     local time = mp.get_property_number("time-pos")
     if not time or time < 0.5 then return end
 
@@ -119,21 +152,16 @@ local function on_tick()
     if current == nil then 
         paint("") 
         state.current_chapter_idx = -1
-        state.remaining_seconds = 0 -- Safety Reset
+        state.remaining_seconds = 0 
         return 
     end 
     
-    -- [FIX] LAZY CACHING STRATEGY
-    -- If cache is empty, try to fetch it.
     if not state.cached_chapters then
         state.cached_chapters = mp.get_property_native("chapter-list")
-        
-        -- If STILL empty (race condition), return and try again next tick
         if not state.cached_chapters then return end
     end
     
     local list = state.cached_chapters
-    -- Safety check: index might be out of bounds if file changed rapidly or list is stale
     if not list[current+1] then return end
     
     local label = get_chapter_label(list[current+1].title) 
@@ -155,8 +183,6 @@ local function on_tick()
             if not state.feedback_timer or not state.feedback_timer:is_enabled() then paint("") end
         end
     else
-        -- [CRITICAL FIX] We are NOT in an intro chapter.
-        -- We must strictly reset the timer so double-tap doesn't skip.
         state.current_chapter_idx = -1
         state.remaining_seconds = 0
         state.active_label = nil
@@ -167,5 +193,4 @@ end
 
 mp.add_periodic_timer(0.2, on_tick)
 
--- [FIX] Only reset cache on file load, don't fetch yet
 mp.register_event("file-loaded", reset_cache)

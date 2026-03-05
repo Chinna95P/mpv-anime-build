@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v2.0] – The "Performance & Ambient" Update
+
+### ✨ New Features
+
+* **Granular Auto-Detect Modes:**
+  * The main auto-detect shader script has been completely refactored and divided into three distinct performance tiers: **HQ**, **Balanced**, and **Fast**.
+  * You can now perfectly tailor the script's visual fidelity and power draw to match your specific Android device's hardware capabilities, bridging the gap between flagship and mid-range phones.
+* **Ambient Shader Version:**
+  * Introduced a dedicated "Ambient" shader version to the build. This provides a new, immersive visual option for your playback experience. 
+
+### ⚡ Performance & Stability
+
+* **Smart 8K Optimization:**
+  * Added a dedicated resolution gate for 8K videos. 
+  * When 8K content is detected, the script now automatically bypasses heavy upscaling shaders (like FSRCNNX) to ensure smooth, hardware-accelerated playback and prevent the mpvEX app from freezing under massive frame loads.
+
+---
+
 ## [v1.4] – The "Stability & Logic" Update
 
 ### 🔥 Critical Fixes (Startup Freeze)

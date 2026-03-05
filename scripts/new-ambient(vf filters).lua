@@ -5,16 +5,16 @@ local opts = {
     -- PERFORMANCE SETTINGS
     -- Lower this if you still get lag/black screen. 
     -- 2 is usually fine. 1 is fastest.
-    blur_power = 10, 
-    blur_radius = 15,
+    blur_power = 5, 
+    blur_radius = 12,
     
     -- Downscale background before blurring to save huge amounts of GPU power
     -- 480 (height) is enough for a blurry background.
-    bg_processing_height = 480, 
+    bg_processing_height = 144, 
 
     dim_brightness = true,
     reduce_saturation = true,
-    active = true,
+    active = false,
     reapply_delay = 0.5,
 }
 options.read_options(opts)

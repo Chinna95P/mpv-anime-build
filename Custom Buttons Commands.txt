@@ -1,0 +1,15 @@
+Custom Buttons Commands
+
+Anime Mode:
+1) Power Mode : mp.command("script-message toggle-power-mode")
+2) Audio Mode : mp.command("script-message toggle-audio-mode")
+Smart-Skip
+1) Skip Button: mp.command("script-message smart-skip-audio")
+Shaders
+1) Shaders Toggle: mp.command("script-message toggle-shaders-mode")
+Audio-Output
+1) Cycle ao: mp.command("script-message cycle-audio")
+2) Reset ao: mp.command("script-message reset-audio")
+Ambient-Mode
+1) Ambient ON/OFF: mp.command("script-message toggle-ambient")
+
