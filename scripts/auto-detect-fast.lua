@@ -56,10 +56,10 @@ local function show_status(header_text, color_code)
     cleanup_timer = mp.add_timeout(3, function() paint("") end)
 end
 
--- Evaluates true if phone orientation does not match video orientation
-local function is_mismatched()
+-- SMART FILTER: Suspends heavy shaders completely during orientation mismatch
+local function get_safe_shaders(shader_data)
     local is_ambient = mp.get_property_bool("user-data/ambient_enabled", false)
-    if not is_ambient then return false end
+    if not is_ambient then return shader_data end
     
     local osd_w = mp.get_property_number("osd-width", 0)
     local osd_h = mp.get_property_number("osd-height", 0)
@@ -77,21 +77,29 @@ local function is_mismatched()
         end
         local is_screen_portrait = (osd_h > osd_w)
         local is_video_portrait = (vid_h > vid_w)
-        return is_screen_portrait ~= is_video_portrait
+        
+        -- MISMATCH DETECTED: Video is tiny. Drop heavy shaders to save GPU.
+        if is_screen_portrait ~= is_video_portrait then
+            if type(shader_data) == "table" then return {} end
+            if type(shader_data) == "string" then return "" end
+        end
     end
-    return false
+    
+    return shader_data
 end
 
 local function safe_apply(profile, clear_first, shader_data)
     ignore_change = true 
-    if clear_first then mp.commandv("change-list", "glsl-shaders", "clr", "") end
+    if clear_first then mp.command("no-osd change-list glsl-shaders clr \"\"") end
     mp.commandv("apply-profile", profile)
     
-    if shaders_enabled and shader_data then
-        if type(shader_data) == "table" then
-            for _, path in ipairs(shader_data) do mp.commandv("change-list", "glsl-shaders", "append", path) end
-        elseif type(shader_data) == "string" and shader_data ~= "" then
-            mp.set_property("glsl-shaders", shader_data)
+    local active_shaders = get_safe_shaders(shader_data)
+    
+    if shaders_enabled and active_shaders then
+        if type(active_shaders) == "table" then
+            for _, path in ipairs(active_shaders) do mp.commandv("change-list", "glsl-shaders", "append", path) end
+        elseif type(active_shaders) == "string" and active_shaders ~= "" then
+            mp.set_property("glsl-shaders", active_shaders)
         end
     end
     
@@ -101,10 +109,12 @@ end
 
 local function restore_shaders(shader_string)
     ignore_change = true
-    mp.commandv("change-list", "glsl-shaders", "clr", "")
+    mp.command("no-osd change-list glsl-shaders clr \"\"")
     
-    if shaders_enabled and shader_string and shader_string ~= "" then 
-        mp.set_property("glsl-shaders", shader_string) 
+    local safe_string = get_safe_shaders(shader_string)
+    
+    if shaders_enabled and safe_string and safe_string ~= "" then 
+        mp.set_property("glsl-shaders", safe_string) 
     end
     
     mp.commandv("script-message", "rehook-ambient")
@@ -134,7 +144,7 @@ local function enforce_rules()
 
     if power_mode == "eco" then
         if mp.get_property("glsl-shaders") ~= "" then
-             mp.commandv("change-list", "glsl-shaders", "clr", "")
+             mp.command("no-osd change-list glsl-shaders clr \"\"")
              mp.commandv("apply-profile", "Battery-Saver")
              show_status("Mode: ⚡ Battery Saver (Locked)", C.RED)
         end
@@ -144,7 +154,7 @@ local function enforce_rules()
     local w = mp.get_property_number("video-params/w") or 0
     if w > 3840 then
         if mp.get_property("glsl-shaders", "") ~= "" then
-            mp.commandv("change-list", "glsl-shaders", "clr", "")
+            mp.command("no-osd change-list glsl-shaders clr \"\"")
             mp.commandv("apply-profile", "8K-Optimized")
             show_status("⛔ 8K: Shaders Blocked", C.RED)
             ignore_change = true
@@ -156,37 +166,23 @@ local function enforce_rules()
         return
     end
 
-    -- THE FIX: HARD KILL ALL SHADERS IF MISMATCHED
-    if is_mismatched() then
-        ignore_change = true
-        mp.commandv("change-list", "glsl-shaders", "clr", "")
-        mp.commandv("script-message", "rehook-ambient")
-        mp.add_timeout(0.5, function() ignore_change = false end)
-        show_status("Mode: Mismatch (HQ Shaders Suspended)", C.GRAY)
-        return
-    end
-
     local current_shaders = mp.get_property("glsl-shaders", "")
-    
-    -- Explicitly verify if the heavy lifters are active, ignoring Ambient
-    local has_heavy = current_shaders:find("Anime4K") or current_shaders:find("FSRCNNX") or current_shaders:find("SSim")
-
     if is_anime_content then
-        if has_heavy and shaders_enabled then 
-            if current_shaders:find("Anime4K") then show_status("Mode: Anime (Anime4K)", C.MAGENTA) end
+        if current_shaders:find("Anime4K") and shaders_enabled then show_status("Mode: Anime (Anime4K)", C.MAGENTA)
+        elseif (current_shaders:find("FSRCNNX") or current_shaders:find("SSim")) and shaders_enabled then 
         else
             if pref_anime4k and saved_shader_string ~= "" and shaders_enabled then
                 restore_shaders(saved_shader_string)
                 show_status("Mode: Anime (Restored)", C.MAGENTA)
             else
                 safe_apply("Anime-FSR", true, ANIME_SHADERS)
-                show_status("Mode: Anime (FSRCNNX Restored)", C.GREEN)
+                show_status("Mode: Anime " .. (shaders_enabled and "(FSRCNNX)" or "(Profile Only)"), C.GREEN)
             end
         end
     else
-        if not has_heavy or not shaders_enabled then
+        if current_shaders:find("Anime4K") or current_shaders == "" or not shaders_enabled then
             safe_apply("Live-Action", true, LIVE_SHADERS)
-            show_status("Mode: Live Action (HQ Restored)", C.CYAN)
+            show_status("Mode: Live Action " .. (shaders_enabled and "(HQ)" or "(Profile Only)"), C.CYAN)
         end
     end
 end
@@ -199,7 +195,7 @@ end
 local function toggle_power_mode()
     power_mode = (power_mode == "hq") and "eco" or "hq"
     if power_mode == "eco" then
-        mp.commandv("change-list", "glsl-shaders", "clr", "")
+        mp.command("no-osd change-list glsl-shaders clr \"\"")
         mp.commandv("apply-profile", "Battery-Saver")
         show_status("Mode: ⚡ Battery Saver", C.RED)
     else ignore_change = false enforce_rules() end
@@ -216,9 +212,8 @@ local function toggle_shaders_mode()
     shaders_enabled = not shaders_enabled
     if not shaders_enabled then
         ignore_change = true
-        mp.commandv("change-list", "glsl-shaders", "clr", "")
+        mp.command("no-osd change-list glsl-shaders clr \"\"")
         show_status("Shaders: Disabled", C.GRAY)
-        mp.commandv("script-message", "rehook-ambient")
         mp.add_timeout(0.5, function() ignore_change = false end)
     else ignore_change = false enforce_rules() end
 end
@@ -228,16 +223,11 @@ mp.register_script_message("safe-enable-shader", function(shader_string)
     if power_mode == "eco" then show_status("⛔ Battery Mode Active", C.RED) return end
     if not shaders_enabled then shaders_enabled = true end
 
-    pref_anime4k = true
-    saved_shader_string = shader_string
-
-    if is_mismatched() then
-        show_status("Mode: Mismatch (HQ Shaders Suspended)", C.GRAY)
-        return -- Prevents manual activation while mismatched
-    end
-
     ignore_change = true
     mp.set_property("glsl-shaders", shader_string)
+    
+    pref_anime4k = true
+    saved_shader_string = shader_string
     
     mp.commandv("script-message", "rehook-ambient")
     mp.add_timeout(0.5, function() ignore_change = false end)
@@ -253,15 +243,10 @@ mp.observe_property("glsl-shaders", "string", function(name, val)
     if v and not ignore_change then enforce_rules() end
 end)
 
--- Debounced to completely avoid race conditions during Android rotation animation
-local hq_debounce_timer = nil
 mp.observe_property("osd-dimensions", "native", function()
     if mp.get_property_bool("user-data/ambient_enabled", false) then
-        if hq_debounce_timer then hq_debounce_timer:kill() end
-        hq_debounce_timer = mp.add_timeout(0.6, function()
-            ignore_change = false
-            enforce_rules()
-        end)
+        ignore_change = false
+        enforce_rules()
     end
 end)
 
