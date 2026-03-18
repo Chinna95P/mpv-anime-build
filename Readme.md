@@ -2,6 +2,7 @@
 > **The Performance & Audio Update: Ultimate Playback, Smart Automation, and Unmatched Fidelity.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
+[![DeepWiki](https://img.shields.io/badge/Wiki-DeepWiki-4B32C3?style=for-the-badge&logo=wikipedia&logoColor=white)](https://deepwiki.com/Chinna95P/mpv-anime-build)
 
 > **An advanced, context-aware MPV configuration featuring AI upscaling, dynamic power management, universal HDR support, and intelligent audio processing.**
 
