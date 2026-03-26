@@ -22,33 +22,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24' # Bumped to 24 to fix the deprecation warning
+          node-version: '24' 
 
-      - name: Install DeepWiki CLI
-        run: npm install -g deepwiki # Fixed the package name!
-
-      # 1. Package your existing website into the deployment folder
+      # Package your existing website into the deployment folder
       - name: Prepare Existing Site Files
         run: |
           mkdir -p ./public
-          # Copies your existing main page and screenshots
           cp index.html ./public/
           cp -r screenshots ./public/ 2>/dev/null || : 
 
-      # 2. Generate the wikis inside a new /wiki/ subfolder
+      # Generate the wikis using npx
       - name: Generate Main (PC) Docs
         env:
           DEEPWIKI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
-          deepwiki generate --repo https://github.com/${{ github.repository }} --branch main --output ./public/wiki/main
+          npx -y deepwiki generate --repo https://github.com/${{ github.repository }} --branch main --output ./public/wiki/main
 
       - name: Generate Android Docs
         env:
           DEEPWIKI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
-          deepwiki generate --repo https://github.com/${{ github.repository }} --branch android --output ./public/wiki/android
+          npx -y deepwiki generate --repo https://github.com/${{ github.repository }} --branch android --output ./public/wiki/android
 
-      # 3. Deploy your site + the new wikis together to gh-pages
+      # Deploy your site + the new wikis together to gh-pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
