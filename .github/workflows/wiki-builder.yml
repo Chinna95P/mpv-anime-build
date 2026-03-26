@@ -22,10 +22,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24' # Bumped to 24 to fix the deprecation warning
 
-      - name: Install DeepWiki Open CLI
-        run: npm install -g deepwiki-open
+      - name: Install DeepWiki CLI
+        run: npm install -g deepwiki # Fixed the package name!
 
       # 1. Package your existing website into the deployment folder
       - name: Prepare Existing Site Files
@@ -40,13 +40,13 @@ jobs:
         env:
           DEEPWIKI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
-          deepwiki generate --repo https://github.com/${{ github.repository }} --branch main --outdir ./public/wiki/main
+          deepwiki generate --repo https://github.com/${{ github.repository }} --branch main --output ./public/wiki/main
 
       - name: Generate Android Docs
         env:
           DEEPWIKI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: |
-          deepwiki generate --repo https://github.com/${{ github.repository }} --branch android --outdir ./public/wiki/android
+          deepwiki generate --repo https://github.com/${{ github.repository }} --branch android --output ./public/wiki/android
 
       # 3. Deploy your site + the new wikis together to gh-pages
       - name: Deploy to GitHub Pages
