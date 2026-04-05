@@ -4,6 +4,33 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v3.1] – The "Cross-Platform & Denoise" Update
+
+### ✨ New Features
+
+* **Interactive Denoise Filter (`hqdn3d`):**
+  * Added a dedicated Denoise control suite to the UOSC Controls menu.
+  * You can now toggle the filter on/off and independently adjust Luma Spatial, Chroma Spatial, Luma Temporal, and Chroma Temporal values directly from the UI.
+  * **Smart Hardware Fallback:** CPU-based filters (like Denoise) crash when using strict GPU decoders (like `vulkan`). The script now acts as a safety net—it automatically forces `auto-copy` when you turn Denoise on, and perfectly restores your original `hwdec` setting when you turn it off.
+
+* **Smart Track Selector Fallbacks:**
+  * **Any-Language Fallbacks:** The `track-selector.lua` script now intelligently handles files with missing language metadata.
+  * **Dialogue Priority:** If your preferred languages aren't found, it will automatically search for tracks labeled "Full" or "Dialogue" to prevent accidentally falling back to "Signs/Songs" tracks.
+  * **Last Resort Match:** It will gracefully prioritize the muxer's native `default` flag, or cleanly pick the first valid subtitle track while still actively ignoring hardcoded junk (ignoring forced, SDH, or signs).
+
+### ⚡ Performance & Logic
+
+* **Linux Parsing Fix (Robust Shader Chains):**
+  * **The Bug:** On certain Linux distributions, passing a long, semicolon-separated string of shaders to MPV via the `set` command fails to parse correctly, causing shaders to break.
+  * **The Fix:** Completely rewrote the shader execution engine. The Lua script now parses the config strings (handling both semicolons and MPV's native commas) and uses `append` to inject each shader individually. This guarantees 100% cross-platform compatibility across Windows and Linux.
+* **UI Race Condition Eliminated:**
+  * Fixed an issue where the UOSC menu would visually "lag" behind internal state changes (requiring you to close and reopen the menu to see updated values). 
+  * The menu updater now uses a microscopic 50ms async timeout, giving MPV's internal queue enough time to process math before redrawing the interface. 
+* **Execution Order Correction:**
+  * Fixed a logic gap in the `evaluate()` function where Live Action profiles (which trigger `apply_fsrcnnx()`) were accidentally executing *after* the post-processing engine. This caused the Adaptive Sharpen toggle to be overridden. The order of operations is now strictly enforced. 
+
+---
+
 ## [v3.0] – The "Performance & Audio" Update
 
 ### ✨ New Features

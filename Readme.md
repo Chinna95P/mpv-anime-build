@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v3.0
+# 🎬 MPV Anime Build v3.1
 > **The Performance & Audio Update: Ultimate Playback, Smart Automation, and Unmatched Fidelity.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)

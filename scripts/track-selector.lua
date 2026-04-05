@@ -1,6 +1,6 @@
 -- [[ 
 --    FILENAME: track-selector.lua
---    VERSION:  v3.0
+--    VERSION:  v3.1 (Added Fallbacks for Selection)
 --    DESCRIPTION: Enhances mpv's intelligent audio/subtitle track selection.
 -- ]]
 
@@ -277,6 +277,57 @@ local function select_smart_tracks()
                 end
             end
             if selected_sid then break end
+        end
+    end
+
+    -- ==================================================
+    -- [NEW] ANY-LANGUAGE FALLBACKS
+    -- Runs only if NO preferred languages (slang) were found
+    -- ==================================================
+
+    -- Pass D: Anime Dialogue matched (Language Fallback)
+    -- This handles the "Full Subtitles" case for files with no language tags
+    if not selected_sid then
+        for _, t in ipairs(tracks) do
+            if t.type == "sub" then
+                local title = (t.title or ""):lower()
+                -- Check for high-priority keywords regardless of language
+                if title:find("full") or title:find("dialogue") or title:find("script") then
+                    selected_sid = apply_sub(t.id, "Anime Dialogue matched (Language Fallback)")
+                    break
+                end
+            end
+        end
+    end
+
+    -- Pass E: CLEAN MATCH (The "Last Resort")
+    if not selected_sid then
+        -- Step 1: Check for the 'default' flag (using mpv's property name)
+        for _, t in ipairs(tracks) do
+            if t.type == "sub" then
+                local title = (t.title or ""):lower()
+                -- mpv often uses t.default (boolean). We also check for forced/sdh.
+                if t.default == true then
+                    if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
+                        selected_sid = apply_sub(t.id, "Default Track Match (Language Fallback)")
+                        break
+                    end
+                end
+            end
+        end
+
+        -- Step 2: If no default, pick the first track that isn't "junk"
+        if not selected_sid then
+            for _, t in ipairs(tracks) do
+                if t.type == "sub" then
+                    local title = (t.title or ""):lower()
+                    -- Ensure we skip "signs", "songs", "forced", etc.
+                    if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
+                        selected_sid = apply_sub(t.id, "Clean Match (Language Fallback)")
+                        break
+                    end
+                end
+            end
         end
     end
 end

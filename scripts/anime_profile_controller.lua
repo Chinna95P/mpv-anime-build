@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v3.0 (Performance improvements + New Major additions)
---    UPDATED:  2026-02-27
+--    VERSION:  v3.1 (Fixed Shaders not loading on some OS)
+--    UPDATED:  2026-04-04
 -- ]]
 
 local mp = require("mp")
@@ -420,6 +420,23 @@ end
 -------------------------------------------------
 -- HELPERS (UPDATED v2.0)
 -------------------------------------------------
+
+local function apply_shader_chain(chain)
+    -- 1. Universally clear the shader list (Bulletproof across all OS)
+    mp.set_property("glsl-shaders", "")
+    
+    if not chain or chain == "" then return end
+    
+    -- 2. Split by semicolon OR comma
+    for shader_path in string.gmatch(chain, "([^;,]+)") do
+        -- Trim any accidental whitespace
+        shader_path = shader_path:match("^%s*(.-)%s*$")
+        if shader_path and shader_path ~= "" then
+            mp.commandv("change-list", "glsl-shaders", "append", shader_path)
+        end
+    end
+end
+
 local function is_anime_folder(p)
     if not p then return false end
     p = p:lower()
@@ -454,11 +471,9 @@ end
 
 local function finalize_shader_chain(chain)
     if not sharpen_enabled then
-        -- 1. Remove if preceded by semicolon
-        chain = chain:gsub(";~~/shaders/adaptive%-sharpen.-%.glsl", "")
-        -- 2. Remove if followed by semicolon (New safety check)
-        chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl;", "")
-        -- 3. Remove if it's the only/first entry
+        -- Remove sharpener, supporting both ; (tables) and , (mp.get_property)
+        chain = chain:gsub("[;,]~~/shaders/adaptive%-sharpen.-%.glsl", "")
+        chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl[;,]", "")
         chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl", "")
     end
     return chain
@@ -495,7 +510,7 @@ local function apply_anime4k()
     if current_profile ~= "anime-shaders" then return end
     if not A4K[anime4k_quality] or not A4K[anime4k_quality][anime4k_mode] then return end
     local chain = A4K[anime4k_quality][anime4k_mode]
-    mp.commandv("change-list", "glsl-shaders", "set", chain)
+    apply_shader_chain(chain)
 end
 
 -------------------------------------------------
@@ -586,7 +601,7 @@ local function apply_fsrcnnx()
     -- 3. INJECT
     if chain ~= "" then
         chain = finalize_shader_chain(chain)
-        mp.commandv("change-list", "glsl-shaders", "set", chain)
+        apply_shader_chain(chain)
     end
 end
 
@@ -717,17 +732,19 @@ local function evaluate()
     else -- HD 720p
         apply_profile(hd_manual_override and "HQ-HD-FSRCNNX" or "HQ-HD-NNEDI")
     end
+	
+	-- [v2.2] Run the Swapper for Live Action overrides (if applicable)
+    if not is_anime then apply_fsrcnnx() end
 
     -- 7. [POST-PROCESS TOGGLE]
     -- If sharpening is disabled, strip it from the chain we just built
     if not sharpen_enabled then
         local current_shaders = mp.get_property("glsl-shaders", "")
         if current_shaders ~= "" then
-            mp.set_property("glsl-shaders", finalize_shader_chain(current_shaders))
+            apply_shader_chain(finalize_shader_chain(current_shaders))
         end
     end
-	-- [v2.2] Run the Swapper for Live Action overrides (if applicable)
-    if not is_anime then apply_fsrcnnx() end
+	
 end
 
 -------------------------------------------------

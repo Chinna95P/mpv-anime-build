@@ -1,5 +1,5 @@
 -- =================================================================================
--- MPV-PC: "UP NEXT" INTERACTIVE (v2.4 - Safe Startup)
+-- MPV-PC: "UP NEXT" INTERACTIVE (v2.5 - Filename Priority + Advanced Parser)
 -- =================================================================================
 
 local mp = require 'mp'
@@ -22,62 +22,97 @@ local state = {
     next_title = nil
 }
 
--- [1] CLEANER FUNCTION (Kept your latest robust regex)
+-- [1] CLEANER FUNCTION (Upgraded with Filename Priority & Release Group Logic)
 function get_smart_details(filename, title)
-    local display = filename
-    if display then display = display:match("([^/\\]+)$") or display end
+    local display = nil
+
+    -- 1. Top Priority: Use the Filename
+    if filename and filename ~= "" then
+        display = filename:match("([^/\\]+)$") or filename
+    end
     
-    if title and title ~= "" then 
-        display = title 
-    else
-        if display then
-            display = display:gsub("%.%w+$", "") 
-            display = display:gsub("[%s._-][0-9]*[pP][%s._-]", " ")
-            display = display:gsub("[%s._-][0-9]*[kK][%s._-]", " ")
-            display = display:gsub("[%s._-][xX][2]6[45]", " ")
-            display = display:gsub("[%s._-][hH][2]6[45]", " ")
-            display = display:gsub("[%s._-][hH][eE][vV][cC]", " ")
-            display = display:gsub("[%s._-][aA][vV]1", " ")
-            display = display:gsub("[%s._-][fF][lL][aA][cC][%w%.]*", " ")
-            display = display:gsub("[%s._-][aA][aA][cC][%w%.]*", " ")
-            display = display:gsub("[%s._-][dD][dD][pP]?[%w%.]*", " ")
-            display = display:gsub("[%s._-][aA][cC]3", " ")
-            display = display:gsub("[%s._-][dD][tT][sS]", " ")
-            display = display:gsub("[%s._-][tT][rR][uU][eE][hH][dD]", " ")
-            display = display:gsub("[%s._-][bB]lu[rR]ay", " ")
-            display = display:gsub("[%s._-][bB][dD][rR][iI][pP]", " ")
-            display = display:gsub("[%s._-][wW][eE][bB].*", "")
-            display = display:gsub("[%s._-][hH][dD][tT][vV]", " ")
-            display = display:gsub("[%s._-][0-9]+[%s-]*[bB]it", " ")
-            display = display:gsub("%b[]", ""):gsub("%b()", "")
-            display = display:gsub("[._-]", " ")
-        end
+    -- 2. Fallback: Use Embedded Title ONLY if filename is missing/empty
+    if (not display or display == "") and title and title ~= "" then
+        display = title
     end
 
     if display then
+        -- 1. Remove the file extension first
+        display = display:gsub("%.%w+$", "") 
+
+        -- 2. KAHARI LOGIC: Remove prefix release group e.g., "[Erai-raws] "
+        display = display:gsub("^%[%s*.-%s*%]%s*", "")
+
+        -- 3. Move bracket/parenthesis cleanup to the TOP so tags aren't left fragmented
+        display = display:gsub("%b[]", "")
+        display = display:gsub("%b()", "")
+
+        -- 4. Standard metadata cleanup
+        display = display:gsub("[%s._-][0-9]*[pP][%s._-]", " ")
+        display = display:gsub("[%s._-][0-9]*[kK][%s._-]", " ")
+        display = display:gsub("[%s._-][xX][2]6[45]", " ")
+        display = display:gsub("[%s._-][hH][2]6[45]", " ")
+        display = display:gsub("[%s._-][hH][eE][vV][cC]", " ")
+        display = display:gsub("[%s._-][aA][vV]1", " ")
+        display = display:gsub("[%s._-][fF][lL][aA][cC][%w%.]*", " ")
+        display = display:gsub("[%s._-][aA][aA][cC][%w%.]*", " ")
+        display = display:gsub("[%s._-][dD][dD][pP]?[%w%.]*", " ")
+        display = display:gsub("[%s._-][aA][cC]3", " ")
+        display = display:gsub("[%s._-][dD][tT][sS]", " ")
+        display = display:gsub("[%s._-][tT][rR][uU][eE][hH][dD]", " ")
+        display = display:gsub("[%s._-][bB]lu[rR]ay", " ")
+        display = display:gsub("[%s._-][bB][dD][rR][iI][pP]", " ")
+        display = display:gsub("[%s._-][wW][eE][bB].*", "")
+        display = display:gsub("[%s._-][hH][dD][tT][vV]", " ")
+        display = display:gsub("[%s._-][0-9]+[%s-]*[bB]it", " ")
+        
+        -- Replace remaining dots/underscores with spaces (leaving dashes intact for the suffix rule)
+        display = display:gsub("[._]", " ")
+
+        -- 5. KAHARI LOGIC: Remove suffix release groups e.g., "-YURASUKA" or "-SubsPlease"
+        display = display:gsub("%s*%-[A-Za-z0-9_]+%s*$", "")
+        
+        -- Remove any hanging dashes left from the cleanup
+        display = display:gsub("%-$", "")
+    end
+
+    if display then
+        -- Final trim of multiple spaces and leading/trailing spaces
         display = display:gsub("^%s+", ""):gsub("%s+$", "")
         display = display:gsub("%s+", " ")
     else
         display = "Unknown"
     end
 
+    -- Split name and episode (assuming "Name - Episode" format)
     local name, ep = display:match("^(.*)%s+-%s+(.*)$")
     return name or display, ep or ""
 end
 
 function smart_wrap(text, limit)
     if not text or string.len(text) <= limit then return text end
-    local len = string.len(text)
-    local last_space = nil
-    if len > limit then
-         local s_sub = text:sub(1, limit + 5)
-         last_space = s_sub:match(".*%s()")
+    local result = ""
+    local remaining = text
+
+    -- Keep wrapping as long as the remaining text is longer than our limit
+    while string.len(remaining) > limit do
+        -- Grab a chunk slightly larger than the limit to find the best space
+        local chunk = string.sub(remaining, 1, limit + 5)
+        local break_pos = string.match(chunk, ".*%s()")
+        
+        if break_pos and break_pos > 1 then
+            -- Break at the last found space
+            result = result .. string.sub(remaining, 1, break_pos - 2) .. "\\N"
+            remaining = string.sub(remaining, break_pos)
+        else
+            -- If it's one massive word with no spaces, force a break at the limit
+            result = result .. string.sub(remaining, 1, limit) .. "\\N"
+            remaining = string.sub(remaining, limit + 1)
+        end
     end
-    if last_space then
-        return string.sub(text, 1, last_space - 2) .. "\\N" .. string.sub(text, last_space)
-    else
-        return string.sub(text, 1, limit) .. "\\N" .. string.sub(text, limit + 1)
-    end
+    
+    -- Append whatever is left over
+    return result .. remaining
 end
 
 local function paint(ass_text)
@@ -100,12 +135,23 @@ local function draw_ui(seconds, show_name, show_ep, is_hovering)
     local ass = "{\\an5}{\\pos(" .. cx .. "," .. cy .. ")}"
     ass = ass .. "{\\fnSource Sans Pro}{\\fs35}{\\b1}" 
     ass = ass .. "{\\bord8}{\\shad8}{\\blur8}{\\3c&H" .. opts.bg_color .. "&}{\\3a&H" .. opts.bg_opacity .. "&}"
+    
     local main_c = is_hovering and opts.hover_color or opts.text_color
     local acc_c  = is_hovering and opts.hover_color or opts.accent_color
+    
     ass = ass .. "{\\1c&H" .. acc_c .. "&}▶ {\\1c&HAAAAAA&}{\\fs25}UP NEXT {\\1c&H" .. acc_c .. "&}(" .. seconds .. "s)"
+    
+    -- Wrap the main title
     local wrapped_title = smart_wrap(show_name, opts.wrap_limit)
     ass = ass .. "\\N{\\1c&H" .. main_c .. "&}{\\fs40}" .. wrapped_title
-    if show_ep ~= "" then ass = ass .. "\\N{\\1c&HBBBBBB&}{\\fs28}" .. show_ep end
+    
+    -- Wrap the episode title (using a slightly larger limit since the font is smaller)
+    if show_ep ~= "" then 
+        local ep_limit = math.floor(opts.wrap_limit * 1.4)
+        local wrapped_ep = smart_wrap(show_ep, ep_limit)
+        ass = ass .. "\\N{\\1c&HBBBBBB&}{\\fs28}" .. wrapped_ep 
+    end
+    
     paint(ass)
 end
 

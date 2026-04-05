@@ -43,6 +43,43 @@ mp.register_script_message('anime-state-broadcast', function(json)
     end
 end)
 
+-- [PHASE 8: CUSTOM DENOISE (HQDN3D) ENGINE]
+local denoise = { enabled = false, ls = 0, cs = 0, lt = 4, ct = 4 }
+local previous_hwdec = nil -- To remember what hwdec you were using before
+
+mp.register_script_message('update-denoise', function(param, val)
+    -- 1. Update State Variables
+    if param == "toggle" then
+        denoise.enabled = not denoise.enabled
+    elseif val == "reset" then
+        if param == "lt" or param == "ct" then denoise[param] = 4 else denoise[param] = 0 end
+    else
+        denoise[param] = math.max(0, denoise[param] + tonumber(val)) 
+    end
+
+    -- 2. Apply to MPV Video Filters safely
+    mp.command('no-osd vf remove @denoise') 
+    
+    if denoise.enabled then
+        -- [AUTO-FIX] Force a -copy hwdec so CPU filters work
+        local current_hwdec = mp.get_property("hwdec", "auto")
+        if current_hwdec ~= "no" and not current_hwdec:match("-copy") then
+            previous_hwdec = current_hwdec -- Save the original state
+            mp.set_property("hwdec", "auto-copy")
+        end
+
+        local filter_str = string.format("hqdn3d=%s:%s:%s:%s", denoise.ls, denoise.cs, denoise.lt, denoise.ct)
+        mp.command('no-osd vf add @denoise:' .. filter_str)
+        mp.osd_message("Denoise ON: " .. filter_str, 2)
+    else
+        -- [AUTO-FIX] Restore original hwdec when denoise is turned off
+        if previous_hwdec then
+            mp.set_property("hwdec", previous_hwdec)
+            previous_hwdec = nil
+        end
+        mp.osd_message("Denoise OFF", 2)
+    end
+end)
 
 --[[ OPTIONS ]]
 
@@ -333,28 +370,32 @@ update_config()
 mp.register_script_message('control-update', function(command, submenu_id, active_index)
     mp.command(command)
     
-    -- 1. Refresh the Menu Content
-    if Menu:is_open('menu') then
-        local items = create_default_menu_items()
-        local json = utils.format_json({ type = 'menu', items = items })
-        mp.commandv("script-message-to", "uosc", "update-menu", json)
-        if submenu_id and submenu_id ~= '' then
+    -- [FIX] Wait 50ms for asynchronous mpv commands (like Denoise) to fully process
+    -- before telling the UI to redraw. This eliminates the visual "lag" race condition.
+    mp.add_timeout(0.05, function()
+        -- 1. Refresh the Menu Content
+        if Menu:is_open('menu') then
+            local items = create_default_menu_items()
+            local json = utils.format_json({ type = 'menu', items = items })
+            mp.commandv("script-message-to", "uosc", "update-menu", json)
+            if submenu_id and submenu_id ~= '' then
+                mp.commandv("script-message-to", "uosc", "open-menu", json, submenu_id)
+            end
+
+        elseif Menu:is_open('controls') then
+            local menu_data = create_controls_menu()
+            menu_data.type = "controls"
+            local json = utils.format_json(menu_data)
             mp.commandv("script-message-to", "uosc", "open-menu", json, submenu_id)
         end
 
-    elseif Menu:is_open('controls') then
-        local menu_data = create_controls_menu()
-        menu_data.type = "controls"
-        local json = utils.format_json(menu_data)
-        mp.commandv("script-message-to", "uosc", "open-menu", json, submenu_id)
-    end
-
-    -- 2. Restore the Cursor/Selection Position
-    -- If we passed an index (e.g. "2" for Decrease), force UOSC to select it now
-    if active_index and active_index ~= '' then
-        local type = Menu:is_open('menu') and 'menu' or 'controls'
-        mp.commandv("script-message-to", "uosc", "select-menu-item", type, active_index, submenu_id)
-    end
+        -- 2. Restore the Cursor/Selection Position
+        -- If we passed an index (e.g. "2" for Decrease), force UOSC to select it now
+        if active_index and active_index ~= '' then
+            local type = Menu:is_open('menu') and 'menu' or 'controls'
+            mp.commandv("script-message-to", "uosc", "select-menu-item", type, active_index, submenu_id)
+        end
+    end)
 end)
 
 -- Default menu items
@@ -366,12 +407,27 @@ function create_controls_menu()
     local function prop(p) return mp.get_property(p) end
     local function is_true(p) return prop(p) == 'yes' end
     local function active(p, v) return prop(p) == v end
-    
-    -- Wrapper: Executes command + Refreshes menu + Selects specific index
+	
+	-- Wrapper: Executes command + Refreshes menu + Selects specific index
     local function cmd(c, id, idx) 
         local menu_id = id or ''
         local item_idx = idx or ''
         return 'script-message-to uosc control-update "' .. c .. '" "' .. menu_id .. '" "' .. item_idx .. '"' 
+    end
+	
+	-- Generator for Denoise Menus (+ / - / Reset)
+    local function create_denoise_menu(title, param, step, submenu_id)
+        local current = denoise[param]
+        return {
+            title = title,
+            hint = tostring(current),
+            id = submenu_id,
+            items = {
+                { title = 'Increase (+)', value = cmd('script-message-to uosc update-denoise ' .. param .. ' ' .. step, submenu_id, 1) },
+                { title = 'Decrease (-)', value = cmd('script-message-to uosc update-denoise ' .. param .. ' -' .. step, submenu_id, 2) },
+                { title = 'Reset', value = cmd('script-message-to uosc update-denoise ' .. param .. ' reset', submenu_id, 3) },
+            }
+        }
     end
 
     -- Generator for Value Menus (+ / - / Reset)
@@ -412,6 +468,21 @@ function create_controls_menu()
             },
             { title = 'Deinterlace', active = is_true('deinterlace'), value = cmd('cycle deinterlace', 'controls_root', 4) },
             
+			-- [NEW] DENOISE FILTER
+            { title = 'Denoise (hqdn3d)', active = denoise.enabled, value = cmd('script-message-to uosc update-denoise toggle', 'controls_root', 5) },
+            {
+                title = 'Denoise Settings >',
+                id = 'denoise_settings_menu',
+                muted = not denoise.enabled,
+                hint = denoise.enabled and 'Active' or 'Locked',
+                items = {
+                    create_denoise_menu('Luma Spatial (ls)', 'ls', 1, 'denoise_ls_menu'),
+                    create_denoise_menu('Chroma Spatial (cs)', 'cs', 1, 'denoise_cs_menu'),
+                    create_denoise_menu('Luma Temporal (lt)', 'lt', 1, 'denoise_lt_menu'),
+                    create_denoise_menu('Chroma Temporal (ct)', 'ct', 1, 'denoise_ct_menu'),
+                }
+            },
+			
             -- 2. SYNC & COLORS
             {
                 title = 'Synchronization',
