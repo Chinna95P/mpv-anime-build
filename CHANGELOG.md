@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v3.2] – The "Resolution-Aware Anime4K" Update
+
+### ✨ New Features
+* **Smart Anime4K Persistence:**
+  * Anime4K quality ("fast" vs "hq") and mode (A, B, C, AA, BB, CA) settings are no longer a single global toggle. 
+  * The build now remembers your exact Anime4K preference **independently per resolution tier** (SD, HD, FHD, 2K, 4K, 8K). If you prefer "Mode B" for 720p and "Mode A+A" for 1080p, the script will automatically swap between them on the fly.
+
+### ⚡ Improvements & Fixes
+* **UOSC Menu Synchronization:** Fixed a visual desync where the UOSC right-click menu failed to highlight the currently active Anime4K profile. The state broadcaster (`sync_state`) was updated to fetch the dynamically evaluated resolution mode instead of relying on deprecated global variables.
+* **Seamless Config Migration:** Re-wrote the `anime4k.conf` load/save logic to automatically catch and migrate your old global settings into the new resolution-aware format upon the first launch, ensuring no settings are lost.
+* **Lua Execution Order:** Fixed an initialization crash caused by top-down execution logic regarding the `get_resolution_mode` helper function being called before it was defined.
+
+---
+
 ## [v3.1] – The "Cross-Platform & Denoise" Update
 
 ### ✨ New Features

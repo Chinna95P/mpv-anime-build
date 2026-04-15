@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v3.1 (Fixed Shaders not loading on some OS)
---    UPDATED:  2026-04-04
+--    VERSION:  v3.2 (Anime4k Persistence per Resolution)
+--    UPDATED:  2026-04-15
 -- ]]
 
 local mp = require("mp")
@@ -65,27 +65,14 @@ local sharpen_enabled = true -- New state for Adaptive Sharpen
 local external_vsr_active = false
 local external_power_active = false
 
--- Anime4K (persistent)
-local anime4k_quality = "fast"
-local anime4k_mode = "A"
-
--- [NEW] System States
-local up_next_enabled = true
-local skip_intro_enabled = true
-
--------------------------------------------------
--- COLORS (BGR Hex)
--------------------------------------------------
-local C = {
-    YELLOW  = "{\\c&H00FFFF&}",
-    WHITE   = "{\\c&HFFFFFF&}",
-    GREEN   = "{\\c&H00FF00&}", 
-    BLUE    = "{\\c&HFF0000&}", 
-    RED     = "{\\c&H0000FF&}", 
-    CYAN    = "{\\c&HFFFF00&}", 
-    GOLD    = "{\\c&H00D7FF&}", 
-    ORANGE  = "{\\c&H0080FF&}", 
-    MAGENTA = "{\\c&HFF00FF&}", 
+-- Anime4K (persistent per resolution tier)
+local user_anime4k = {
+    SD   = { quality = "fast", mode = "A" },
+    HD   = { quality = "fast", mode = "A" },
+    FHD  = { quality = "fast", mode = "A" },
+    ["2K"] = { quality = "fast", mode = "A" },
+    ["4K"] = { quality = "fast", mode = "A" },
+    ["8K"] = { quality = "fast", mode = "A" }
 }
 
 -------------------------------------------------
@@ -118,6 +105,34 @@ local function get_resolution_mode()
     return "4K"
 end
 
+
+-- Helper function to fetch the active Anime4K state dynamically
+local function get_current_a4k()
+    local res = get_resolution_mode()
+    if not user_anime4k[res] then return "fast", "A" end
+    return user_anime4k[res].quality, user_anime4k[res].mode
+end
+
+-- [NEW] System States
+local up_next_enabled = true
+local skip_intro_enabled = true
+
+-------------------------------------------------
+-- COLORS (BGR Hex)
+-------------------------------------------------
+local C = {
+    YELLOW  = "{\\c&H00FFFF&}",
+    WHITE   = "{\\c&HFFFFFF&}",
+    GREEN   = "{\\c&H00FF00&}", 
+    BLUE    = "{\\c&HFF0000&}", 
+    RED     = "{\\c&H0000FF&}", 
+    CYAN    = "{\\c&HFFFF00&}", 
+    GOLD    = "{\\c&H00D7FF&}", 
+    ORANGE  = "{\\c&H0080FF&}", 
+    MAGENTA = "{\\c&HFF00FF&}", 
+}
+
+
 -------------------------------------------------
 -- OSD OVERLAY SYSTEM
 -------------------------------------------------
@@ -145,9 +160,12 @@ local function sync_state()
     local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
     
     -- 2. Define the state table
-    local state = {
+    local a4k_q, a4k_m = get_current_a4k()
+	
+	local state = {
         shaders_enabled = shaders_master_switch,
-        anime4k_hq = (anime4k_quality == "hq"),
+        
+        anime4k_hq = (a4k_q == "hq"),
         
         -- Fidelity State
         anime_fidelity = anime_fidelity,
@@ -182,12 +200,12 @@ local function sync_state()
         mode_off = (anime_mode == "off"),
         
         -- Broadcast Anime4K Modes
-        a4k_mode_a  = (anime4k_mode == "A"),
-        a4k_mode_b  = (anime4k_mode == "B"),
-        a4k_mode_c  = (anime4k_mode == "C"),
-        a4k_mode_aa = (anime4k_mode == "AA"),
-        a4k_mode_bb = (anime4k_mode == "BB"),
-        a4k_mode_ca = (anime4k_mode == "CA"),
+        a4k_mode_a  = (a4k_m == "A"),
+        a4k_mode_b  = (a4k_m == "B"),
+        a4k_mode_c  = (a4k_m == "C"),
+        a4k_mode_aa = (a4k_m == "AA"),
+        a4k_mode_bb = (a4k_m == "BB"),
+        a4k_mode_ca = (a4k_m == "CA"),
         
 		-- [v2.2] Selection Sync (Tells Main.lua what to checkmark)
         current_res_label = get_resolution_mode(),
@@ -269,7 +287,8 @@ local function profile_message()
             
             part2 = C.YELLOW .. "{\\b1}Fidelity:{\\b0} " .. C.CYAN .. res_label .. shp_icon
         else
-            local a4k_str = anime4k_quality:upper() .. " (" .. anime4k_mode .. ")"
+            local a4k_q, a4k_m = get_current_a4k()
+            local a4k_str = a4k_q:upper() .. " (" .. a4k_m .. ")"
             part2 = C.YELLOW .. "{\\b1}Anime4K:{\\b0} " .. C.MAGENTA .. a4k_str .. shp_icon
         end
     else
@@ -377,10 +396,17 @@ local function load_anime4k()
     local f = io.open(anime4k_opts_path, "r")
     if not f then return end
     for l in f:lines() do
-        local q = l:match("quality=(%S+)")
-        local m = l:match("mode=(%S+)")
-        if q then anime4k_quality = q end
-        if m then anime4k_mode = m end
+        -- 1. Catch old formats (applies globally for migration)
+        local old_q = l:match("^quality=(%S+)")
+        local old_m = l:match("^mode=(%S+)")
+        if old_q then for k, v in pairs(user_anime4k) do v.quality = old_q end end
+        if old_m then for k, v in pairs(user_anime4k) do v.mode = old_m end end
+        
+        -- 2. Load new per-resolution format
+        local res_q, q = l:match("quality_(%w+)=(%S+)")
+        local res_m, m = l:match("mode_(%w+)=(%S+)")
+        if res_q and user_anime4k[res_q] then user_anime4k[res_q].quality = q end
+        if res_m and user_anime4k[res_m] then user_anime4k[res_m].mode = m end
     end
     f:close()
 end
@@ -388,8 +414,10 @@ end
 local function save_anime4k()
     local f = io.open(anime4k_opts_path, "w")
     if f then
-        f:write("quality=" .. anime4k_quality .. "\n")
-        f:write("mode=" .. anime4k_mode .. "\n")
+        for res, data in pairs(user_anime4k) do
+            f:write("quality_" .. res .. "=" .. data.quality .. "\n")
+            f:write("mode_" .. res .. "=" .. data.mode .. "\n")
+        end
         f:close()
     end
 end
@@ -508,8 +536,9 @@ local A4K = {
 
 local function apply_anime4k()
     if current_profile ~= "anime-shaders" then return end
-    if not A4K[anime4k_quality] or not A4K[anime4k_quality][anime4k_mode] then return end
-    local chain = A4K[anime4k_quality][anime4k_mode]
+    local a4k_q, a4k_m = get_current_a4k()
+    if not A4K[a4k_q] or not A4K[a4k_q][a4k_m] then return end
+    local chain = A4K[a4k_q][a4k_m]
     apply_shader_chain(chain)
 end
 
@@ -773,17 +802,18 @@ local function get_anime_menu_json()
     -- Logic for SD Mode Lock (Locked if we are in SD but FSRCNNX is running)
     local s_sd_locked = (res == "SD" and fsr_active)
 
-    local s_a4k_hq = (anime4k_quality == "hq")
+    local a4k_q, a4k_m = get_current_a4k()
+    local s_a4k_hq = (a4k_q == "hq")
     local s_fidelity = anime_fidelity
     local s_anime4k_allowed = (current_profile == "anime-shaders" and not anime_fidelity)
 
     -- Anime4K Modes
-    local s_m_a = (anime4k_mode == "A")
-    local s_m_b = (anime4k_mode == "B")
-    local s_m_c = (anime4k_mode == "C")
-    local s_m_aa = (anime4k_mode == "AA")
-    local s_m_bb = (anime4k_mode == "BB")
-    local s_m_ca = (anime4k_mode == "CA")
+    local s_m_a = (a4k_m == "A")
+    local s_m_b = (a4k_m == "B")
+    local s_m_c = (a4k_m == "C")
+    local s_m_aa = (a4k_m == "AA")
+    local s_m_bb = (a4k_m == "BB")
+    local s_m_ca = (a4k_m == "CA")
     
     -- Audio/HDR States
     local af = mp.get_property("af") or ""
@@ -1158,7 +1188,11 @@ mp.add_key_binding(nil, "toggle-anime4k-quality", function()
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Disable Fidelity Mode first.", 2)
         return
     end
-    anime4k_quality = (anime4k_quality == "fast") and "hq" or "fast"
+    
+    local res = get_resolution_mode()
+    local current_q = user_anime4k[res].quality
+    user_anime4k[res].quality = (current_q == "fast") and "hq" or "fast"
+    
     save_anime4k()
     apply_anime4k()
     show_temp_osd(profile_message(), 2)
@@ -1176,8 +1210,12 @@ mp.register_script_message("anime4k-mode", function(mode)
     end
     if current_profile ~= "anime-shaders" then return end
     if anime_fidelity then return end 
-    if not A4K[anime4k_quality][mode] then return end
-    anime4k_mode = mode
+    
+    local res = get_resolution_mode()
+    local a4k_q = user_anime4k[res].quality
+    if not A4K[a4k_q][mode] then return end
+    
+    user_anime4k[res].mode = mode
     save_anime4k()
     apply_anime4k()
     show_temp_osd(profile_message(), 2)

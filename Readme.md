@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v3.1
+# 🎬 MPV Anime Build v3.2
 > **The Performance & Audio Update: Ultimate Playback, Smart Automation, and Unmatched Fidelity.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -13,14 +13,16 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in v3.0
-* **🎵 Audio-Only Profile:** A dedicated zero-overhead profile for music. Automatically disables heavy video shaders/scalers and features built-in visualizers and embedded album art support.
-* **🎛️ On-the-Fly Equalizer:** Instantly fine-tune your audio frequencies directly from the UI without leaving the player.
-* **🌈 Ambient Crop Shader:** A new highly immersive viewing mode that fills black bars with ambient glowing colors. *(**⚠️ Note for SVP Users:** Do not enable this shader. Use SVP's dedicated "Fill black bars" feature instead to achieve the same effect natively).*
-* **📺 Picture-in-Picture (PIP):** Seamlessly pop the video out into a floating window for multitasking.
-* **⚡ 8K Optimized Mode:** The build now detects 8K files and automatically bypasses heavy upscaling shaders to prevent GPU crashes and ensure buttery-smooth playback.
-* **⚡ Core Performance Optimizations:** Refined underlying scripts for significantly faster state transitions and lower startup overhead.
-* **🎨 Menu Overhaul:** The UOSC Glass UI has been completely reorganized with new intuitive submenus for PIP, Ambient, and Equalizer controls.
+## 🚀 What's New (v3.0 - v3.2)
+* **🧠 Resolution-Aware Anime4K (v3.2):** Anime4K is no longer a single global toggle. The build now remembers your precise Quality ("fast" vs "hq") and Mode (A, B, C, AA, BB, CA) preferences independently for **each resolution tier** (SD, HD, FHD, 2K, 4K, 8K), seamlessly swapping settings on the fly to match your content.
+* **🎛️ Interactive Denoise Filter (v3.1):** A dedicated Denoise (`hqdn3d`) control suite in the UOSC menu with independent Luma and Chroma adjustments. It features a **Smart Hardware Fallback** that safely manages your `hwdec` settings to prevent crashes when engaging CPU-based filters.
+* **🌐 Smart Track Selector (v3.1):** Intelligently handles missing metadata, prioritizing "Dialogue" or "Full" subtitle tracks over "Signs/Songs", and cleanly falls back to muxer defaults if your preferred language isn't found.
+* **🎵 Audio-Only Profile (v3.0):** Instantly drops GPU load to 0% for music playback. Automatically disables heavy video shaders/scalers while displaying embedded album art and dynamic visualizers.
+* **🎚️ On-the-Fly Equalizer & PIP (v3.0):** Fine-tune your audio frequencies directly from the UI, and seamlessly pop the video out into a floating Picture-in-Picture (PIP) window for multitasking.
+* **⚡ 8K Optimized Mode (v3.0):** Automatically detects massive 8K resolution files and bypasses heavy upscaling shaders to prevent GPU crashes and ensure buttery-smooth playback.
+* **🌈 Ambient Crop Shader (v3.0):** A highly immersive viewing mode that fills black bars with ambient glowing colors. *(⚠️ Note for SVP Users: Use SVP's dedicated "Fill black bars" instead).*
+* **⚡ Core Performance Optimizations (v3.0):** Refined underlying scripts for significantly faster state transitions and lower startup overhead.
+* **🎨 Menu Overhaul (v3.0):** The UOSC Glass UI has been completely reorganized with new intuitive submenus for PIP, Ambient, and Equalizer controls.
 
 ---
 
