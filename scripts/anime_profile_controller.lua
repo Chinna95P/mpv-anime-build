@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v3.2 (Anime4k Persistence per Resolution)
---    UPDATED:  2026-04-15
+--    VERSION:  v4.0 (Added ArtCNN Shaders, Ani4Kv2 and AniSD Modes)
+--    UPDATED:  2026-06-03
 -- ]]
 
 local mp = require("mp")
@@ -206,6 +206,8 @@ local function sync_state()
         a4k_mode_aa = (a4k_m == "AA"),
         a4k_mode_bb = (a4k_m == "BB"),
         a4k_mode_ca = (a4k_m == "CA"),
+		a4k_mode_ani4kv2 = (a4k_m == "Ani4Kv2"),
+		a4k_mode_anisd  = (a4k_m == "AniSD"),
         
 		-- [v2.2] Selection Sync (Tells Main.lua what to checkmark)
         current_res_label = get_resolution_mode(),
@@ -228,6 +230,7 @@ local function sync_state()
         end)(),
         
         hdr_passthrough = (mp.get_property("target-colorspace-hint") == "yes"),
+        hdr_display_mode = user_hdr_display_mode,
         
         vsr_active = external_vsr_active,
         power_active = external_power_active
@@ -423,6 +426,7 @@ local function save_anime4k()
 end
 
 local user_target_peak = "auto" 
+local user_hdr_display_mode = "auto"
 
 local function load_hdr_mode()
     local f = io.open(hdr_opts_path, "r")
@@ -432,6 +436,8 @@ local function load_hdr_mode()
         if v then user_hdr_mode = v end
         local p = l:match("target_peak=(%S+)")
         if p then user_target_peak = p end
+        local d = l:match("hdr_display_mode=(%S+)")
+        if d then user_hdr_display_mode = d end
     end
     f:close()
 end
@@ -441,6 +447,7 @@ local function save_hdr_mode()
     if f then
         f:write("tone_mapping=" .. (user_hdr_mode or "bt.2390") .. "\n")
         f:write("target_peak=" .. (user_target_peak or "auto") .. "\n")
+        f:write("hdr_display_mode=" .. (user_hdr_display_mode or "auto") .. "\n")
         f:close()
     end
 end
@@ -523,7 +530,9 @@ local A4K = {
         AA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
         BB="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
         CA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Upscale_Denoise_CNN_x2_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
-    },
+		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2_CMP.glsl",
+		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4_CMP.glsl",
+	},
     hq = {
         A="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
         B="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
@@ -531,7 +540,9 @@ local A4K = {
         AA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_Restore_CNN_M.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
         BB="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_M.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
         CA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Upscale_Denoise_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_M.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
-    }
+		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2_CMP.glsl",
+		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4_CMP.glsl",
+	}
 }
 
 local function apply_anime4k()
@@ -814,6 +825,8 @@ local function get_anime_menu_json()
     local s_m_aa = (a4k_m == "AA")
     local s_m_bb = (a4k_m == "BB")
     local s_m_ca = (a4k_m == "CA")
+	local s_m_ani4kv2 = (a4k_m == "Ani4Kv2")
+	local s_m_anisd  = (a4k_m == "AniSD")
     
     -- Audio/HDR States
     local af = mp.get_property("af") or ""
@@ -841,6 +854,7 @@ local function get_anime_menu_json()
         items = {
             { title = "BT.2390 (Recommended)", active = (current_tm == "bt.2390"), value = "script-message save-tone-mapping bt.2390" },
             { title = "ST.2094-40 (Active)", active = (current_tm == "st2094-40"), value = "script-message save-tone-mapping st2094-40" },
+			{ title = "ST.2094-10 (Adaptive)", active = (current_tm == "st2094-10"), value = "script-message save-tone-mapping st2094-10" },
             { title = "BT.2446a (Static)", active = (current_tm == "bt.2446a"), value = "script-message save-tone-mapping bt.2446a" },
             { title = "Spline (Neutral)", active = (current_tm == "spline"), value = "script-message save-tone-mapping spline" },
             { title = "Hable", active = (current_tm == "hable"), value = "script-message save-tone-mapping hable" },
@@ -868,6 +882,8 @@ local function get_anime_menu_json()
             muted = not s_anime4k_allowed,
             hint = not s_anime4k_allowed and "Disabled (Fidelity ON)" or "",
             items = {
+				{ title = "Mode Ani4Kv2 (ArtCNN)", value = "script-message anime4k-mode Ani4Kv2", active = s_m_ani4kv2 },
+				{ title = "Mode AniSD (ArtCNN)", value = "script-message anime4k-mode AniSD", active = s_m_anisd },
                 { title = "Mode A (Blur+Noise)", value = "script-message anime4k-mode A", active = s_m_a },
                 { title = "Mode B (Blur Only)",  value = "script-message anime4k-mode B", active = s_m_b },
                 { title = "Mode C (Noise Only)", value = "script-message anime4k-mode C", active = s_m_c },
@@ -978,7 +994,15 @@ local function get_anime_menu_json()
 				{ title = "Audio: Spatial Mode", value = "script-message toggle-audio-spatial", active = s_spatial },
                 { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix },
                 { title = "Audio: Toggle Passthrough", value = "script-message toggle-audio-passthrough", active = s_pass },
-                { title = "HDR: Force Tone-Map/Passthrough", value = "script-binding toggle-hdr-hybrid", active = s_hdr_active },
+                {
+                    title = "HDR Switch Mode",
+                    icon = "hdr_on",
+                    items = {
+                        { title = "Auto (Detected)", active = (user_hdr_display_mode == "auto"), value = "script-message set-hdr-display-mode auto" },
+                        { title = "HDR Display (Passthrough)", active = (user_hdr_display_mode == "hdr"), value = "script-message set-hdr-display-mode hdr" },
+                        { title = "SDR Display (Tone-Map)", active = (user_hdr_display_mode == "sdr"), value = "script-message set-hdr-display-mode sdr" },
+                    }
+                },
                 tm_menu,
                 {
                     title = "Target Peak (Brightness)",
@@ -1090,6 +1114,14 @@ mp.register_script_message("toggle-anime-fidelity", function()
     show_temp_osd(C.YELLOW .. "Anime Shader: " .. status, 2)
     sync_state()
 	update_uosc_menu()
+end)
+
+mp.register_script_message("set-hdr-display-mode", function(mode)
+    user_hdr_display_mode = mode
+    save_hdr_mode() -- Save choice to config
+    mp.commandv("script-message", "update-hdr-detect-mode") -- Tell hdr_detect to re-evaluate
+    sync_state()
+    update_uosc_menu()
 end)
 
 mp.register_script_message("toggle-audio-upmix", function()

@@ -4,6 +4,19 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.0] – The "ArtCNN & Display Engine" Update
+
+### ✨ New Features
+* **Next-Gen ArtCNN Upscaling:** * Added cutting-edge **Ani4Kv2** and **AniSD** (ArtCNN) neural network shaders to the Anime4K profiles list. These provide superior artifact removal and upscaling quality compared to the legacy variants.
+* **3-Way HDR Display Switch:** * Replaced the binary Auto/Manual HDR toggle with a robust 3-way system: **Auto**, **HDR Display (Passthrough)**, and **SDR Display (Tone-Map)**. This permanently solves issues where Windows auto-detection fails, allowing users to safely lock in their specific display type.
+* **Interactive Subtitle Styling:** * Added a dedicated "Subtitles Styling" menu directly into the UOSC Controls menu, allowing on-the-fly customization of subtitle appearance without editing config files.
+* **Global Volume Control:** * Added mouse-wheel support to `input.conf`. Scrolling up or down anywhere on the video screen now adjusts the volume and triggers the modern UOSC volume flash UI.
+
+### ⚡ Performance & Logic
+* **NVIDIA Hardware Decoding Priority:** * Updated the Windows Base profile in `mpv.conf` (`hwdec=nvdec,vulkan,auto` and `gpu-context=winvk,auto`). This explicitly prioritizes NVIDIA's highly efficient `nvdec` decoder over standard Vulkan decoding for RTX/GTX users, while maintaining safe fallbacks for AMD/Intel.
+
+---
+
 ## [v3.2] – The "Resolution-Aware Anime4K" Update
 
 ### ✨ New Features

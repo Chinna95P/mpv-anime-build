@@ -398,6 +398,27 @@ mp.register_script_message('control-update', function(command, submenu_id, activ
     end)
 end)
 
+-- [SUBTITLES ADDITION] Helper to scan the ~~/fonts folder
+local cached_fonts = nil
+local function get_available_fonts()
+    if cached_fonts then return cached_fonts end
+    cached_fonts = {}
+    local fonts_dir = mp.command_native({"expand-path", "~~/fonts"})
+    local files, err = utils.readdir(fonts_dir, "files")
+    
+    if files then
+        for _, file in ipairs(files) do
+            -- Match common font extensions (.ttf, .otf, .woff, .woff2)
+            local name = file:match("^(.+)%.[tToO][tT][fF]$") or file:match("^(.+)%.[wW][oO][fF]2?$")
+            if name then
+                table.insert(cached_fonts, name)
+            end
+        end
+        table.sort(cached_fonts)
+    end
+    return cached_fonts
+end
+
 -- Default menu items
 -- Inside scripts/uosc/main.lua
 
@@ -445,6 +466,69 @@ function create_controls_menu()
             }
         }
     end
+	
+	-- =============================================================================
+    -- LOGIC: SUBTITLES MENU 
+    -- =============================================================================
+    -- 1. Build the dynamic font list
+    local font_items = {
+        -- MPV's native default or user's fallback
+        { 
+            title = 'Default', 
+            active = (prop('sub-font') == '' or prop('sub-font') == 'sans-serif'),
+            value = cmd("osd-msg set sub-font ''", 'sub_font_menu', 1) 
+        }
+    }
+    
+    local fonts = get_available_fonts()
+    for i, font in ipairs(fonts) do
+        table.insert(font_items, {
+            title = font,
+            active = active('sub-font', font),
+            value = cmd("osd-msg set sub-font '" .. font .. "'", 'sub_font_menu', i + 1)
+        })
+    end
+
+    -- 2. Build the Subtitle Menu tree based on mpv.conf settings
+    local subtitles_menu = {
+        title = 'Subtitles',
+        id = 'subtitles_root',
+        items = {
+            -- A. Font Style Selector
+            {
+                title = 'Font Style >',
+                hint = (prop('sub-font') ~= '' and prop('sub-font') or 'Default'),
+                id = 'sub_font_menu',
+                items = font_items
+            },
+            -- B. ASS Override Settings
+            {
+                title = 'ASS Override >',
+                hint = prop('sub-ass-override') or 'no',
+                id = 'sub_ass_override_menu',
+                items = {
+                    { title = 'no (Respect Script)', active = active('sub-ass-override', 'no'), value = cmd('set sub-ass-override no', 'sub_ass_override_menu', 1) },
+                    { title = 'yes (Override Style)', active = active('sub-ass-override', 'yes'), value = cmd('set sub-ass-override yes', 'sub_ass_override_menu', 2) },
+                    { title = 'force (Override All)', active = active('sub-ass-override', 'force'), value = cmd('set sub-ass-override force', 'sub_ass_override_menu', 3) },
+                    { title = 'scale (Scale w/ Window)', active = active('sub-ass-override', 'scale'), value = cmd('set sub-ass-override scale', 'sub_ass_override_menu', 4) },
+                    { title = 'strip (Remove Styling)', active = active('sub-ass-override', 'strip'), value = cmd('set sub-ass-override strip', 'sub_ass_override_menu', 5) },
+                }
+            },
+            -- C. Values/Sliders (Defaults pulled from your mpv.conf)
+            create_adjust_menu('Font Size', 'sub-font-size', 1, 40, nil, 'sub_font_size_menu'),
+            create_adjust_menu('Blur', 'sub-blur', 0.1, 0.9, nil, 'sub_blur_menu'),
+            create_adjust_menu('Gaussian Blur', 'sub-gauss', 0.1, 0.9, nil, 'sub_gauss_menu'),
+            create_adjust_menu('Spacing', 'sub-spacing', 0.1, 0.5, nil, 'sub_spacing_menu'),
+            
+            -- D. Toggles
+            { title = 'Scale with Window', active = is_true('sub-scale-with-window'), value = cmd('cycle sub-scale-with-window', 'subtitles_root', 7) },
+            { title = 'Stretch Image Subs', active = is_true('stretch-image-subs-to-screen'), value = cmd('cycle stretch-image-subs-to-screen', 'subtitles_root', 8) },
+            { title = 'Use Margins', active = is_true('sub-use-margins'), value = cmd('cycle sub-use-margins', 'subtitles_root', 9) },
+            { title = 'Blend Subtitles', active = is_true('blend-subtitles'), value = cmd('cycle blend-subtitles', 'subtitles_root', 10) },
+            { title = 'Fix Timing', active = is_true('sub-fix-timing'), value = cmd('cycle sub-fix-timing', 'subtitles_root', 11) },
+        }
+    }
+    -- =============================================================================
 
     return {
         title = 'Controls',
@@ -505,6 +589,9 @@ function create_controls_menu()
                     create_adjust_menu('Hue', 'hue', 1, 0, nil, 'hue_menu'),
                 }
             },
+			
+			-- [NEW] ADDING THE SUBTITLES MENU HERE
+            subtitles_menu,
 
             -- 3. ADVANCED MENU
             {
@@ -767,6 +854,11 @@ function create_default_menu_items()
                 active = (current_tm == "st2094-40"), 
                 value = "script-message save-tone-mapping st2094-40" 
             },
+			{ 
+                title = "ST.2094-10 (Adaptive)", 
+                active = (current_tm == "st2094-10"), 
+                value = "script-message save-tone-mapping st2094-10" 
+            },
             { 
                 title = "BT.2446a (Static)", 
                 active = (current_tm == "bt.2446a"), 
@@ -852,6 +944,8 @@ function create_default_menu_items()
                     muted = not a4k_allowed,
                     hint = a4k_hint,
                     items = {
+                        { title = 'Mode Ani4Kv2 (ArtCNN)', value = 'script-message anime4k-mode Ani4Kv2', active = get_anime_state("a4k_mode_ani4kv2") },
+						{ title = 'Mode AniSD (ArtCNN)', value = 'script-message anime4k-mode AniSD', active = get_anime_state("a4k_mode_anisd") },
                         { title = 'Mode A (Blur+Noise)', value = 'script-message anime4k-mode A', active = get_anime_state("a4k_mode_a") },
                         { title = 'Mode B (Blur Only)',  value = 'script-message anime4k-mode B', active = get_anime_state("a4k_mode_b") },
                         { title = 'Mode C (Noise Only)', value = 'script-message anime4k-mode C', active = get_anime_state("a4k_mode_c") },
@@ -994,7 +1088,15 @@ function create_default_menu_items()
 						{ title = 'Audio: Spatial Mode', value = 'script-message toggle-audio-spatial', active = get_anime_state("spatial_active") },
                         { title = 'Audio: Toggle 7.1 Upmix', value = 'script-message toggle-audio-upmix', active = get_anime_state("audio_upmix") },
                         { title = 'Audio: Toggle Passthrough', value = 'script-message toggle-audio-passthrough', active = get_anime_state("audio_passthrough") },
-                        { title = 'HDR: Force Tone-Map/Passthrough', value = 'script-binding toggle-hdr-hybrid', active = get_anime_state("hdr_passthrough") },
+                        {
+                            title = "HDR Switch Mode",
+                            icon = "hdr_on",
+                            items = {
+                                { title = "Auto (Detected)", active = (get_anime_state("hdr_display_mode") == "auto"), value = "script-message set-hdr-display-mode auto" },
+                                { title = "HDR Display (Passthrough)", active = (get_anime_state("hdr_display_mode") == "hdr"), value = "script-message set-hdr-display-mode hdr" },
+                                { title = "SDR Display (Tone-Map)", active = (get_anime_state("hdr_display_mode") == "sdr"), value = "script-message set-hdr-display-mode sdr" },
+                            }
+                        },
 						tm_menu,
 						
 						-- [NEW] Target Peak Sub-Menu

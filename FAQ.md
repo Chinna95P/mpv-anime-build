@@ -139,6 +139,16 @@ This usually happens if your GPU drivers are outdated or unstable.
 *Universal support for TVs and Monitors.*
 
 <details>
+<summary><b>How does the new 3-Way HDR Switch work? (New in v4.0)</b></summary>
+
+Windows HDR auto-detection can sometimes be unreliable depending on your monitor drivers. We added a 3-Way Switch in the **Audio & HDR** menu to give you absolute control:
+
+* **Auto (Detected):** MPV listens to Windows. If Windows HDR is ON, it uses Passthrough. If OFF, it uses Tone-Mapping.
+* **HDR Display (Passthrough):** Forces MPV to send raw HDR metadata directly to your display, completely ignoring what Windows reports. Use this if your TV is in HDR mode but MPV looks washed out.
+* **SDR Display (Tone-Map):** Forces MPV to convert HDR colors into standard SDR format. Use this if you are on a standard monitor and the colors look weird or blown out.
+</details>
+
+<details>
 <summary><b>How do I get "True" HDR Passthrough?</b></summary>
 
 **Just toggle the Windows HDR switch.**

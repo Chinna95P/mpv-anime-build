@@ -1,5 +1,6 @@
-# 🎬 MPV Anime Build v3.2
+# 🎬 MPV Anime Build v4.0
 > **The Performance & Audio Update: Ultimate Playback, Smart Automation, and Unmatched Fidelity.**
+> **The ArtCNN & Display Engine Update: Next-Gen Upscaling, Robust HDR, and Ultimate Control.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -10,6 +11,15 @@
 The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **Features:** Gesture Controls, Smart Auto-Detection, and Optimized Shaders for mobile.
 * **Download:** Switch to the [**Android Branch**](https://github.com/Chinna95P/mpv-anime-build/tree/android) to get the mobile-specific files.
+
+---
+
+## 🚀 What's New in v4.0
+* **🧠 ArtCNN Neural Upscaling (v4.0):** Integrated **Ani4Kv2** and **AniSD** (ArtCNN) shaders into the Anime4K profiles. These next-generation models provide unprecedented line-art reconstruction and noise removal for anime.
+* **📺 3-Way HDR Display Switch (v4.0):** Overhauled the HDR engine with a new 3-way toggle (**Auto**, **HDR Display**, **SDR Display**). If Windows auto-detection fails, you can now permanently lock MPV into True Passthrough or Tone-Mapping mode.
+* **🔤 Interactive Subtitle Styling (v4.0):** Fine-tune your subtitle fonts, colors, and borders directly from the new Subtitles section in the UOSC Controls Menu.
+* **🔊 Global Scroll Volume (v4.0):** Easily adjust your volume by scrolling the mouse wheel anywhere on the video screen.
+* **⚡ NVIDIA Decoding Priority (v4.0):** The Windows core engine now prioritizes `nvdec` hardware decoding, ensuring maximum performance and lower power draw for RTX/GTX users.
 
 ---
 

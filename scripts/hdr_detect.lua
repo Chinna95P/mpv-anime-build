@@ -1,10 +1,6 @@
 -- [[ 
 --    scripts/hdr_detect.lua
---    VERSION: v1.7.1 (HDR Fallback Fix)
---    LOGIC:
---      1. Try Windows WMI (PowerShell).
---      2. If WMI fails/errors, check MPV 'display-params' (Fallback).
---      3. If either detects HDR -> Enable PASSTHROUGH.
+--    VERSION: v2.0 (HDR Overrides added)
 -- ]]
 
 local mp = require 'mp'
@@ -14,22 +10,27 @@ local timer = nil
 local last_state = nil 
 local os_hdr_state = false 
 local manual_override = false 
+local last_osd_state = nil
 
 -- [NEW] Config Path
 local hdr_conf_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
 
 -- [NEW] Helper to read the user's saved preference
-local function get_saved_tone_mapping()
-    local mode = "bt.2390" -- Default fallback if file missing
+-- Replace your get_saved_tone_mapping() with this:
+local function read_hdr_config()
+    local mode = "bt.2390" -- Default fallback
+    local d_mode = "auto"  -- Default display mode
     local f = io.open(hdr_conf_path, "r")
     if f then
         for line in f:lines() do
             local v = line:match("tone_mapping=(%S+)")
             if v then mode = v end
+            local dm = line:match("hdr_display_mode=(%S+)")
+            if dm then d_mode = dm end
         end
         f:close()
     end
-    return mode
+    return mode, d_mode
 end
 
 -- OSD Colors
@@ -100,53 +101,75 @@ end
 function evaluate_hdr_state()
     if manual_override then return end
 
-    -- A. Get Video Properties
+    -- Read the current configuration state
+    local tm_mode, d_mode = read_hdr_config()
+    
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     local primaries = mp.get_property("video-params/primaries")
     local is_hdr_video = (video_peak > 1) or (primaries == "bt.2020") or (primaries == "dci-p3")
 
-    -- B. Get OS Properties
-    local is_os_hdr = os_hdr_state
-
-    -- C. Determine Target State
-    local target = "sdr"
-    
+    -- Determine the target state based on user selection and video type
+    local target_state = "auto"
     if is_hdr_video then
-        if is_os_hdr then
-            target = "passthrough" -- True Passthrough
+        if d_mode == "hdr" then
+            target_state = "passthrough"
+        elseif d_mode == "sdr" then
+            target_state = "tonemap"
         else
-            target = "tonemap"     -- Tone-Mapping
+            -- Auto mode logic: use OS HDR state
+            target_state = os_hdr_state and "passthrough" or "tonemap"
         end
+    else
+        target_state = "sdr_video"
     end
 
-    -- D. Apply Settings (Only if changed)
-    if target == last_state then return end
-
-    if target == "passthrough" then
-        print("[HDR-Auto] Mode: PASSTHROUGH (Metadata sent to Display)")
+    -- 1. APPLY PROPERTIES
+    if target_state == "passthrough" then
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", "clip")
-        show_hdr_osd(C.GREEN .. "HDR Mode: " .. C.WHITE .. "True Passthrough (Auto)")
-
-    elseif target == "tonemap" then
-        print("[HDR-Auto] Mode: TONE-MAP (Windows is SDR)")
+    elseif target_state == "tonemap" then
+        mp.set_property("target-colorspace-hint", "no")
+        mp.set_property("target-trc", "srgb")
+        mp.set_property("tone-mapping", tm_mode)
+    else
+        -- Standard SDR Video defaults
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "auto")
-        mp.set_property("tone-mapping", get_saved_tone_mapping())
-        show_hdr_osd(C.BLUE .. "HDR Mode: " .. C.WHITE .. "Tone-Mapping (Auto)")
+    end
 
-    else -- "sdr"
-        if last_state ~= nil and last_state ~= "sdr" then
-            mp.set_property("target-colorspace-hint", "no")
+-- 2. [FIX 1] ONLY SHOW OSD IF THE STATE ACTUALLY CHANGES
+    -- Track both the menu mode AND the resulting state to catch auto-detection changes
+    local current_osd_id = d_mode .. "_" .. target_state
+
+    if last_osd_state ~= current_osd_id then
+        last_osd_state = current_osd_id
+        
+        -- Only show the HDR OSD if the file is actually an HDR video
+        if target_state ~= "sdr_video" then
+            if d_mode == "hdr" then
+                show_hdr_osd(C.ORANGE .. "HDR Switch: " .. C.WHITE .. "HDR Display (Passthrough)")
+            elseif d_mode == "sdr" then
+                show_hdr_osd(C.ORANGE .. "HDR Switch: " .. C.WHITE .. "SDR Display (Tone-Mapping)")
+            else
+                -- AUTO MODE LOGIC
+                if target_state == "passthrough" then
+                    show_hdr_osd(C.GREEN .. "HDR Switch: " .. C.WHITE .. "Auto (Passthrough)")
+                elseif target_state == "tonemap" then
+                    show_hdr_osd(C.GREEN .. "HDR Switch: " .. C.WHITE .. "Auto (Tone-Mapping)")
+                end
+            end
         end
     end
 
-    last_state = target
+    -- 3. [FIX 2] BROADCAST STATE TO UOSC FOR MENU HIGHLIGHTING
+    -- This sends the active mode back into the main uosc cache layout
+    local broadcast_data = { hdr_display_mode = d_mode }
+    mp.commandv("script-message", "anime-state-broadcast", utils.format_json(broadcast_data))
 end
 
 -- --------------------------------------------------------------------------
--- 3. MANUAL TOGGLE
+-- 3. MANUAL TOGGLE (Hotkeys)
 -- --------------------------------------------------------------------------
 function toggle_hdr_manual()
     manual_override = true
@@ -161,10 +184,13 @@ function toggle_hdr_manual()
         return
     end
 
+    -- [FIX] Use the new config reader here
+    local tm_mode, _ = read_hdr_config()
+
     if last_state == "passthrough" then
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
-        mp.set_property("tone-mapping", get_saved_tone_mapping())
+        mp.set_property("tone-mapping", tm_mode) -- [FIX] Replaced deleted function
         last_state = "tonemap"
         show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "Tone-Mapping (Forced)")
     else
@@ -182,6 +208,7 @@ end
 
 mp.register_event("file-loaded", function()
     manual_override = false 
+    last_osd_state = nil -- Note: Forces the OSD to display once per new file
     os_hdr_state = check_windows_hdr()
     evaluate_hdr_state()
 end)
@@ -199,3 +226,6 @@ end)
 
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
 mp.register_script_message("toggle-hdr-mode", toggle_hdr_manual)
+mp.register_script_message("update-hdr-detect-mode", function()
+    evaluate_hdr_state()
+end)

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>MPV Anime Build v3.2 | 4K Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
+    <title>MPV Anime Build v4.0 | 4K Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
     
     <meta name="description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Restores old anime using Anime4K v4.0 and FSRCNNX (Anime Adapted) and enhances live-action using resolution adaptive sharpening. Features Auto-Detection for Anime/Live-Action, new Glass UI (UOSC), True HDR Passthrough, and Centralized Controls.">
     
@@ -12,12 +12,12 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
-    <meta property="og:title" content="MPV Anime Build v3.2">
+    <meta property="og:title" content="MPV Anime Build v4.0">
     <meta property="og:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="MPV Anime Build v3.2">
+    <meta property="twitter:title" content="MPV Anime Build v4.0">
     <meta property="twitter:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
     
@@ -306,7 +306,7 @@
         "name": "Chinna95P"
       },
       "downloadUrl": "https://github.com/Chinna95P/mpv-anime-build/releases",
-      "softwareVersion": "v3.2"
+      "softwareVersion": "v4.0"
     }
     </script>
 </head>
@@ -314,13 +314,13 @@
 
     <header>
         <div class="container hero-content">
-            <h1>MPV Anime Build v3.2</h1>
+            <h1>MPV Anime Build v4.0</h1>
             <p>Performance. Audio Profiling. Pure Immersive Media.</p>
             
             <div class="hero-actions">
                 <div class="primary-buttons">
                     <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn btn-download">
-                        📥 Download v3.2 Release
+                        📥 Download v4.0 Release
                     </a>
                     <a href="https://github.com/Chinna95P/mpv-anime-build/tree/android" class="btn btn-android">
                         📱 Android Build
@@ -735,9 +735,49 @@
 	<section class="features" style="padding-bottom: 0;"> 
         <div class="container">
             
-            <h2 class="slider-title reveal">What's New (v3.0 - v3.2)</h2>
+            <h2 class="slider-title reveal">What's New (v3.0 - v4.0)</h2>
             
             <div class="grid">
+			
+				<div class="card reveal" style="border-top: 3px solid #e3b341;">
+                    <span class="icon">🧠</span>
+                    <h3>Next-Gen ArtCNN Shaders</h3>
+                    <p>
+                        Integrated <strong>Ani4Kv2</strong> and <strong>AniSD</strong> neural network models into the Anime4K profiles for cutting-edge line-art reconstruction and artifact removal.
+                    </p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #ff7b72;">
+                    <span class="icon">📺</span>
+                    <h3>3-Way HDR Switch</h3>
+                    <p>
+                        A robust new HDR controller: Choose between <strong>Auto</strong>, <strong>HDR Display (Passthrough)</strong>, or <strong>SDR Display (Tone-Map)</strong> to bypass OS detection errors.
+                    </p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #58a6ff;">
+                    <span class="icon">🔤</span>
+                    <h3>Subtitle Styling UI</h3>
+                    <p>
+                        A dedicated Subtitle Styling menu within the UOSC Controls allows you to customize fonts, colors, and borders instantly without touching config files.
+                    </p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #2ea043;">
+                    <span class="icon">⚡</span>
+                    <h3>NVIDIA nvdec Optimization</h3>
+                    <p>
+                        The core Windows engine now explicitly prioritizes NVIDIA's highly efficient <code>nvdec</code> decoder for ultra-smooth rendering on RTX/GTX hardware.
+                    </p>
+                </div>
+                
+                <div class="card reveal" style="border-top: 3px solid #bc8cff;">
+                    <span class="icon">🔊</span>
+                    <h3>Global Volume Control</h3>
+                    <p>
+                        Seamlessly adjust audio levels and trigger the modern glass UOSC volume UI by simply scrolling your mouse wheel anywhere on the video.
+                    </p>
+                </div>
 			
                 <div class="card reveal" style="border-top: 3px solid #e3b341;">
                     <span class="icon">🧠</span>
@@ -888,7 +928,7 @@
     
 	
     <footer>
-        <p>MPV Anime Build v3.2 • Maintained by Chinna95P</p>
+        <p>MPV Anime Build v4.0 • Maintained by Chinna95P</p>
         <p>Credits: bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral), tomasklaen (UOSC), po5 (Thumbfast), @WaruiDevil (Up Next)</p>
     </footer>
 
