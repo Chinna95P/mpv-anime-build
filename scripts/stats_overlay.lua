@@ -23,7 +23,8 @@ local anime_state = {
     mode_on = false,
     mode_off = false,
     vsr_active = false,   -- Track VSR State
-    power_active = false  -- [NEW] Track Power State
+    power_active = false,  -- [NEW] Track Power State
+    hdr_display_mode = "auto" -- [NEW v4.0] Track 3-Way HDR Switch
 }
 
 -- [COLORS]
@@ -46,12 +47,14 @@ local function get_anime_mode_string()
     else return GN .. "AUTO (Detection)" end
 end
 
--- [v2.2] ADVANCED SHADER DETECTION
+-- [v2.2] ADVANCED SHADER DETECTION (Updated for v4.0 ArtCNN)
 local function get_active_shader()
     local shaders = mp.get_property("glsl-shaders") or ""
     if shaders == "" then return "Native (Lanczos/Spline)" end
     
-    -- 1. Anime4K Detection
+    -- 1. Anime4K / ArtCNN Detection
+    if string.find(shaders, "Ani4Kv2") then return "Anime4K (ArtCNN Ani4Kv2)" end
+    if string.find(shaders, "AniSD") then return "Anime4K (ArtCNN AniSD)" end
     if string.find(shaders, "Anime4K") then return "Anime4K (Active)" end
     
     -- 2. FSRCNNX Detection (Specific Variants First)
@@ -102,14 +105,20 @@ local function get_hdr_status()
     local prim = mp.get_property("video-params/primaries")
     local hint = mp.get_property("target-colorspace-hint")
     
+    -- Get the 3-Way Switch State
+    local switch_mode = ""
+    if anime_state.hdr_display_mode == "hdr" then switch_mode = " [Forced HDR]"
+    elseif anime_state.hdr_display_mode == "sdr" then switch_mode = " [Forced SDR]"
+    else switch_mode = " [Auto]" end
+    
     -- Check for HDR Content (BT.2020 or DCI-P3)
     if prim == "bt.2020" or prim == "dci-p3" then
         if hint == "yes" then 
-            return GN .. "HDR (Passthrough)"
+            return GN .. "HDR (Passthrough)" .. GR .. switch_mode
         else 
             -- Get the active algorithm name
             local tm_method = mp.get_property("tone-mapping") or "unknown"
-            return CY .. "HDR (Tone-Mapping) [" .. tm_method .. "]" 
+            return CY .. "HDR (Tone-Mapping) [" .. tm_method .. "]" .. GR .. switch_mode
         end
     end
     return GR .. "SDR (Standard)"
