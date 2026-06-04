@@ -9,6 +9,8 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | :--- | :--- | :--- |
 | **`Left Click`** | **Pause** | Cycle pause/play. |
 | **`Double Click`** | **Fullscreen** | Cycle fullscreen. |
+| **`Scroll Wheel Up`** | **Vol +1 (Global)** | Scroll up **anywhere** on the screen to increase volume & trigger the UOSC flash UI. |
+| **`Scroll Wheel Down`** | **Vol -1 (Global)** | Scroll down **anywhere** on the screen to decrease volume & trigger the UOSC flash UI. |
 | **`Back Thumb Btn`** | **Prev Chapter** | Go to previous chapter. |
 | **`Fwd Thumb Btn`** | **Next Chapter** | Go to next chapter. |
 
@@ -116,6 +118,8 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+4`** | **Mode AA** | Anime4K Mode A+A (Ultra Sharp). |
 | **`CTRL+5`** | **Mode BB** | Anime4K Mode B+B (Ultra Soft). |
 | **`CTRL+6`** | **Mode CA** | Anime4K Mode C+A (Denoise+Restore). |
+| **`CTRL+7`** | **Mode Ani4Kv2**| Apply next-gen **ArtCNN Ani4Kv2** shaders. |
+| **`CTRL+8`** | **Mode AniSD** | Apply next-gen **ArtCNN AniSD** shaders. |
 | **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
 | **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
 | **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD seperately). <br>*(Remembers the preference for the SD/HD resolution: NNEDI3 ↔ FSRCNNX)* |

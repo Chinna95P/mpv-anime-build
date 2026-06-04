@@ -4,6 +4,21 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.1] – The "Resolution-Aware Fidelity" Update
+
+### ✨ New Features
+* **Resolution-Aware Engine Persistence:** 
+  * The Fidelity (`FSRCNNX`) vs. Performance (`Anime4K`) toggle is no longer a single global setting.
+  * The build now tracks and remembers your preference **independently per resolution tier** (`SD`, `HD`, `FHD`, `2K`, `4K`, `8K`). You can now automatically use pure FSRCNNX line processing for 1080p Blu-rays while keeping aggressive Anime4K upscaling active for 720p streams.
+* **ArtCNN Compute Profiling:** Reworked the `Ani4Kv2` and `AniSD` shader pipelines. Selecting **Fast Quality** now uses standard general loops, while **HQ Quality** leverages your GPU's parallel hardware by triggering dedicated Compute shaders (`*_CMP.glsl`).
+* **Direct ArtCNN Hotkeys:** Added dedicated `input.conf` shortcuts (`CTRL+7` and `CTRL+8`) to instantly swap to the new ArtCNN models without opening the UOSC menu.
+
+### ⚡ Telemetry & Logic Fixes
+* **Streamlined HDR Gate Optimization:** Completely overhauled the `hdr_detect.lua` execution flow. Heavy OS-level color parameter tracking and PowerShell/WMI scanning are now locked strictly inside the `Auto` logic gate. When explicitly switching to **HDR Display** or **SDR Display** mode, the script skips background OS checks entirely to eliminate micro-stutters and ensure optimal frame delivery.
+* **Stats Overlay Sync:** Updated the Neon Glass overlay to accurately read and display the new per-resolution fidelity states dynamically.
+
+---
+
 ## [v4.0] – The "ArtCNN & Display Engine" Update
 
 ### ✨ New Features

@@ -1,6 +1,5 @@
-# 🎬 MPV Anime Build v4.0
-> **The Performance & Audio Update: Ultimate Playback, Smart Automation, and Unmatched Fidelity.**
-> **The ArtCNN & Display Engine Update: Next-Gen Upscaling, Robust HDR, and Ultimate Control.**
+# 🎬 MPV Anime Build v4.1
+> **The Resolution-Aware Fidelity Update: Targeted Upscaling Engines, Next-Gen ArtCNN Compute Pipelines, and Custom Telemetry.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -14,11 +13,13 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in v4.0
-* **🧠 ArtCNN Neural Upscaling (v4.0):** Integrated **Ani4Kv2** and **AniSD** (ArtCNN) shaders into the Anime4K profiles. These next-generation models provide unprecedented line-art reconstruction and noise removal for anime.
-* **📺 3-Way HDR Display Switch (v4.0):** Overhauled the HDR engine with a new 3-way toggle (**Auto**, **HDR Display**, **SDR Display**). If Windows auto-detection fails, you can now permanently lock MPV into True Passthrough or Tone-Mapping mode.
+## 🚀 What's New in (v4.0 - v4.1)
+* **🧠 Resolution-Aware Engine Persistence (v4.1):** The toggle choice between **Anime Fidelity (FSRCNNX)** and **Performance (Anime4K)** is now tracked and remembered **independently per resolution tier**. Mix and match purist edge refinement for 1080p content while running aggressive upscaling on 720p content completely automatically.
+* **💻 ArtCNN Compute Engine Optimizations (v4.1):** Next-gen `Ani4Kv2` and `AniSD` rendering engines now leverage dynamic compute profiles. **Fast Quality** utilizes general loops, while **HQ Quality** triggers parallel hardware Compute pipelines (`*_CMP.glsl`) to maximize your graphics card's hardware capabilities.
+* **📺 Advanced 3-Way HDR Matrix Switch (v4.0):** Overhauled the display engine output to route through an explicit 3-way layout loop: **Auto**, **HDR Display (Passthrough)**, and **SDR Display (Tone-Mapping)**.
 * **🔤 Interactive Subtitle Styling (v4.0):** Fine-tune your subtitle fonts, colors, and borders directly from the new Subtitles section in the UOSC Controls Menu.
-* **🔊 Global Scroll Volume (v4.0):** Easily adjust your volume by scrolling the mouse wheel anywhere on the video screen.
+* **🔊 Screen-Wide Scroll Volume Engine (v4.0):** Adjust sound balances comfortably by using your mouse scroll wheel anywhere across the video output field, syncing natively with the custom smoked glass volume popups.
+* **⌨️ New ArtCNN Control Interfacing (v4.0):** Quick-swap layout styles on the fly using standard keyboard overrides (`CTRL+7` for Ani4Kv2 and `CTRL+8` for AniSD).
 * **⚡ NVIDIA Decoding Priority (v4.0):** The Windows core engine now prioritizes `nvdec` hardware decoding, ensuring maximum performance and lower power draw for RTX/GTX users.
 
 ---

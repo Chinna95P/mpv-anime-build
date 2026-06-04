@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.0 (Added ArtCNN Shaders, Ani4Kv2 and AniSD Modes)
---    UPDATED:  2026-06-03
+--    VERSION:  v4.1 (Fixed the ArtCNN Fast & HQ modes, added Fidelity & Anime4K Modes for Resolution Tier)
+--    UPDATED:  2026-06-04
 -- ]]
 
 local mp = require("mp")
@@ -46,7 +46,14 @@ local current_profile = ""
 local shaders_master_switch = true
 
 -- Anime Fidelity State
-local anime_fidelity = true 
+local user_anime_fidelity = {
+    SD     = true,
+    HD     = true,
+    FHD    = true,
+    ["2K"] = true,
+    ["4K"] = true,
+    ["8K"] = true
+} 
 
 local zoom_mode = "fit" 
 
@@ -154,9 +161,11 @@ end
 local function sync_state()
     -- 1. Determine active context
     local is_anime_active = (current_profile == "anime-shaders")
+	local res = get_resolution_mode()
+    local current_fidelity = user_anime_fidelity[res]
 	-- [v2.2 FIX] Determine Logic based strictly on Active Profile Name
     local p = current_profile or ""
-    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and anime_fidelity)
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and current_fidelity)
     local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
     
     -- 2. Define the state table
@@ -168,7 +177,7 @@ local function sync_state()
         anime4k_hq = (a4k_q == "hq"),
         
         -- Fidelity State
-        anime_fidelity = anime_fidelity,
+        anime_fidelity = current_fidelity,
         
         -- Zoom State
         zoom_mode = zoom_mode,
@@ -218,7 +227,7 @@ local function sync_state()
         active_nnedi   = user_nnedi[is_anime_active and "anime" or "live"][get_resolution_mode()],
 		
         -- [LOGIC] Grey out Anime4K if: Not in Anime Mode OR Fidelity is ON
-        anime4k_allowed = (is_anime_active and not anime_fidelity), 
+        anime4k_allowed = (is_anime_active and not current_fidelity), 
         
         audio_upmix = (string.find(mp.get_property("af") or "", "surround") ~= nil),
         -- Detect Night Mode (DynAudNorm)
@@ -275,12 +284,13 @@ local function profile_message()
     
 	-- Define the Sharpen Icon logic
     -- Icon shows IF enabled AND (Not in Anime Mode OR using Fidelity/FSRCNNX)
-    local is_a4k = (current_profile == "anime-shaders" and not anime_fidelity)
+    local res = get_resolution_mode()
+    local is_a4k = (current_profile == "anime-shaders" and not user_anime_fidelity[res])
     local shp_icon = (sharpen_enabled and not is_a4k) and (C.CYAN .. " ✨") or ""
 	
     if current_profile == "anime-shaders" then
-        if anime_fidelity then
-            local res = get_resolution_mode()
+        local res = get_resolution_mode()
+        if user_anime_fidelity[res] then
             local res_label = "FSRCNNX"
             
             if res == "SD" then res_label = "FSRCNNX (Anime SD)"
@@ -318,8 +328,15 @@ local function load_anime_mode()
     for l in f:lines() do
         local v = l:match("anime_mode=(%S+)")
         if v then anime_mode = v end
-        local fid = l:match("fidelity=(%S+)")
-        if fid then anime_fidelity = (fid == "true") end
+        -- Catch old migration format if present
+        local fid = l:match("^fidelity=(%S+)")
+        if fid then for k, v in pairs(user_anime_fidelity) do user_anime_fidelity[k] = (fid == "true") end end
+        
+        -- Load new per-resolution format
+        local res_fid, f_val = l:match("fidelity_(%w+)=(%S+)")
+        if res_fid and user_anime_fidelity[res_fid] then 
+            user_anime_fidelity[res_fid] = (f_val == "true") 
+        end
         local sd_m = l:match("sd_mode=(%S+)")
         if sd_m then sd_mode = sd_m end
         local sd_o = l:match("sd_override=(%S+)")
@@ -362,7 +379,9 @@ local function save_anime_mode()
     local f = io.open(anime_opts_path, "w")
     if f then 
         f:write("anime_mode=" .. anime_mode .. "\n")
-        f:write("fidelity=" .. tostring(anime_fidelity) .. "\n")
+        for res, val in pairs(user_anime_fidelity) do
+            f:write("fidelity_" .. res .. "=" .. tostring(val) .. "\n")
+        end
         f:write("sd_mode=" .. sd_mode .. "\n")
         f:write("sd_override=" .. tostring(sd_manual_override) .. "\n")
         f:write("hd_override=" .. tostring(hd_manual_override) .. "\n")
@@ -530,8 +549,8 @@ local A4K = {
         AA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
         BB="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
         CA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Upscale_Denoise_CNN_x2_L.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_L.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_L.glsl",
-		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2_CMP.glsl",
-		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4_CMP.glsl",
+		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2.glsl",
+		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4.glsl",
 	},
     hq = {
         A="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
@@ -588,7 +607,7 @@ local function apply_fsrcnnx()
     -- 1. DETERMINE BASE CHAIN & CUSTOM PATH
     if is_anime then
         -- [ANIME LOGIC]
-        if not anime_fidelity then return end 
+        if not user_anime_fidelity[res] then return end 
         
         -- A. Normalize Resolution Key (Treat 2K as FHD/1080p)
         local lookup_res = res
@@ -747,7 +766,8 @@ local function evaluate()
     if is_anime then
         apply_profile("anime-shaders")
         
-        if anime_fidelity then
+        local active_res = get_resolution_mode()
+        if user_anime_fidelity[active_res] then
             apply_fsrcnnx()
         else
             apply_anime4k()
@@ -796,6 +816,8 @@ local function get_anime_menu_json()
 
     local res = get_resolution_mode()
     local ctx = (current_profile == "anime-shaders" and "anime" or "live")
+	
+	local current_fidelity = user_anime_fidelity[res] --[New v4.1]
     
     -- Gather States
     local s_on = shaders_master_switch
@@ -807,7 +829,7 @@ local function get_anime_menu_json()
     
     -- [v2.2 FIX] Menu Visual State based strictly on Profile Name
     local p = current_profile or ""
-    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and anime_fidelity)
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and current_fidelity)
     local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
 
     -- Logic for SD Mode Lock (Locked if we are in SD but FSRCNNX is running)
@@ -815,8 +837,8 @@ local function get_anime_menu_json()
 
     local a4k_q, a4k_m = get_current_a4k()
     local s_a4k_hq = (a4k_q == "hq")
-    local s_fidelity = anime_fidelity
-    local s_anime4k_allowed = (current_profile == "anime-shaders" and not anime_fidelity)
+    local s_fidelity = current_fidelity
+    local s_anime4k_allowed = (current_profile == "anime-shaders" and not current_fidelity)
 
     -- Anime4K Modes
     local s_m_a = (a4k_m == "A")
@@ -1106,14 +1128,17 @@ mp.register_script_message("toggle-anime-fidelity", function()
         return
     end
     
-    anime_fidelity = not anime_fidelity
+    -- Toggle specifically for current resolution tier
+    local res = get_resolution_mode()
+    user_anime_fidelity[res] = not user_anime_fidelity[res]
+    
     save_anime_mode() 
     evaluate() 
     
-    local status = anime_fidelity and (C.CYAN .. "FSRCNNX (Anime Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
-    show_temp_osd(C.YELLOW .. "Anime Shader: " .. status, 2)
+    local status = user_anime_fidelity[res] and (C.CYAN .. "FSRCNNX (Anime Fidelity)") or (C.MAGENTA .. "Anime4K (Performance)")
+    show_temp_osd(C.YELLOW .. "Anime Shader [" .. res .. "]: " .. status, 2)
     sync_state()
-	update_uosc_menu()
+    update_uosc_menu()
 end)
 
 mp.register_script_message("set-hdr-display-mode", function(mode)
