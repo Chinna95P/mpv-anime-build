@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.1 (Fixed the ArtCNN Fast & HQ modes, added Fidelity & Anime4K Modes for Resolution Tier)
---    UPDATED:  2026-06-04
+--    VERSION:  v4.2 (Added Anime4K Ultra Mode and Modified the UOSC menu for it)
+--    UPDATED:  2026-06-10
 -- ]]
 
 local mp = require("mp")
@@ -175,6 +175,9 @@ local function sync_state()
         shaders_enabled = shaders_master_switch,
         
         anime4k_hq = (a4k_q == "hq"),
+        anime4k_ultra = (a4k_q == "ultra"),
+        anime4k_fast = (a4k_q == "fast"),
+        anime4k_quality = a4k_q,
         
         -- Fidelity State
         anime_fidelity = current_fidelity,
@@ -561,7 +564,17 @@ local A4K = {
         CA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Upscale_Denoise_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_M.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
 		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2_CMP.glsl",
 		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4_CMP.glsl",
-	}
+	},
+	ultra = {
+        A  = "~~/shaders/Anime4K-Ultra.glsl",
+        B  = "~~/shaders/Anime4K-Ultra_Sh.glsl",
+        C  = "~~/shaders/Anime4K-Ultra_SSh.glsl",
+        AA = "~~/shaders/Anime4K-Ultra_DbL.glsl",
+        BB = "~~/shaders/Anime4K-Ultra_DbH.glsl",
+        CA = "~~/shaders/Anime4K-Ultra_DbH_Sharp.glsl",
+        Ani4Kv2 = "~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2.glsl",
+        AniSD   = "~~/shaders/AniSD_ArtCNN_C4F32_i4.glsl",
+    }
 }
 
 local function apply_anime4k()
@@ -839,6 +852,15 @@ local function get_anime_menu_json()
     local s_a4k_hq = (a4k_q == "hq")
     local s_fidelity = current_fidelity
     local s_anime4k_allowed = (current_profile == "anime-shaders" and not current_fidelity)
+    
+    -- Dynamic Labels for Ultra Mode Descriptions
+    local is_ultra = (a4k_q == "ultra")
+    local label_a  = is_ultra and "Mode A (FSR+Thin)" or "Mode A (Blur+Noise)"
+    local label_b  = is_ultra and "Mode B (Post-Sharpen)" or "Mode B (Blur Only)"
+    local label_c  = is_ultra and "Mode C (Pre-Sharpen)" or "Mode C (Noise Only)"
+    local label_aa = is_ultra and "Mode A+A (DbL Recommended)" or "Mode A+A (High Fid.)"
+    local label_bb = is_ultra and "Mode B+B (DbH Deblur)" or "Mode B+B (Sharpness)"
+    local label_ca = is_ultra and "Mode C+A (DbH Sharp)" or "Mode C+A (Restore)"
 
     -- Anime4K Modes
     local s_m_a = (a4k_m == "A")
@@ -904,14 +926,14 @@ local function get_anime_menu_json()
             muted = not s_anime4k_allowed,
             hint = not s_anime4k_allowed and "Disabled (Fidelity ON)" or "",
             items = {
-				{ title = "Mode Ani4Kv2 (ArtCNN)", value = "script-message anime4k-mode Ani4Kv2", active = s_m_ani4kv2 },
-				{ title = "Mode AniSD (ArtCNN)", value = "script-message anime4k-mode AniSD", active = s_m_anisd },
-                { title = "Mode A (Blur+Noise)", value = "script-message anime4k-mode A", active = s_m_a },
-                { title = "Mode B (Blur Only)",  value = "script-message anime4k-mode B", active = s_m_b },
-                { title = "Mode C (Noise Only)", value = "script-message anime4k-mode C", active = s_m_c },
-                { title = "Mode A+A (High Fid.)",value = "script-message anime4k-mode AA", active = s_m_aa },
-                { title = "Mode B+B (Sharpness)",value = "script-message anime4k-mode BB", active = s_m_bb },
-                { title = "Mode C+A (Restore)",  value = "script-message anime4k-mode CA", active = s_m_ca },
+                { title = "Mode Ani4Kv2 (ArtCNN)", value = "script-message anime4k-mode Ani4Kv2", active = s_m_ani4kv2 },
+                { title = "Mode AniSD (ArtCNN)", value = "script-message anime4k-mode AniSD", active = s_m_anisd },
+                { title = label_a,  value = "script-message anime4k-mode A", active = s_m_a },
+                { title = label_b,  value = "script-message anime4k-mode B", active = s_m_b },
+                { title = label_c,  value = "script-message anime4k-mode C", active = s_m_c },
+                { title = label_aa, value = "script-message anime4k-mode AA", active = s_m_aa },
+                { title = label_bb, value = "script-message anime4k-mode BB", active = s_m_bb },
+                { title = label_ca, value = "script-message anime4k-mode CA", active = s_m_ca },
             }
         },
         {
@@ -996,7 +1018,17 @@ local function get_anime_menu_json()
                 
                 { title = "====(Anime Options)====", value = "ignore", bold = true },
                 { title = "Anime Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
-                { title = "Anime4K Quality: " .. (s_a4k_hq and "HQ" or "Fast"), value = "script-binding toggle-anime4k-quality", active = s_a4k_hq, muted = not s_anime4k_allowed },
+                {
+					title = "Anime4K Quality",
+					icon = "high_quality",
+					muted = not s_anime4k_allowed,
+					hint = not s_anime4k_allowed and "Disabled" or a4k_q:upper(),
+					items = {
+						{ title = "Fast (Performance)", active = (a4k_q == "fast"), value = "script-message set-anime4k-quality fast" },
+						{ title = "HQ (High Quality)", active = (a4k_q == "hq"), value = "script-message set-anime4k-quality hq" },
+						{ title = "Ultra (Th-Underscore)", active = (a4k_q == "ultra"), value = "script-message set-anime4k-quality ultra" },
+					}
+				},
             }
         },
         
@@ -1235,25 +1267,60 @@ mp.add_key_binding(nil, "anime-mode-off", function()
     sync_state()
 end)
 
+mp.register_script_message("set-anime4k-quality", function(quality)
+    if external_power_active then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
+        return
+    end
+    if current_profile ~= "anime-shaders" then return end
+    
+    local res = get_resolution_mode()
+    if user_anime_fidelity[res] then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Disable Fidelity Mode first.", 2)
+        return
+    end
+    
+    user_anime4k[res].quality = quality
+    
+    save_anime4k()
+    apply_anime4k()
+    show_temp_osd(profile_message(), 2)
+    sync_state()
+    update_uosc_menu()
+end)
+
 mp.add_key_binding(nil, "toggle-anime4k-quality", function()
     if external_power_active then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Power Saving Mode Active", 2)
         return
     end
     if current_profile ~= "anime-shaders" then return end
-    if anime_fidelity then
+    
+    local res = get_resolution_mode()
+    if user_anime_fidelity[res] then
         show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Disable Fidelity Mode first.", 2)
         return
     end
     
-    local res = get_resolution_mode()
+    -- Cycle through the 3 modes: fast -> hq -> ultra -> fast
     local current_q = user_anime4k[res].quality
-    user_anime4k[res].quality = (current_q == "fast") and "hq" or "fast"
+    local next_q = "fast"
+    
+    if current_q == "fast" then 
+        next_q = "hq"
+    elseif current_q == "hq" then 
+        next_q = "ultra"
+    elseif current_q == "ultra" then 
+        next_q = "fast"
+    end
+    
+    user_anime4k[res].quality = next_q
     
     save_anime4k()
     apply_anime4k()
     show_temp_osd(profile_message(), 2)
     sync_state()
+    update_uosc_menu()
 end)
 
 mp.add_key_binding(nil, "show-profile-info", function()

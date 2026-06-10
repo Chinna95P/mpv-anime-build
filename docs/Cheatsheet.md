@@ -111,7 +111,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`CTRL+g`** | **Master Switch** | Toggle ALL Shaders ON/OFF (Persistent). |
 | **`CTRL+;`** | **Mode: On** | Force Anime Mode ON. |
 | **`CTRL+'`** | **Mode: Off** | Force Anime Mode OFF. |
-| **`L`** | **Anime4K Qual** | Toggle Anime4K Quality (Fast ↔ HQ). |
+| **`L`** | **Anime4K Qual** | Toggle Anime4K Quality (Fast ↔ HQ ↔ Ultra). |
 | **`CTRL+1`** | **Mode A** | Anime4K Mode A (Restore+Upscale). |
 | **`CTRL+2`** | **Mode B** | Anime4K Mode B (Soft). |
 | **`CTRL+3`** | **Mode C** | Anime4K Mode C (Denoise). |

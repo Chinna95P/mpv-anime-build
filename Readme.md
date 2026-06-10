@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v4.1
+# 🎬 MPV Anime Build v4.2
 > **The Resolution-Aware Fidelity Update: Targeted Upscaling Engines, Next-Gen ArtCNN Compute Pipelines, and Custom Telemetry.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -13,7 +13,9 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.1)
+## 🚀 What's New in (v4.0 - v4.2)
+* **✨ Anime4K Ultra Tier (v4.2):** Integrated the unified **Anime4K-Ultra** shaders by Th-Underscore. The quality setting is now a 3-tier system (`Fast`, `HQ`, `Ultra`), bringing superior line thinning, pre-sharpen blur-pulls, and de-aliasing to the pipeline.
+* **🔤 Dynamic UI Labels (v4.2):** The UOSC Anime4K Profiles menu now dynamically updates its descriptions based on the active quality tier, mapping specific Th-Underscore files to the correct modes.
 * **🧠 Resolution-Aware Engine Persistence (v4.1):** The toggle choice between **Anime Fidelity (FSRCNNX)** and **Performance (Anime4K)** is now tracked and remembered **independently per resolution tier**. Mix and match purist edge refinement for 1080p content while running aggressive upscaling on 720p content completely automatically.
 * **💻 ArtCNN Compute Engine Optimizations (v4.1):** Next-gen `Ani4Kv2` and `AniSD` rendering engines now leverage dynamic compute profiles. **Fast Quality** utilizes general loops, while **HQ Quality** triggers parallel hardware Compute pipelines (`*_CMP.glsl`) to maximize your graphics card's hardware capabilities.
 * **📺 Advanced 3-Way HDR Matrix Switch (v4.0):** Overhauled the display engine output to route through an explicit 3-way layout loop: **Auto**, **HDR Display (Passthrough)**, and **SDR Display (Tone-Mapping)**.
@@ -243,6 +245,7 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 
 ## 📝 Credits
 * **Anime4K:** bloc97
+* **Anime4K-Ultra:** Th-Underscore
 * **UOSC Skin:** tomasklaen
 * **Thumbfast:** po5
 * **Up Next Script:** @WaruiDevil (Telegram User)

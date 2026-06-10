@@ -805,13 +805,21 @@ function create_default_menu_items()
     -- This uses the global get_anime_state function defined at the bottom of main.lua
     
     -- Calculate Lock States
-    local is_anime = get_anime_state("is_anime_context") -- [NEW] Read Context
+    local is_anime = get_anime_state("is_anime_context")
     local fidelity_active = get_anime_state("anime_fidelity")
-    local a4k_allowed = get_anime_state("anime4k_allowed") -- (is_anime and not fidelity)
+    local a4k_allowed = get_anime_state("anime4k_allowed")
 
-    -- Hint Strings
     local lock_hint = is_anime and "" or " (Locked)"
     local a4k_hint = a4k_allowed and "" or (is_anime and " (Fidelity ON)" or " (Locked)")
+
+    -- Dynamic Labels for Ultra Mode Descriptions
+    local is_ultra = (get_anime_state("anime4k_quality") == "ultra")
+    local label_a  = is_ultra and "Mode A (FSR+Thin)" or "Mode A (Blur+Noise)"
+    local label_b  = is_ultra and "Mode B (Post-Sharpen)" or "Mode B (Blur Only)"
+    local label_c  = is_ultra and "Mode C (Pre-Sharpen)" or "Mode C (Noise Only)"
+    local label_aa = is_ultra and "Mode A+A (DbL Recommended)" or "Mode A+A (High Fid.)"
+    local label_bb = is_ultra and "Mode B+B (DbH Deblur)" or "Mode B+B (Sharpness)"
+    local label_ca = is_ultra and "Mode C+A (DbH Sharp)" or "Mode C+A (Restore)"
 	
 	-- =============================================================================
     -- LOGIC: HDR TONE-MAPPING MENU (Calculated BEFORE table creation)
@@ -940,18 +948,17 @@ function create_default_menu_items()
                 {
                     title = 'Anime4K Profiles',
                     icon = 'palette',
-                    -- [LOCK] Grey out if Anime4K is NOT allowed
                     muted = not a4k_allowed,
                     hint = a4k_hint,
                     items = {
                         { title = 'Mode Ani4Kv2 (ArtCNN)', value = 'script-message anime4k-mode Ani4Kv2', active = get_anime_state("a4k_mode_ani4kv2") },
-						{ title = 'Mode AniSD (ArtCNN)', value = 'script-message anime4k-mode AniSD', active = get_anime_state("a4k_mode_anisd") },
-                        { title = 'Mode A (Blur+Noise)', value = 'script-message anime4k-mode A', active = get_anime_state("a4k_mode_a") },
-                        { title = 'Mode B (Blur Only)',  value = 'script-message anime4k-mode B', active = get_anime_state("a4k_mode_b") },
-                        { title = 'Mode C (Noise Only)', value = 'script-message anime4k-mode C', active = get_anime_state("a4k_mode_c") },
-                        { title = 'Mode A+A (High Fid.)',value = 'script-message anime4k-mode AA', active = get_anime_state("a4k_mode_aa") },
-                        { title = 'Mode B+B (Sharpness)',value = 'script-message anime4k-mode BB', active = get_anime_state("a4k_mode_bb") },
-                        { title = 'Mode C+A (Restore)',  value = 'script-message anime4k-mode CA', active = get_anime_state("a4k_mode_ca") },
+                        { title = 'Mode AniSD (ArtCNN)', value = 'script-message anime4k-mode AniSD', active = get_anime_state("a4k_mode_anisd") },
+                        { title = label_a,  value = 'script-message anime4k-mode A', active = get_anime_state("a4k_mode_a") },
+                        { title = label_b,  value = 'script-message anime4k-mode B', active = get_anime_state("a4k_mode_b") },
+                        { title = label_c,  value = 'script-message anime4k-mode C', active = get_anime_state("a4k_mode_c") },
+                        { title = label_aa, value = 'script-message anime4k-mode AA', active = get_anime_state("a4k_mode_aa") },
+                        { title = label_bb, value = 'script-message anime4k-mode BB', active = get_anime_state("a4k_mode_bb") },
+                        { title = label_ca, value = 'script-message anime4k-mode CA', active = get_anime_state("a4k_mode_ca") },
                     }
                 },
 
@@ -1058,13 +1065,17 @@ function create_default_menu_items()
                          },
                          
                          -- Anime4K Quality Toggle (Greyed out if Fidelity ON or Not Anime)
-                         { 
-                            title = 'Anime4K Quality: ' .. (get_anime_state("anime4k_hq") and "HQ" or "Fast"), 
-                            value = 'script-binding toggle-anime4k-quality', 
-                            active = get_anime_state("anime4k_hq"),
-                            muted = not a4k_allowed,
-                            hint = a4k_hint
-                         },
+                         {
+							title = "Anime4K Quality",
+							icon = "high_quality",
+							muted = not a4k_allowed,
+							hint = not a4k_allowed and a4k_hint or (get_anime_state("anime4k_quality") and get_anime_state("anime4k_quality"):upper() or ""),
+							items = {
+								{ title = "Fast (Performance)", active = get_anime_state("anime4k_fast"), value = "script-message set-anime4k-quality fast" },
+								{ title = "HQ (High Quality)", active = get_anime_state("anime4k_hq"), value = "script-message set-anime4k-quality hq" },
+								{ title = "Ultra (Th-Underscore)", active = get_anime_state("anime4k_ultra"), value = "script-message set-anime4k-quality ultra" },
+							}
+						},
                     }
                 },
 

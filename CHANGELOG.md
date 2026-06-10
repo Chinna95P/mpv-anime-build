@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.2] – The "Anime4K Ultra" Update
+
+### ✨ New Features
+* **Anime4K Ultra Tier Integration:** 
+  * Upgraded the Anime4K pipeline to include the highly optimized **Anime4K-Ultra** shaders by **Th-Underscore**. This bypasses the old modular chains in favor of unified, single-pass shaders for superior performance, line thinning, and de-aliasing.
+  * The "Anime4K Quality" toggle has been upgraded to a **3-tier Sub-Menu**: `Fast` (Performance), `HQ` (High Quality), and the new `Ultra` (Th-Underscore).
+* **Dynamic Menu Labels:** The UOSC "Anime4K Profiles" menu now dynamically updates its text descriptions based on the active quality tier (e.g., Mode A+A automatically relabels to "DbL Recommended" when Ultra is active).
+* **Seamless Cycling:** The `L` keybinding has been updated to smoothly cycle through `Fast -> HQ -> Ultra -> Fast` without needing to open the menu.
+
+### 🔧 Credits
+* **Th-Underscore:** Added to the credits for their incredible work on the unified Anime4K-Ultra shader variants.
+
+---
+
 ## [v4.1] – The "Resolution-Aware Fidelity" Update
 
 ### ✨ New Features
