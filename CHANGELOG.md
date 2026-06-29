@@ -4,6 +4,20 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.3] – Audio-Only Profile Fix & Control Update
+
+### ✨ New Features
+* **Audio-Only Profile Control:** Added a new toggle in the UOSC menu and Anime Mode Button (under `Audio & HDR`) to manually control the Audio-Only battery-saving profile. You can now switch between `Auto` (default smart detection) and `Disable` (forces the player to treat all media as standard video).
+* **Smart Status Overlay:** Completely rewritten the status display logic (triggered by `k`).
+  * **Native Data Parsing:** Now uses MPV's native tables to extract filter/shader data, eliminating artifacting symbols (like `%30%`) and ensuring the full, original configuration is displayed.
+  * **Categorized Color-Coding:** Audio filters, Video filters, and Shaders now use distinct color-coded headers for immediate visual identification.
+  * **Intelligent Wrapping:** Added automatic text wrapping and indentation logic so long shader paths or complex filter chains remain perfectly organized and readable without screen overflow.
+
+### 🐛 Fixed
+* **iGPU Race Condition Fix:** Fixed a critical bug affecting users with integrated graphics or slower CPUs where video files (MKV, MP4) were incorrectly flagged as audio files. Implemented a smart deferral check that waits for the demuxer to fully populate the track list before evaluating the media type.
+
+---
+
 ## [v4.2] – The "Anime4K Ultra" Update
 
 ### ✨ New Features

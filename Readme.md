@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v4.2
+# 🎬 MPV Anime Build v4.3
 > **The Resolution-Aware Fidelity Update: Targeted Upscaling Engines, Next-Gen ArtCNN Compute Pipelines, and Custom Telemetry.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -13,7 +13,9 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.2)
+## 🚀 What's New in (v4.0 - v4.3)
+* **🎵 Audio-Only Smart Toggle & Fix (v4.3):** Added a new UOSC menu toggle to enable (`Auto`) or completely bypass (`Disable`) the audio-only battery-saving profile. Fixed a major race condition that incorrectly applied audio-profiles to video files on systems without discrete GPUs.
+* **Status Overlay Overhaul (v4.3):** The status view now features structured, color-coded layouts for audio/video filters and shaders. Implemented smart text wrapping and native table parsing to eliminate string artifacts and ensure perfect readability on all screen resolutions. Press 'k' for A/V Filter and Shaders Info
 * **✨ Anime4K Ultra Tier (v4.2):** Integrated the unified **Anime4K-Ultra** shaders by Th-Underscore. The quality setting is now a 3-tier system (`Fast`, `HQ`, `Ultra`), bringing superior line thinning, pre-sharpen blur-pulls, and de-aliasing to the pipeline.
 * **🔤 Dynamic UI Labels (v4.2):** The UOSC Anime4K Profiles menu now dynamically updates its descriptions based on the active quality tier, mapping specific Th-Underscore files to the correct modes.
 * **🧠 Resolution-Aware Engine Persistence (v4.1):** The toggle choice between **Anime Fidelity (FSRCNNX)** and **Performance (Anime4K)** is now tracked and remembered **independently per resolution tier**. Mix and match purist edge refinement for 1080p content while running aggressive upscaling on 720p content completely automatically.

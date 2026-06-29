@@ -1094,6 +1094,13 @@ function create_default_menu_items()
                     title = 'Audio & HDR',
                     icon = 'volume_up',
                     items = {
+						-- [NEW] Audio-Only Profile Toggle
+						{
+							title = 'Audio-Only Profile',
+							hint = get_anime_state("audio_only_mode_state") or "Auto",
+							value = 'script-message toggle-audio-only',
+							active = get_anime_state("audio_only_mode_state") == "Auto"
+						},
 						-- [NEW] Night Mode
                         { title = 'Audio: Night Mode (DRC)', value = 'script-message toggle-audio-nightmode', active = get_anime_state("night_mode") },
 						{ title = 'Audio: Spatial Mode', value = 'script-message toggle-audio-spatial', active = get_anime_state("spatial_active") },

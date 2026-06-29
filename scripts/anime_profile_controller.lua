@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.2 (Added Anime4K Ultra Mode and Modified the UOSC menu for it)
---    UPDATED:  2026-06-10
+--    VERSION:  v4.3 (Fixed Audio-Only Profile issues and added toggle for it)
+--    UPDATED:  2026-06-29
 -- ]]
 
 local mp = require("mp")
@@ -61,6 +61,7 @@ local zoom_mode = "fit"
 local spatial_active = false
 local upmix_active = false
 local night_mode_active = false
+local audio_only_mode = "Auto" -- Defaults to Auto
 
 -- Live Action States
 local sd_mode = "clean"          
@@ -199,6 +200,9 @@ local function sync_state()
         audio_upmix = upmix_active,
         night_mode = night_mode_active,
         spatial_active = spatial_active,
+
+        -- [NEW] Audio-Only Profile Toggle
+        audio_only_mode_state = audio_only_mode,
 		
 		-- [NEW] Sync Smart Features
         up_next_enabled = up_next_enabled,
@@ -722,27 +726,31 @@ local function evaluate()
     end
 	
 	-- [NEW] AUDIO PRIORITY OVERRIDE
-    -- If no video is present, or if it's strictly audio/album art, apply Audio profile and exit.
-    local vid_state = mp.get_property("vid")
-    local has_real_video = false
-    
-    for _, track in ipairs(track_list) do
-        -- A real video track is of type "video" but is NOT an image attachment
-        if track.type == "video" and not track.image then
-            has_real_video = true
-            break
-        end
-    end
+	local track_list = mp.get_property_native("track-list") or {}
 
-    -- Apply Audio-Only ONLY if video is explicitly disabled or no real video track exists
-    if vid_state == "no" or not has_real_video then
-        apply_profile("Audio-Only")
+	-- FIX: If the track list is completely empty, the file is still being demuxed
+	-- (very common on iGPU/slower machines). Defer evaluation to let mpv catch up.
+	if #track_list == 0 then
+        mp.add_timeout(0.2, evaluate)
         return
-    end
+        end
 
-    -- B. Live Action Overrides (Logical OR)
-    -- Checks path AND title for keywords like "live action", "drama"
-    local signal_live_action = is_live_action(path, title)
+        local vid_state = mp.get_property("vid")
+        local has_real_video = false
+
+        for _, track in ipairs(track_list) do
+            -- A real video track is of type "video" but is NOT an image attachment
+            if track.type == "video" and not track.image then
+                has_real_video = true
+                break
+                end
+                end
+
+                -- Apply Audio-Only ONLY if Auto mode is ON and no real video track exists
+                if audio_only_mode == "Auto" and (vid_state == "no" or not has_real_video) then
+                    apply_profile("Audio-Only")
+                    return
+                    end
 	
 	-- [NEW] 8K PRIORITY OVERRIDE
     -- If 8K is detected, force the optimized profile and exit immediately.
@@ -1044,6 +1052,14 @@ local function get_anime_menu_json()
             title = "Audio & HDR",
             icon = 'volume_up',
             items = {
+                -- [NEW] Audio-Only Profile Toggle
+                {
+                    title = "Audio-Only Profile",
+                    hint = audio_only_mode,
+                    value = "script-message toggle-audio-only",
+                    active = audio_only_mode == "Auto"
+                },
+                -- Audio Enhancement Settings
                 { title = "Audio: Night Mode (DRC)", value = "script-message toggle-audio-nightmode", active = s_night_mode },
 				{ title = "Audio: Spatial Mode", value = "script-message toggle-audio-spatial", active = s_spatial },
                 { title = "Audio: Toggle 7.1 Upmix", value = "script-message toggle-audio-upmix", active = s_upmix },
@@ -1266,6 +1282,20 @@ mp.add_key_binding(nil, "anime-mode-off", function()
     show_temp_osd(profile_message(), 2)
     sync_state()
 end)
+
+mp.register_script_message("toggle-audio-only", function()
+if audio_only_mode == "Auto" then
+    audio_only_mode = "Disable"
+    else
+        audio_only_mode = "Auto"
+        end
+
+        sync_state() -- Broadcast the new state to UOSC
+        show_temp_osd("🎵 Audio-Only Mode: " .. audio_only_mode, 2)
+
+        -- Re-evaluate the current file to apply or remove the profile instantly
+        evaluate()
+        end)
 
 mp.register_script_message("set-anime4k-quality", function(quality)
     if external_power_active then
