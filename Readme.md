@@ -14,6 +14,12 @@ An advanced configuration for **mpv-android (mpvEX, Aniyomi, official mpv-androi
 | ![Anime4K](screenshots/mpv%20(9).jpg) | ![FSRCNNX](screenshots/mpv%20(3).jpg) | ![Live](screenshots/mpv%20(1).jpg) | ![Battery](screenshots/mpv%20(11).jpg) |
 | **Modern / Stylized** | **Purist / Fidelity** | **Natural Detail** | **Zero Drain** |
 
+## 📱 Android Releases Download
+
+<a href="https://github.com/Chinna95P/mpv-anime-build/releases?q=android">
+  <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
+</a>
+
 ## 📥 Installation
 
 1.  **Download Files:** Switch to the `android` branch and download the ZIP.
