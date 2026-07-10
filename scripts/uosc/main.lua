@@ -810,7 +810,7 @@ function create_default_menu_items()
     local a4k_allowed = get_anime_state("anime4k_allowed")
 
     local lock_hint = is_anime and "" or " (Locked)"
-    local a4k_hint = a4k_allowed and "" or (is_anime and " (Fidelity ON)" or " (Locked)")
+    local a4k_hint = a4k_allowed and "" or (is_anime and "Disabled (Fidelity ON)" or " (Locked)")
 
     -- Dynamic Labels for Ultra Mode Descriptions
     local is_ultra = (get_anime_state("anime4k_quality") == "ultra")
@@ -933,16 +933,40 @@ function create_default_menu_items()
             items = {
                 -- 1. Anime Mode Sub-Menu
                 {
-                    title = 'Anime Mode: ' .. (get_anime_state("mode_on") and "ON" or (get_anime_state("mode_off") and "OFF" or "AUTO")),
+                    title = 'Anime Detection Mode: ' .. (get_anime_state("mode_on") and "ON" or (get_anime_state("mode_off") and "OFF" or "AUTO")),
                     icon = 'tv',
                     items = {
                         { title = "====(Auto-Detection Modes)====", value = "ignore", bold = true },
-                        { title = 'Mode: Auto (Default)', value = 'script-binding anime-mode-auto', active = get_anime_state("mode_auto") },
-                        { title = 'Mode: Force On (Anime4K)', value = 'script-binding anime-mode-on', active = get_anime_state("mode_on") },
+                        { title = 'Mode: Auto (Auto Detection)', value = 'script-binding anime-mode-auto', active = get_anime_state("mode_auto") },
+                        { title = 'Mode: Force On (Anime Mode)', value = 'script-binding anime-mode-on', active = get_anime_state("mode_on") },
                         { title = 'Mode: Force Off (Native HQ)', value = 'script-binding anime-mode-off', active = get_anime_state("mode_off") },
                         { title = 'Show Status Info', value = 'script-binding show-profile-info', icon = 'info' },
                     }
                 },
+
+				-- [NEW] Anime Fidelity Toggle
+				-- Active: If Fidelity is ON
+				-- Muted: ONLY if we are NOT in Anime Context. (Unlocked for both Fidelity and Anime4K modes)
+				{
+					title = "Anime Shaders Mode: " .. (fidelity_active and "FSRCNNX" or "Anime4K"),
+					value = "script-message toggle-anime-fidelity",
+					active = fidelity_active,
+					muted = not is_anime,
+					hint = lock_hint
+				},
+
+				-- Anime4K Quality Toggle (Greyed out if Fidelity ON or Not Anime)
+				{
+					title = "Anime4K Quality",
+					icon = "high_quality",
+					muted = not a4k_allowed,
+					hint = not a4k_allowed and a4k_hint or (get_anime_state("anime4k_quality") and get_anime_state("anime4k_quality"):upper() or ""),
+					items = {
+						{ title = "Fast (Performance)", active = get_anime_state("anime4k_fast"), value = "script-message set-anime4k-quality fast" },
+						{ title = "HQ (High Quality)", active = get_anime_state("anime4k_hq"), value = "script-message set-anime4k-quality hq" },
+						{ title = "Ultra (Th-Underscore)", active = get_anime_state("anime4k_ultra"), value = "script-message set-anime4k-quality ultra" },
+					}
+				},
 
 				-- 2. Anime4K Profiles
                 {
@@ -1050,32 +1074,8 @@ function create_default_menu_items()
                 { title = "RESET TO DEFAULT",       value = "script-message reset-resolution-shader nnedi " .. (get_anime_state("active_context_label") or "live") .. " " .. (get_anime_state("current_res_label") or "SD"), bold = true }
             }
         },
-                         
-                         { title = "====(Anime Options)====", value = "ignore", bold = true },
 
-                         -- [NEW] Anime Fidelity Toggle
-                         -- Active: If Fidelity is ON
-                         -- Muted: ONLY if we are NOT in Anime Context. (Unlocked for both Fidelity and Anime4K modes)
-                         { 
-                             title = "Anime Fidelity: " .. (fidelity_active and "FSRCNNX" or "Anime4K"), 
-                             value = "script-message toggle-anime-fidelity", 
-                             active = fidelity_active,
-                             muted = not is_anime, 
-                             hint = lock_hint 
-                         },
-                         
-                         -- Anime4K Quality Toggle (Greyed out if Fidelity ON or Not Anime)
-                         {
-							title = "Anime4K Quality",
-							icon = "high_quality",
-							muted = not a4k_allowed,
-							hint = not a4k_allowed and a4k_hint or (get_anime_state("anime4k_quality") and get_anime_state("anime4k_quality"):upper() or ""),
-							items = {
-								{ title = "Fast (Performance)", active = get_anime_state("anime4k_fast"), value = "script-message set-anime4k-quality fast" },
-								{ title = "HQ (High Quality)", active = get_anime_state("anime4k_hq"), value = "script-message set-anime4k-quality hq" },
-								{ title = "Ultra (Th-Underscore)", active = get_anime_state("anime4k_ultra"), value = "script-message set-anime4k-quality ultra" },
-							}
-						},
+
                     }
                 },
 

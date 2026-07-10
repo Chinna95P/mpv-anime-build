@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.4] – Performance Optimization & UI Sync
+
+### ✨ New Features & Tweaks
+* **ArtCNN Performance Optimization:** Replaced the heavy Compute (`_CMP`) versions of the Ani4Kv2 and AniSD ArtCNN shaders in the `HQ` tier with their highly-optimized fragment iteration counterparts (`_i2` and `_i4`). This eliminates frame drops and audio desync on mid-range GPUs while maintaining 99% of the visual quality.
+* **UOSC Menu Reorganization:** Logically restructured the UOSC right-click and on-screen menus. Shifted the *Anime Mode Toggle* and *Anime4K Quality* options out of the *Fidelity & Restoration* sub-menu directly into the primary *Anime Mode* sub-menu for faster access.
+
+### 🐛 Fixed
+* **Fidelity Mode Lock Bypass:** Fixed a bug where clicking an Anime4K profile while Anime Fidelity Mode (FSRCNNX) was active would silently apply the shader in the background. The system now correctly intercepts the command, blocks the shader application, and displays a red `Locked: Switch to Anime4K Mode to use.` OSD warning.
+* **Dual-Menu Sync Bug:** Fixed an issue where the right-click UOSC context menu was caching an older layout than the main on-screen Anime menu. Both menus are now perfectly synchronized in `main.lua` and the controller script.
+
+---
+
 ## [v4.3] – Audio-Only Profile Fix & Control Update
 
 ### ✨ New Features

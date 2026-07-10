@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.3 (Fixed Audio-Only Profile issues and added toggle for it)
---    UPDATED:  2026-06-29
+--    VERSION:  v4.4 (Fixed Fidelity mode bugs)
+--    UPDATED:  2026-07-10
 -- ]]
 
 local mp = require("mp")
@@ -566,8 +566,8 @@ local A4K = {
         AA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_Restore_CNN_M.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
         BB="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_VL.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_M.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
         CA="~~/shaders/Anime4K_Clamp_Highlights.glsl;~~/shaders/Anime4K_Upscale_Denoise_CNN_x2_VL.glsl;~~/shaders/Anime4K_AutoDownscalePre_x2.glsl;~~/shaders/Anime4K_AutoDownscalePre_x4.glsl;~~/shaders/Anime4K_Restore_CNN_M.glsl;~~/shaders/Anime4K_Upscale_CNN_x2_M.glsl",
-		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2_CMP.glsl",
-		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4_CMP.glsl",
+		Ani4Kv2="~~/shaders/Ani4Kv2_ArtCNN_C4F32_i2.glsl",
+		AniSD="~~/shaders/AniSD_ArtCNN_C4F32_i4.glsl",
 	},
 	ultra = {
         A  = "~~/shaders/Anime4K-Ultra.glsl",
@@ -918,16 +918,30 @@ local function get_anime_menu_json()
 
     local items = {
         {
-            title = "Anime Mode: " .. (s_force and "ON" or (s_off and "OFF" or "AUTO")),
+            title = "Anime Detection Mode: " .. (s_force and "ON" or (s_off and "OFF" or "AUTO")),
             icon = 'tv',
             items = {
                 { title = "====(Auto-Detection Modes)====", value = "ignore", bold = true },
-                { title = "Mode: Auto (Default)", value = "script-binding anime-mode-auto", active = s_auto },
-                { title = "Mode: Force On (Anime4K)", value = "script-binding anime-mode-on", active = s_force },
+                { title = "Mode: Auto (Auto Detection)", value = "script-binding anime-mode-auto", active = s_auto },
+                { title = "Mode: Force On (Anime Mode)", value = "script-binding anime-mode-on", active = s_force },
                 { title = "Mode: Force Off (Native HQ)", value = "script-binding anime-mode-off", active = s_off },
                 { title = "Show Status Info", value = "script-binding show-profile-info", icon = 'info' },
             }
         },
+
+        { title = "Anime Shaders Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
+        {
+            title = "Anime4K Quality",
+            icon = "high_quality",
+            muted = not s_anime4k_allowed,
+            hint = not s_anime4k_allowed and "Disabled (Fidelity ON)" or a4k_q:upper(),
+            items = {
+                { title = "Fast (Performance)", active = (a4k_q == "fast"), value = "script-message set-anime4k-quality fast" },
+                { title = "HQ (High Quality)", active = (a4k_q == "hq"), value = "script-message set-anime4k-quality hq" },
+                { title = "Ultra (Th-Underscore)", active = (a4k_q == "ultra"), value = "script-message set-anime4k-quality ultra" },
+            }
+        },
+
         {
             title = "Anime4K Profiles",
             icon = 'palette',
@@ -1024,19 +1038,6 @@ local function get_anime_menu_json()
                     }
                 },
                 
-                { title = "====(Anime Options)====", value = "ignore", bold = true },
-                { title = "Anime Fidelity: " .. (s_fidelity and "FSRCNNX" or "Anime4K"), value = "script-message toggle-anime-fidelity", active = s_fidelity },
-                {
-					title = "Anime4K Quality",
-					icon = "high_quality",
-					muted = not s_anime4k_allowed,
-					hint = not s_anime4k_allowed and "Disabled" or a4k_q:upper(),
-					items = {
-						{ title = "Fast (Performance)", active = (a4k_q == "fast"), value = "script-message set-anime4k-quality fast" },
-						{ title = "HQ (High Quality)", active = (a4k_q == "hq"), value = "script-message set-anime4k-quality hq" },
-						{ title = "Ultra (Th-Underscore)", active = (a4k_q == "ultra"), value = "script-message set-anime4k-quality ultra" },
-					}
-				},
             }
         },
         
@@ -1363,12 +1364,17 @@ mp.register_script_message("anime4k-mode", function(mode)
         return
     end
     if current_profile ~= "anime-shaders" then return end
-    if anime_fidelity then return end 
-    
+
+    -- [FIX] Correctly check the fidelity state for the current resolution
     local res = get_resolution_mode()
+    if user_anime_fidelity[res] then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Switch to Anime4K Mode to use.", 2)
+        return
+    end
+
     local a4k_q = user_anime4k[res].quality
     if not A4K[a4k_q][mode] then return end
-    
+
     user_anime4k[res].mode = mode
     save_anime4k()
     apply_anime4k()
