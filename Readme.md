@@ -11,6 +11,10 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **Features:** Gesture Controls, Smart Auto-Detection, and Optimized Shaders for mobile.
 * **Download:** Switch to the [**Android Branch**](https://github.com/Chinna95P/mpv-anime-build/tree/android) to get the mobile-specific files.
 
+<a href="https://github.com/Chinna95P/mpv-anime-build/releases?q=android">
+  <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
+</a>
+
 ---
 
 ## 🚀 What's New in (v4.0 - v4.4)
