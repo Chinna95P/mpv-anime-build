@@ -15,7 +15,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
   <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
 </a>
 
-**Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` for true HDR Passthrough.
+**Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` only once for true HDR Passthrough.
 
 ---
 
