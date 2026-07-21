@@ -17,7 +17,50 @@ require('lib/std')
 -- [PHASE 7: DIRECT BROADCAST LISTENER (ROBUST FIX)]
 
 -- 1. Create a local cache to store the latest state
-local anime_cache = {}
+local anime_cache = { history_enabled = true } -- UPDATED DEFAULT
+
+-- =============================================================================
+-- [NEW] HISTORY ENGINE (ROBUST VERSION)
+-- =============================================================================
+-- Save directly to root mpv folder to avoid missing directory errors
+local history_file = mp.command_native({"expand-path", "~~/uosc_history.json"})
+local watch_history = {}
+local active_video = { path = nil, title = nil, percent = 0 }
+
+local function load_watch_history()
+    local f = io.open(history_file, "r")
+    if f then
+        local content = f:read("*all")
+        f:close()
+        if content and content ~= "" then watch_history = utils.parse_json(content) or {} end
+    end
+end
+
+local function save_watch_history()
+    local f = io.open(history_file, "w")
+    if f then
+        f:write(utils.format_json(watch_history))
+        f:close()
+    end
+end
+
+load_watch_history()
+
+-- 1. Grab file details when it successfully starts
+mp.register_event('file-loaded', function()
+    active_video.path = mp.get_property("path")
+    active_video.title = mp.get_property("media-title")
+    if not active_video.title or active_video.title == "" then
+        active_video.title = (active_video.path or ""):match("([^/\\]+)$") or active_video.path or "Unknown"
+    end
+    active_video.percent = 0
+end)
+
+-- 2. Constantly cache exact percent so we have it BEFORE the file closes
+mp.observe_property("percent-pos", "number", function(_, percent)
+    if percent then active_video.percent = math.floor(percent) end
+end)
+-- =============================================================================
 
 -- 2. Define the Reader Helper (Uses cache instead of get_property)
 function get_anime_state(key)
@@ -910,6 +953,7 @@ function create_default_menu_items()
         {title = t('Audio tracks'), value = 'script-binding uosc/audio'},
         {title = t('Stream quality'), value = 'script-binding uosc/stream-quality'},
         {title = t('Playlist'), value = 'script-binding uosc/items'},
+        {title = t('History'), value = 'script-binding uosc/history', icon = 'history'}, -- [v4.5] History Sub-Menu
         {title = t('Chapters'), value = 'script-binding uosc/chapters'},
         
         {
@@ -1030,6 +1074,14 @@ function create_default_menu_items()
                             muted = not get_anime_state("shaders_enabled"), 
                             hint = not get_anime_state("shaders_enabled") and "Locked (Master OFF)" or ""
                          },
+
+                         {
+                             title = 'Anime Line Thinner', -- [v4.5] Anime Line Thinner Toggle
+                             value = 'script-message toggle-line-thinner',
+                             active = get_anime_state("line_thinner_enabled"),
+                             -- Dims the text if the parent Fidelity mode is not active
+                             muted = not (get_anime_state("is_anime_context") and not get_anime_state("fidelity_active"))
+                         },
 						 
 		-- [v2.2] FSRCNNX Swapper (Main Menu Version)
         {
@@ -1146,6 +1198,7 @@ function create_default_menu_items()
                     title = 'Smart Cards',
                     icon = 'smart_toy',
                     items = {
+                        { title = 'History CARD', value = 'script-message toggle-history', active = get_anime_state("history_enabled") }, -- [v4.5] History Card Toggle
                         { title = 'Skip Intro/OP/ED CARD', value = 'script-message toggle-skip-intro', active = get_anime_state("skip_intro_enabled") },
                         { title = 'Up Next CARD', value = 'script-message toggle-up-next', active = get_anime_state("up_next_enabled") },
                     }
@@ -1476,11 +1529,42 @@ mp.register_event('file-loaded', function()
 	end
 end)
 mp.register_event('end-file', function(event)
-	set_state('path', nil)
-	if event.reason == 'eof' then
-		file_end_timer:kill()
-		handle_file_end()
-	end
+    -- [v4.5] History Save Logic
+    local is_url = active_video.path and active_video.path:match("^%a[%w.+-]-://")
+
+    if active_video.path and not is_url and get_anime_state("history_enabled") then
+        local final_percent = active_video.percent
+        if event.reason == "eof" then final_percent = 100 end
+
+        -- Save if we watched at least 1% or reached End of File
+        if final_percent > 1 or event.reason == "eof" then
+            -- Remove duplicate to bubble it to the top
+            for i, entry in ipairs(watch_history) do
+                if entry.path == active_video.path then table.remove(watch_history, i) break end
+            end
+
+            -- Insert at top
+            table.insert(watch_history, 1, {
+                path = active_video.path,
+                title = active_video.title,
+                percent = final_percent
+            })
+
+            -- Prune to max 50
+            while #watch_history > 50 do table.remove(watch_history) end
+            save_watch_history()
+        end
+    end
+
+    -- Clear active state
+    active_video.path = nil
+
+    -- [ORIGINAL UOSC LOGIC]
+    set_state('path', nil)
+    if event.reason == 'eof' then
+        if file_end_timer then file_end_timer:kill() end
+        if handle_file_end then handle_file_end() end
+    end
 end)
 mp.observe_property('playback-time', 'number', create_state_setter('time', function()
 	-- Create a file-end event that triggers right before file ends
@@ -1763,6 +1847,41 @@ bind_command('playlist', create_self_updating_menu_opener({
 	end,
 	on_remove = function(event) mp.commandv('playlist-remove', tostring(event.value - 1)) end,
 }))
+-- [v4.5] History UOSC Bind
+bind_command('history', function()
+    local items = {}
+    for i, entry in ipairs(watch_history) do
+        local is_watched = entry.percent >= 95
+
+        -- Visual Progress Bar Generator (10 blocks long)
+        local bar_length = 10
+        local filled_blocks = math.floor((entry.percent / 100) * bar_length + 0.5)
+        local empty_blocks = bar_length - filled_blocks
+
+        local progress_bar = string.rep("■", filled_blocks) .. string.rep("□", empty_blocks)
+
+        local hint_text = is_watched and "Watched" or string.format("%s  %d%%", progress_bar, entry.percent)
+
+        items[i] = {
+            title = entry.title,
+            hint = hint_text,
+            icon = is_watched and "check_circle" or "schedule",
+            value = string.format("loadfile %q", entry.path),
+            muted = is_watched -- [NEW] Greys out the entry if watched
+        }
+    end
+
+    if #items == 0 then
+        items[1] = { title = "Watch history is empty", value = "ignore", bold = true, icon = "info", muted = true }
+    end
+
+    open_command_menu({
+        type = 'history',
+        title = t('Watch History'),
+        items = items,
+        search_style = 'palette'
+    })
+end)
 bind_command('chapters', create_self_updating_menu_opener({
 	title = t('Chapters'),
 	type = 'chapters',

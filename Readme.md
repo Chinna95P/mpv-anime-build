@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.4
-> **The Resolution-Aware Fidelity Update: Targeted Upscaling Engines, Next-Gen ArtCNN Compute Pipelines, and Custom Telemetry.**
+# 🎬 MPV Anime Build v4.5
+> **The History & Line-Thinner Update: Native Playback History, Tier-Aware Morphological Line Thinning, and Refined Sharpening Engines.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -15,9 +15,14 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
   <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
 </a>
 
+**Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` for true HDR Passthrough.
+
 ---
 
-## 🚀 What's New in (v4.0 - v4.4)
+## 🚀 What's New in (v4.0 - v4.5)
+* **📜 Native Watch History & Progress Bars (v4.5):** Tracks up to 50 recent files with visual progress blocks, 95% watched thresholds, greyed-out completed entries, and a dedicated control bar button.
+* **🗡️ Anime Line-Thinner Suite & Context Locks (v4.5):** Resolution-aware line-thinning shaders mapped into FSRCNNX with a persistent menu toggle (`Ctrl+j`) and safety lockdown checks.
+* **✨ Refined Adaptive Sharpening (v4.5):** Balanced strength curves across SD, HD, FHD, and 4K tiers for pristine edge fidelity.
 * **⚡ ArtCNN Performance Optimizations (v4.4):** Upgraded the Ani4Kv2 and AniSD shader chains to use highly optimized fragment iterations (`_i2` / `_i4`) instead of heavy compute models, entirely eliminating frame drops during real-time playback.
 * **🔒 Strict Fidelity Locks & UI Sync (v4.4):** Anime4K profiles are now strictly locked out while Fidelity Mode is active, complete with custom OSD warnings. UOSC menus have also been reorganized and dual-synced for a cleaner right-click experience.
 * **🎵 Audio-Only Smart Toggle & Fix (v4.3):** Added a new UOSC menu toggle to enable (`Auto`) or completely bypass (`Disable`) the audio-only battery-saving profile. Fixed a major race condition that incorrectly applied audio-profiles to video files on systems without discrete GPUs.

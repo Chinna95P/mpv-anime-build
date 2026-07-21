@@ -6,10 +6,10 @@
 // OPTIMIZED FOR: 1080p -> 4K Upscale
 // GOAL: Subtle clarity only. Avoids thickening pre-existing sharp lines.
 
-#define curve_height    0.55                 // LOW (Subtle Refinement)
+#define curve_height    0.50                 // LOW (Subtle Refinement)
 #define overshoot_ctrl  true                 // STRICT Anti-Ringing
 
-#define curveslope      0.5
+#define curveslope      0.36
 #define L_compr_low     0.167                
 #define L_compr_high    0.334                
 #define D_compr_low     0.250                

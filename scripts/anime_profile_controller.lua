@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.4 (Fixed Fidelity mode bugs)
---    UPDATED:  2026-07-10
+--    VERSION:  v4.5 (Added History Feature and Anime Line Thinning Shaders)
+--    UPDATED:  2026-07-21
 -- ]]
 
 local mp = require("mp")
@@ -124,6 +124,8 @@ end
 -- [NEW] System States
 local up_next_enabled = true
 local skip_intro_enabled = true
+local history_enabled = true -- [v4.5] History State
+local line_thinner_enabled = true -- [v4.5] Line Thinner State
 
 -------------------------------------------------
 -- COLORS (BGR Hex)
@@ -207,6 +209,8 @@ local function sync_state()
 		-- [NEW] Sync Smart Features
         up_next_enabled = up_next_enabled,
         skip_intro_enabled = skip_intro_enabled,
+        history_enabled = history_enabled, -- [v4.5] History Sync
+        line_thinner_enabled = line_thinner_enabled, -- [v4.5] Line Thinner Sync
         
         -- Live Action Logic
         sd_texture = (sd_mode == "texture"),
@@ -377,6 +381,10 @@ local function load_anime_mode()
         if un then up_next_enabled = (un == "true") end
         local si = l:match("skip_intro_enabled=(%S+)")
         if si then skip_intro_enabled = (si == "true") end
+        local he = l:match("history_enabled=(%S+)") -- [v4.5] History Check
+        if he then history_enabled = (he == "true") end -- [v4.5] History Load
+        local lt = l:match("line_thinner_enabled=(%S+)") -- [v4.5] Line Thinner Check
+        if lt then line_thinner_enabled = (lt == "true") end -- [v4.5] Line Thinner Load
 		
     end
     f:close()
@@ -416,6 +424,8 @@ local function save_anime_mode()
 		-- [NEW] Save Smart Features
         f:write("up_next_enabled=" .. tostring(up_next_enabled) .. "\n")
         f:write("skip_intro_enabled=" .. tostring(skip_intro_enabled) .. "\n")
+        f:write("history_enabled=" .. tostring(history_enabled) .. "\n") -- [v4.5] History Save
+        f:write("line_thinner_enabled=" .. tostring(line_thinner_enabled) .. "\n") -- [v4.5] Line Thinner Save
 		
         f:close() 
     end
@@ -537,6 +547,10 @@ local function finalize_shader_chain(chain)
         chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl[;,]", "")
         chain = chain:gsub("~~/shaders/adaptive%-sharpen.-%.glsl", "")
     end
+    if not line_thinner_enabled then
+        chain = chain:gsub("[^;]*Anime%-Line%-Thinner[^;]*%.glsl;?", "")
+        chain = chain:gsub(";+$", "") -- Clean up any accidental trailing semicolons
+    end
     return chain
 end
 
@@ -593,10 +607,10 @@ end
 -- SHADERS (DEFINITIONS)
 -------------------------------------------------
 local FSRCNNX = {
-    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl",
-    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl",
-    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl",
-    UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl"
+    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl;~~/shaders/Anime-Line-Thinner-SD.glsl",
+    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl;~~/shaders/Anime-Line-Thinner-HD.glsl",
+    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl;~~/shaders/Anime-Line-Thinner-FHD.glsl",
+    UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl;~~/shaders/Anime-Line-Thinner-4K.glsl"
 }
 
 -- [v2.2] Live Action Defaults (Mirrors mpv.conf)
@@ -998,6 +1012,14 @@ local function get_anime_menu_json()
                     muted = not shaders_master_switch,
                     hint = not shaders_master_switch and "Locked (Master OFF)" or ""
                 },
+
+                {
+                    title = "Anime Line Thinner", -- [v4.5] Anime Line Thinner Toggle
+                    value = "script-message toggle-line-thinner",
+                    active = line_thinner_enabled,
+                    -- Locks visually if not in Anime Mode or Fidelity Mode
+                    muted = not (is_anime_context and user_anime_fidelity[get_resolution_mode()])
+                },
                 
                 -- [v2.2] FSRCNNX Swapper (Controller Version)
                 {
@@ -1094,6 +1116,7 @@ local function get_anime_menu_json()
             title = "Smart Cards",
             icon = 'smart_toy',
             items = {
+                { title = "History CARD", value = "script-message toggle-history", active = history_enabled }, -- [v4.5] History Toggle
                 { title = "Skip Intro/OP/ED CARD", value = "script-message toggle-skip-intro", active = skip_intro_enabled },
                 { title = "Up Next CARD", value = "script-message toggle-up-next", active = up_next_enabled },
             }
@@ -1250,6 +1273,35 @@ mp.register_script_message("toggle-global-shaders", function()
     end
     sync_state()
 	update_uosc_menu()
+end)
+
+-- [v4.5] History Listener
+mp.register_script_message("toggle-history", function()
+history_enabled = not history_enabled
+save_anime_mode()
+show_temp_osd("History Tracking: " .. (history_enabled and "Enabled" or "Disabled"), 2)
+sync_state()
+update_uosc_menu()
+end)
+
+-- [v4.5] Line Thinner Listener
+mp.register_script_message("toggle-line-thinner", function()
+    local res = get_resolution_mode()
+    local is_fidelity = user_anime_fidelity[res]
+
+    -- [FIXED] Changed is_anime_context to is_anime
+    if current_profile ~= "anime-shaders" or not is_fidelity then
+        show_temp_osd(C.RED .. "Locked: " .. C.WHITE .. "Only Available in Anime Fidelity Mode", 2)
+        return
+    end
+
+    line_thinner_enabled = not line_thinner_enabled
+    save_anime_mode()
+    show_temp_osd("Anime Line Thinner: " .. (line_thinner_enabled and "ON" or "OFF"), 2)
+    sync_state()
+    update_uosc_menu()
+
+    evaluate()
 end)
 
 mp.observe_property("af", "string", sync_state)

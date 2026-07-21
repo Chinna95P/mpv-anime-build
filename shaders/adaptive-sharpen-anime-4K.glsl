@@ -9,12 +9,12 @@
 #define curve_height    0.40                 // VERY LOW (Subtle pop only)
 #define overshoot_ctrl  true                 // Critical for 4K
 
-#define curveslope      0.5
+#define curveslope      0.4
 // TIGHTER COMPRESSION: Ignores 4K grain/dither noise
-#define L_compr_low     0.167                
-#define L_compr_high    0.334                
-#define D_compr_low     0.250                
-#define D_compr_high    0.500                
+#define L_compr_low     0.123
+#define L_compr_high    0.286
+#define D_compr_low     0.210
+#define D_compr_high    0.458
 #define scale_lim       0.1
 #define scale_cs        0.056
 #define pm_p            1.0

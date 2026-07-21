@@ -43,13 +43,24 @@
 // COMPONENT: FSR-Ani.glsl
 // =============================================================================
 
-//!HOOK LUMA
+// Derive a native-resolution luma texture from MAIN (RGB) so FSR can run under
+// hwdec=mediacodec (direct, no LUMA plane) as well as mediacodec-copy.
+//!HOOK MAIN
 //!BIND HOOKED
+//!SAVE LUMATEX
+//!DESC FSR luma source (Rec.601 luma of MAIN)
+//!COMPONENTS 1
+vec4 hook() {
+    return vec4(dot(vec3(0.299, 0.587, 0.114), HOOKED_tex(HOOKED_pos).rgb), 0.0, 0.0, 0.0);
+}
+
+//!HOOK MAIN
+//!BIND LUMATEX
 //!SAVE EASUTEX
 //!DESC FidelityFX Super Resolution v1.0.2 (EASU)
-//!WHEN OUTPUT.w OUTPUT.h * LUMA.w LUMA.h * / 1.0 >
-//!WIDTH OUTPUT.w OUTPUT.w LUMA.w 2 * < * LUMA.w 2 * OUTPUT.w LUMA.w 2 * > * + OUTPUT.w OUTPUT.w LUMA.w 2 * = * +
-//!HEIGHT OUTPUT.h OUTPUT.h LUMA.h 2 * < * LUMA.h 2 * OUTPUT.h LUMA.h 2 * > * + OUTPUT.h OUTPUT.h LUMA.h 2 * = * +
+//!WHEN OUTPUT.w OUTPUT.h * MAIN.w MAIN.h * / 1.0 >
+//!WIDTH OUTPUT.w OUTPUT.w MAIN.w 2 * < * MAIN.w 2 * OUTPUT.w MAIN.w 2 * > * + OUTPUT.w OUTPUT.w MAIN.w 2 * = * +
+//!HEIGHT OUTPUT.h OUTPUT.h MAIN.h 2 * < * MAIN.h 2 * OUTPUT.h MAIN.h 2 * > * + OUTPUT.h OUTPUT.h MAIN.h 2 * = * +
 //!COMPONENTS 1
 
 // User variables - EASU
@@ -220,7 +231,7 @@ vec4 hook() {
 	//      |   |   |
 	//      +---+---+
 	// Get position of 'F'.
-	vec2 pp = HOOKED_pos * HOOKED_size - vec2(0.5);
+	vec2 pp = LUMATEX_pos * LUMATEX_size - vec2(0.5);
 	vec2 fp = floor(pp);
 	pp -= fp;
 	//------------------------------------------------------------------------------------------------------------------------------
@@ -233,28 +244,28 @@ vec4 hook() {
 	//  a b
 	//  r g
 	// Allowing dead-code removal to remove the 'z's.
-#if (defined(HOOKED_gather) && (__VERSION__ >= 400 || (GL_ES && __VERSION__ >= 310)))
-	vec4 bczzL = HOOKED_gather(vec2((fp + vec2(1.0, -1.0)) * HOOKED_pt), 0);
-	vec4 ijfeL = HOOKED_gather(vec2((fp + vec2(0.0,  1.0)) * HOOKED_pt), 0);
-	vec4 klhgL = HOOKED_gather(vec2((fp + vec2(2.0,  1.0)) * HOOKED_pt), 0);
-	vec4 zzonL = HOOKED_gather(vec2((fp + vec2(1.0,  3.0)) * HOOKED_pt), 0);
+#if (defined(LUMATEX_gather) && (__VERSION__ >= 400 || (GL_ES && __VERSION__ >= 310)))
+	vec4 bczzL = LUMATEX_gather(vec2((fp + vec2(1.0, -1.0)) * LUMATEX_pt), 0);
+	vec4 ijfeL = LUMATEX_gather(vec2((fp + vec2(0.0,  1.0)) * LUMATEX_pt), 0);
+	vec4 klhgL = LUMATEX_gather(vec2((fp + vec2(2.0,  1.0)) * LUMATEX_pt), 0);
+	vec4 zzonL = LUMATEX_gather(vec2((fp + vec2(1.0,  3.0)) * LUMATEX_pt), 0);
 #else
 	// pre-OpenGL 4.0 compatibility
-	float b = HOOKED_tex(vec2((fp + vec2(0.5, -0.5)) * HOOKED_pt)).r;
-	float c = HOOKED_tex(vec2((fp + vec2(1.5, -0.5)) * HOOKED_pt)).r;
-	
-	float e = HOOKED_tex(vec2((fp + vec2(-0.5, 0.5)) * HOOKED_pt)).r;
-	float f = HOOKED_tex(vec2((fp + vec2( 0.5, 0.5)) * HOOKED_pt)).r;
-	float g = HOOKED_tex(vec2((fp + vec2( 1.5, 0.5)) * HOOKED_pt)).r;
-	float h = HOOKED_tex(vec2((fp + vec2( 2.5, 0.5)) * HOOKED_pt)).r;
-	
-	float i = HOOKED_tex(vec2((fp + vec2(-0.5, 1.5)) * HOOKED_pt)).r;
-	float j = HOOKED_tex(vec2((fp + vec2( 0.5, 1.5)) * HOOKED_pt)).r;
-	float k = HOOKED_tex(vec2((fp + vec2( 1.5, 1.5)) * HOOKED_pt)).r;
-	float l = HOOKED_tex(vec2((fp + vec2( 2.5, 1.5)) * HOOKED_pt)).r;
-	
-	float n = HOOKED_tex(vec2((fp + vec2(0.5, 2.5) ) * HOOKED_pt)).r;
-	float o = HOOKED_tex(vec2((fp + vec2(1.5, 2.5) ) * HOOKED_pt)).r;
+	float b = LUMATEX_tex(vec2((fp + vec2(0.5, -0.5)) * LUMATEX_pt)).r;
+	float c = LUMATEX_tex(vec2((fp + vec2(1.5, -0.5)) * LUMATEX_pt)).r;
+
+	float e = LUMATEX_tex(vec2((fp + vec2(-0.5, 0.5)) * LUMATEX_pt)).r;
+	float f = LUMATEX_tex(vec2((fp + vec2( 0.5, 0.5)) * LUMATEX_pt)).r;
+	float g = LUMATEX_tex(vec2((fp + vec2( 1.5, 0.5)) * LUMATEX_pt)).r;
+	float h = LUMATEX_tex(vec2((fp + vec2( 2.5, 0.5)) * LUMATEX_pt)).r;
+
+	float i = LUMATEX_tex(vec2((fp + vec2(-0.5, 1.5)) * LUMATEX_pt)).r;
+	float j = LUMATEX_tex(vec2((fp + vec2( 0.5, 1.5)) * LUMATEX_pt)).r;
+	float k = LUMATEX_tex(vec2((fp + vec2( 1.5, 1.5)) * LUMATEX_pt)).r;
+	float l = LUMATEX_tex(vec2((fp + vec2( 2.5, 1.5)) * LUMATEX_pt)).r;
+
+	float n = LUMATEX_tex(vec2((fp + vec2(0.5, 2.5) ) * LUMATEX_pt)).r;
+	float o = LUMATEX_tex(vec2((fp + vec2(1.5, 2.5) ) * LUMATEX_pt)).r;
 
 	vec4 bczzL = vec4(b, c, 0.0, 0.0);
 	vec4 ijfeL = vec4(i, j, f, e);
@@ -372,12 +383,14 @@ vec4 hook() {
 	return pix;
 }
 
-//!HOOK LUMA
+//!HOOK MAIN
+//!BIND HOOKED
 //!BIND EASUTEX
+//!SAVE MAIN
 //!DESC FidelityFX Super Resolution v1.0.2 (RCAS)
 //!WIDTH EASUTEX.w
 //!HEIGHT EASUTEX.h
-//!COMPONENTS 1
+//!COMPONENTS 4
 
 // User variables - RCAS
 #define SHARPNESS 0.8 // Controls the amount of sharpening. The scale is {0.0 := maximum, to N>0, where N is the number of stops (halving) of the reduction of sharpness}. 0.0 to 2.0.
@@ -461,7 +474,13 @@ vec4 hook() {
 	pix.r = FromGamma2(pix.r);
 #endif
 
-	return pix;
+	// Recombine the FSR-sharpened, upscaled luma (pix.r) back into the full RGB MAIN.
+	// HOOKED (MAIN) sampled at the output position gives the bilinear-upscaled color;
+	// we substitute its luma with the FSR luma, preserving chroma. This reproduces the
+	// original luma-only-FSR + chroma-merge result without needing a separate plane.
+	vec3 rgb = HOOKED_tex(HOOKED_pos).rgb;
+	float lold = dot(vec3(0.299, 0.587, 0.114), rgb);
+	return vec4(rgb + (pix.r - lold), 1.0);
 }
 
 

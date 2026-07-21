@@ -44,12 +44,16 @@
 // =============================================================================
 
 //!DESC Save-Native-Resolution
-//!HOOK LUMA
+//!HOOK MAIN
 //!BIND HOOKED
 //!SAVE NATIVE_RES
 //!COMPONENTS 1
+// Hook MAIN (always available) instead of LUMA so this runs under both
+// hwdec=mediacodec (direct RGB surface, no LUMA plane) and mediacodec-copy.
+// MAIN is RGB; derive native-resolution luma with Rec.601 coefficients.
+// SAVE target (NATIVE_RES) differs from MAIN, so MAIN passes through untouched.
 vec4 hook() {
-    return HOOKED_tex(HOOKED_pos);
+    return vec4(dot(vec3(0.299, 0.587, 0.114), HOOKED_tex(HOOKED_pos).rgb), 0.0, 0.0, 0.0);
 }
 
 

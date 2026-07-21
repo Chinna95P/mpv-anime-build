@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.5] – History Suite, Line-Thinner Shaders & Adaptive Sharpen Polish
+
+### ✨ New Features & Enhancements
+* **Native Watch History Engine:** Added a robust local tracking system that logs up to the last 50 played files into a persistent `uosc_history.json` store.
+* **Visual Progress & Status Indicators:** Integrated a 10-block visual progress bar (`■■■■□□□□□□`) and percentage indicators into history menu items, with automatic **"Watched"** checkmarks once completion exceeds **95%** (alongside automated entry muting/grey-out).
+* **Dedicated History Control Button:** Added a single-click history menu shortcut directly to the UOSC bottom control bar (`uosc.conf`).
+* **Resolution-Aware Anime Line-Thinner Suite:** Bound separate custom Morphological Line-Thinner shaders (`SD`, `HD`, `FHD`, `4K`) dynamically into the FSRCNNX upscale chain with state persistence and a master toggle (`Ctrl+j`).
+* **Contextual Safety Lockdown:** Added smart validation ensuring the Line-Thinner toggle only works when both Anime Mode and Fidelity Mode (FSRCNNX) are active, locking out and warning users in Live-Action or Anime4K modes.
+* **Refined Adaptive Sharpening:** Fine-tuned adaptive-sharpen strength parameters across all resolution tiers for crisp edge definition without white ringing artifacts.
+
+---
+
 ## [v4.4] – Performance Optimization & UI Sync
 
 ### ✨ New Features & Tweaks
