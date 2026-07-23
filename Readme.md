@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.5
-> **The History & Line-Thinner Update: Native Playback History, Tier-Aware Morphological Line Thinning, and Refined Sharpening Engines.**
+# 🎬 MPV Anime Build v4.6
+> **The Smart Override & Shader Fidelity Update: Manual Track Selection Memory, False-Positive Prevention, and FSRCNNX Pipeline Upgrades (Line Thinning & Anti-Aliasing).**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)

@@ -6,7 +6,7 @@
 // OPTIMIZED FOR: Native 4K Anime
 // GOAL: "Micro-contrast" only. Do not thicken lines.
 
-#define curve_height    0.40                 // VERY LOW (Subtle pop only)
+#define curve_height    0.60                 // VERY LOW (Subtle pop only)
 #define overshoot_ctrl  true                 // Critical for 4K
 
 #define curveslope      0.4

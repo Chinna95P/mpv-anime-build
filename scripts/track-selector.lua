@@ -1,12 +1,18 @@
--- [[ 
+-- [[
 --    FILENAME: track-selector.lua
---    VERSION:  v3.1 (Added Fallbacks for Selection)
+--    VERSION:  v3.2 (Added Manual Override Detection)
 --    DESCRIPTION: Enhances mpv's intelligent audio/subtitle track selection.
 -- ]]
 
 local mp = require "mp"
 local msg = require "mp.msg"
 local utils = require "mp.utils"
+
+-- ==================================================
+-- STATE VARIABLES (New)
+-- ==================================================
+local manual_override = false
+local ignore_track_changes = true
 
 -- Helper function to split comma-separated strings (like "jpn,eng,en")
 local function split_string(str)
@@ -51,13 +57,13 @@ local function is_anime_folder(p)
     if not p then return false end
     p = p:lower()
     return p:find("/anime/") or p:find("\\anime\\")
-        or p:find("donghua") or p:find("cartoon") 
+        or p:find("donghua") or p:find("cartoon")
         or p:find("animation") or p:find("3d_anime")
 end
 
 local function is_live_action(p, t)
     local search_str = ((p or "") .. " " .. (t or "")):lower()
-    return search_str:find("live action") or search_str:find("live%-action") 
+    return search_str:find("live action") or search_str:find("live%-action")
         or search_str:find("liveaction") or search_str:find("drama")
         or search_str:find("real person")
 end
@@ -66,7 +72,7 @@ local function detect_anime_context(tracks)
     local path = mp.get_property("path", "")
     local title = mp.get_property("media-title", "")
     local filename = mp.get_property("filename", "")
-    local shiru_opt = mp.get_opt("mode") 
+    local shiru_opt = mp.get_opt("mode")
 
     local signal_folder = is_anime_folder(path)
     local signal_live_action = is_live_action(path, title)
@@ -112,7 +118,7 @@ local function select_smart_tracks()
     -- Keywords to ignore
     local ignore_audio = {"commentary", "description", "adh", "comment", "extra"}
     local ignore_subs = {"signs", "songs", "lyrics", "forced", "sdh", "colored", "karaoke"}
-    
+
     -- Get Currently Active Tracks for the Check Gate
     local current_aid = mp.get_property_number("aid")
     local current_sid = mp.get_property_number("sid")
@@ -140,15 +146,13 @@ local function select_smart_tracks()
 
     local selected_aid = nil
 
-    -- ==================================================
     -- 1. AUDIO SELECTION LOGIC
-    -- ==================================================
     for _, pref_lang in ipairs(pref_audio_langs) do
         for _, t in ipairs(tracks) do
             if t.type == "audio" and not selected_aid then
                 local lang = (t.lang or ""):lower()
                 local title = (t.title or ""):lower()
-                
+
                 if matches_lang(lang, pref_lang) and not contains_keyword(title, ignore_audio) then
                     selected_aid = apply_audio(t.id, "Selected " .. lang)
                     break
@@ -170,7 +174,6 @@ local function select_smart_tracks()
         end
     end
 
-    -- Detect if the selected audio is Japanese
     local selected_audio_lang = ""
     if selected_aid then
         for _, t in ipairs(tracks) do
@@ -180,24 +183,16 @@ local function select_smart_tracks()
             end
         end
     end
-    local is_japanese_audio = (selected_audio_lang == "jpn" or selected_audio_lang == "ja" or selected_audio_lang == "jp")
 
-    -- ==================================================
-    -- 2. CONTEXT DETECTION (Anime vs Live-Action)
-    -- ==================================================
+    -- 2. CONTEXT DETECTION
     local is_anime_context = detect_anime_context(tracks)
     msg.info("Smart Tracks: Context defined by Internal Auto-Detection -> " .. tostring(is_anime_context))
 
-    -- ==================================================
     -- 3. SUBTITLE SELECTION LOGIC
-    -- ==================================================
     local selected_sid = nil
-    
     if #pref_sub_langs == 0 then pref_sub_langs = {"eng", "en"} end
 
-    -- Pass A0: KEEP FILE'S NATIVE DEFAULT JAPANESE SUBS FOR ANIME
     if is_anime_context and not selected_sid then
-        -- Sanity check: Count how many sub tracks are flagged as default
         local default_count = 0
         for _, t in ipairs(tracks) do
             if t.type == "sub" and t.default then
@@ -205,7 +200,6 @@ local function select_smart_tracks()
             end
         end
 
-        -- Only trust the default flag if the encoder properly flagged exactly ONE track
         if default_count == 1 then
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and t.default then
@@ -221,14 +215,12 @@ local function select_smart_tracks()
         end
     end
 
-    -- Pass A: SMART ANIME DIALOGUE (Standard Preferred Langs - Runs only if Pass A0 didn't trigger or not anime)
     if is_anime_context and not selected_sid then
         for _, pref_lang in ipairs(pref_sub_langs) do
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and not selected_sid then
                     local lang = (t.lang or ""):lower()
                     local title = (t.title or ""):lower()
-                    
                     if matches_lang(lang, pref_lang) then
                         if title:find("dialogue") or title:find("full") or title:find("script") then
                             selected_sid = apply_sub(t.id, "Anime Dialogue matched (Slang)")
@@ -241,17 +233,15 @@ local function select_smart_tracks()
         end
     end
 
-    -- Pass B: CLEAN LANGUAGE MATCH
     if not selected_sid then
         for _, pref_lang in ipairs(pref_sub_langs) do
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and not selected_sid then
                     local lang = (t.lang or ""):lower()
                     local title = (t.title or ""):lower()
-                    
                     local is_forced = t.forced or false
                     local is_sdh = t["hearing-impaired"] or false
-                    
+
                     if matches_lang(lang, pref_lang) then
                         if not contains_keyword(title, ignore_subs) and not is_forced and not is_sdh then
                             selected_sid = apply_sub(t.id, "Clean Match (Slang)")
@@ -264,7 +254,6 @@ local function select_smart_tracks()
         end
     end
 
-    -- Pass C: LAST RESORT MATCH
     if not selected_sid then
         for _, pref_lang in ipairs(pref_sub_langs) do
             for _, t in ipairs(tracks) do
@@ -280,18 +269,10 @@ local function select_smart_tracks()
         end
     end
 
-    -- ==================================================
-    -- [NEW] ANY-LANGUAGE FALLBACKS
-    -- Runs only if NO preferred languages (slang) were found
-    -- ==================================================
-
-    -- Pass D: Anime Dialogue matched (Language Fallback)
-    -- This handles the "Full Subtitles" case for files with no language tags
     if not selected_sid then
         for _, t in ipairs(tracks) do
             if t.type == "sub" then
                 local title = (t.title or ""):lower()
-                -- Check for high-priority keywords regardless of language
                 if title:find("full") or title:find("dialogue") or title:find("script") then
                     selected_sid = apply_sub(t.id, "Anime Dialogue matched (Language Fallback)")
                     break
@@ -300,13 +281,10 @@ local function select_smart_tracks()
         end
     end
 
-    -- Pass E: CLEAN MATCH (The "Last Resort")
     if not selected_sid then
-        -- Step 1: Check for the 'default' flag (using mpv's property name)
         for _, t in ipairs(tracks) do
             if t.type == "sub" then
                 local title = (t.title or ""):lower()
-                -- mpv often uses t.default (boolean). We also check for forced/sdh.
                 if t.default == true then
                     if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
                         selected_sid = apply_sub(t.id, "Default Track Match (Language Fallback)")
@@ -316,12 +294,10 @@ local function select_smart_tracks()
             end
         end
 
-        -- Step 2: If no default, pick the first track that isn't "junk"
         if not selected_sid then
             for _, t in ipairs(tracks) do
                 if t.type == "sub" then
                     local title = (t.title or ""):lower()
-                    -- Ensure we skip "signs", "songs", "forced", etc.
                     if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
                         selected_sid = apply_sub(t.id, "Clean Match (Language Fallback)")
                         break
@@ -332,22 +308,60 @@ local function select_smart_tracks()
     end
 end
 
--- Wait a tiny bit after the file loads for mpv to parse all the tracks, then run logic
+-- ==================================================
+-- MANUAL OVERRIDE DETECTION
+-- ==================================================
+
+-- We reset the tracker when a new file starts so mpv's native initial track switching doesn't trip it
+mp.register_event("start-file", function()
+    ignore_track_changes = true
+end)
+
+mp.observe_property("aid", "string", function(name, val)
+    if not ignore_track_changes then
+        msg.info("Smart Tracks: User manually changed AUDIO track. Disabling script for the rest of this session/playlist.")
+        manual_override = true
+    end
+end)
+
+mp.observe_property("sid", "string", function(name, val)
+    if not ignore_track_changes then
+        msg.info("Smart Tracks: User manually changed SUBTITLE track. Disabling script for the rest of this session/playlist.")
+        manual_override = true
+    end
+end)
+
+-- ==================================================
+-- INITIALIZATION
+-- ==================================================
 mp.register_event("file-loaded", function()
+    -- Check if user has taken manual control previously in the playlist
+    if manual_override then
+        msg.info("Smart Tracks: Manual override is active. Skipping script selection.")
+        return
+    end
+
     if not is_video_file() then
         msg.info("Smart Tracks: Audio file detected. Script disabled.")
         return
     end
 
-    local start_time = mp.get_property_number("start-time") or 0
     local resume_time = mp.get_property_number("playback-time") or 0
-    
+
     if resume_time > 1 then
         msg.info("Smart Tracks: Resumed file, respecting saved state.")
+        -- We still want to let the user manual override during a resumed file!
+        mp.add_timeout(0.5, function() ignore_track_changes = false end)
         return
     end
 
     mp.add_timeout(0.2, function()
         select_smart_tracks()
+
+        -- After the script finishes its job, wait 0.5s for mpv's properties to settle.
+        -- Then, we stop ignoring track changes. Any change after this is considered a User Manual Change.
+        mp.add_timeout(0.5, function()
+            ignore_track_changes = false
+        end)
     end)
 end)

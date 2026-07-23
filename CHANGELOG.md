@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.6] – Strict Detection, Smart Overrides & FSRCNNX Fidelity Overhaul
+
+### ✨ New Features & Enhancements
+* **Smart Track Override:** The Track Selector script now features manual intervention detection. If you manually change an audio or subtitle track during playback, the script immediately enters a "Manual Override" state and suspends auto-selection for the remainder of the session/playlist to respect your choices.
+* **Strict Anime Auto-Detection:** Hardened the metadata parser to eliminate false positives on Live-Action files. Filenames with single brackets (e.g., `[2024] Movie.mkv`) are no longer falsely flagged as anime. The engine now mandates strict scene release syntax (must have a prefix bracket AND a suffix hash bracket or episode dash).
+* **FSRCNNX Pipeline Overhaul (Anime Fidelity Mode):** Rebuilt the FSRCNNX shader chains across all resolution tiers to act as a complete restoration pipeline. Natively injected `Anime4K Restore` to handle anti-aliasing/artifact removal, alongside `Anime-Line-Thinner` for precise line art and detail enhancement.
+
+---
+
 ## [v4.5] – History Suite, Line-Thinner Shaders & Adaptive Sharpen Polish
 
 ### ✨ New Features & Enhancements

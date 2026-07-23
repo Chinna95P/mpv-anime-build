@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.5 (Added History Feature and Anime Line Thinning Shaders)
---    UPDATED:  2026-07-21
+--    VERSION:  v4.6 (Modified Anime Detection Logic and Fidelity Shader Chains)
+--    UPDATED:  2026-07-23
 -- ]]
 
 local mp = require("mp")
@@ -606,11 +606,12 @@ end
 -------------------------------------------------
 -- SHADERS (DEFINITIONS)
 -------------------------------------------------
+-- [v4.6] Added Anime Line Thinners with Anime4K Restore Shaders for anti-aliasing
 local FSRCNNX = {
-    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl;~~/shaders/Anime-Line-Thinner-SD.glsl",
-    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl;~~/shaders/Anime-Line-Thinner-HD.glsl",
-    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl;~~/shaders/Anime-Line-Thinner-FHD.glsl",
-    UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl;~~/shaders/Anime-Line-Thinner-4K.glsl"
+    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-SD.glsl",
+    HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-HD.glsl",
+    HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-FHD.glsl",
+    UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-4K.glsl"
 }
 
 -- [v2.2] Live Action Defaults (Mirrors mpv.conf)
@@ -717,8 +718,15 @@ local function evaluate()
     
     -- A. Anime Signals (Logical OR)
     local signal_folder = is_anime_folder(path)
-    local signal_syntax = (title:match("%[.*%]")) -- Checks for [release group] brackets
     local signal_shiru  = (shiru_opt == "anime")
+
+    -- [v4.6] Strict Syntax Check: MUST have [Prefix] AND ([Suffix] OR " - 01" episode dash)
+    local signal_syntax = false
+    if filename:match("^%[.-%]") then
+        if filename:match("^%[.-%].-%[.-%]") or filename:match("%s%-%s%d+") then
+            signal_syntax = true
+        end
+    end
 
     -- [NEW] CRC32 Hash Check (The "Super Signal")
     -- Matches 8-digit Hex codes inside brackets (e.g., [A1B2C3D4])

@@ -6,10 +6,10 @@
 // OPTIMIZED FOR: 720p -> 1440p Upscale
 // GOAL: Moderate sharpening to combat the "softness" of 720p content.
 
-#define curve_height    0.33                 // MODERATE (Stronger than 1080p, weaker than SD)
+#define curve_height    0.54                 // MODERATE (Stronger than 1080p, weaker than SD)
 #define overshoot_ctrl  true                 // Anti-Ringing ON
 
-#define curveslope      0.22
+#define curveslope      0.27
 #define L_compr_low     0.167
 #define L_compr_high    0.334
 #define D_compr_low     0.250
