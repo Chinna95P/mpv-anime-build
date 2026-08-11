@@ -1,6 +1,6 @@
 -- [[
 --    FILENAME: audio-visualizer.lua
---    VERSION:  v3.5 (Window Resize Race-Condition Fix)
+--    VERSION:  v3.6 (Particle Visualizer)
 --    DESCRIPTION: Crash-free visualizer cycler + toggle for Audio files only
 -- ]]
 
@@ -11,7 +11,23 @@ local styles = {
     { name = "CQT Bars", filter = "showcqt=s=1280x720:fps=60:bar_h=200:axis_h=0" },
     { name = "Vectorscope", filter = "avectorscope=s=1280x720:draw=line" },
     { name = "Spectrum", filter = "showspectrum=s=1280x720:mode=separate:color=intensity:slide=scroll:scale=cbrt" },
-    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" }
+    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" },
+    {
+        name = "Particles",
+        -- Audio-reactive dot emitters are composited with persistence and bloom.
+        -- This keeps the effect entirely inside FFmpeg/LAVFI, so it works with mpv's
+        -- existing lavfi-complex pipeline without requiring WebGL or external shaders.
+        filter = table.concat({
+            "aformat=channel_layouts=stereo,asplit=3[vert][horiz][core]",
+            "[vert]pan=stereo|c0=0.70*c0|c1=0.035*c1,avectorscope=s=1280x720:r=60:mode=lissajous_xy:draw=dot:scale=lin:zoom=1:rc=95:gc=145:bc=210:ac=220:rf=5:gf=6:bf=3:af=8[v]",
+            "[horiz]pan=stereo|c0=0.045*c0|c1=0.58*c1,avectorscope=s=1280x720:r=60:mode=lissajous_xy:draw=dot:scale=lin:zoom=1:rc=165:gc=95:bc=190:ac=200:rf=7:gf=9:bf=5:af=10[h]",
+            "[core]volume=0.34,avectorscope=s=1280x720:r=60:mode=lissajous:draw=dot:scale=lin:zoom=1:rc=140:gc=190:bc=255:ac=180:rf=10:gf=7:bf=4:af=12[c]",
+            "[v][h]blend=all_mode=screen:all_opacity=0.75[vh]",
+            "[vh][c]blend=all_mode=screen:all_opacity=0.75,split=2[particles][glow]",
+            "[glow]gblur=sigma=5:steps=2[halo]",
+            "[particles][halo]blend=all_mode=screen:all_opacity=0.40,format=rgba"
+        }, "; ")
+    }
 }
 
 -- Default to 4 (Waveform)
