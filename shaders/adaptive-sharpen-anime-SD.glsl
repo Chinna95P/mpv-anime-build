@@ -6,17 +6,17 @@
 // OPTIMIZED FOR: 480p Anime -> FSRCNNX -> Sharpen
 // GOAL: Restore definition to soft DVD sources without sharpening noise.
 
-#define curve_height    0.46                 // Strong but not "Deep Fried"
+#define curve_height    0.38                 // Strong but not "Deep Fried"
 #define overshoot_ctrl  true                 // STRICT anti-ringing
 
-#define curveslope      0.23
-#define L_compr_low     0.220                // Raised to ignore grain
-#define L_compr_high    0.425
-#define D_compr_low     0.296
-#define D_compr_high    0.553
-#define scale_lim       0.1
-#define scale_cs        0.056
-#define pm_p            1.0
+#define curveslope      0.19
+#define L_compr_low     0.145                // Raised to ignore grain
+#define L_compr_high    0.314
+#define D_compr_low     0.213
+#define D_compr_high    0.425
+#define scale_lim       0.058
+#define scale_cs        0.026
+#define pm_p            0.75
 
 //-------------------------------------------------------------------------------------------------
 #define max4(a,b,c,d)  ( max(max(a, b), max(c, d)) )

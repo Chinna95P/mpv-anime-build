@@ -25,11 +25,11 @@
 
 //!HOOK MAIN
 //!BIND HOOKED
-//!DESC Morphological Line Thinner (FHD - 21% Strength)
+//!DESC Morphological Line Thinner (FHD - 15% Strength)
 
 vec4 hook() {
     // Define the thinning strength (e.g., 0.35 for 35%)
-    float blend_factor = 0.21;
+    float blend_factor = 0.15;
 
     vec4 center = HOOKED_texOff(0.0);
     vec4 n1 = HOOKED_texOff(vec2( 0.0,  1.0));

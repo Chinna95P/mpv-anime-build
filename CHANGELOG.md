@@ -4,6 +4,23 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.7] – UOSC 5.13, Stream Downloads, Visualizer Expansion & Smoothed Processing
+
+### ✨ New Features & Enhancements
+* **Resolution-Tuned Adaptive Sharpen & Anime Line-Thinner:** Adjusted adaptive-sharpen and Anime-Line-Thinner strengths across resolution tiers to produce smoother, more soothing edges while preserving detail in both Anime and Live-Action content. Background textures and subject detail are enhanced without pushing edges into an overly harsh look.
+* **Working Stream Download Button:** Added the [`mpv-youtube-download`](https://github.com/cvzi/mpv-youtube-download) script and bound its functionality to the UOSC **Download** button, restoring stream downloads directly from the player. Downloads are saved to `~/ytdl` by default; the destination can be changed in `youtube-download.conf`.
+* **Windows CMD Flash Fix:** Updated `mpvSockets.lua` to eliminate command-window flashes on Windows when socket-based commands are executed.
+* **Expanded Audio-Only Visualizers:** Added new visualizer styles to the Audio-Only profile for more visual variety during music playback.
+* **UOSC 5.13.0:** Updated the integrated UOSC interface to the latest 5.13.0 release while preserving the MPV Anime Build custom controls and menu integration.
+* **Color-Coded UOSC Chapter Timeline:** Added custom transparent timeline highlights for detected **OP, ED, PV, and Intro** chapter names. The colors match the Skip Intro palette:
+  * 🟢 **OP:** `#00FF00`
+  * 🟠 **ED:** `#FF8000`
+  * 🟣 **PV:** `#FF00FF`
+  * 🔵 **Intro:** `#0099FF`
+* **Track Selector Resume Override:** Extended the Track Selector manual-override system so the override is persisted per video. When the same video is resumed in a later MPV session, the saved override is restored; once active, it remains in effect for the rest of that session/playlist, including next/previous files.
+
+---
+
 ## [v4.6] – Strict Detection, Smart Overrides & FSRCNNX Fidelity Overhaul
 
 ### ✨ New Features & Enhancements

@@ -11,18 +11,18 @@
                                              // Dynamically suppresses halos/ringing while keeping texture sharp.
 
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
-#define curveslope      0.5                  // Sharpening curve slope, high edge values
+#define curveslope      0.27                  // Sharpening curve slope, high edge values
 
-#define L_compr_low     0.167                // Default light compression (balanced for HD)
-#define L_compr_high    0.334                
+#define L_compr_low     0.123                // Default light compression (balanced for HD)
+#define L_compr_high    0.276
 
-#define D_compr_low     0.250                // Default dark compression (balanced for HD)
-#define D_compr_high    0.500                
+#define D_compr_low     0.194                // Default dark compression (balanced for HD)
+#define D_compr_high    0.435
 
-#define scale_lim       0.1                  // Abs max change before compression [>0.01]
-#define scale_cs        0.056                // Compression slope above scale_lim
+#define scale_lim       0.076                  // Abs max change before compression [>0.01]
+#define scale_cs        0.037                // Compression slope above scale_lim
 
-#define pm_p            1.0                  // Power mean p-value [>0-1.0]
+#define pm_p            0.9                  // Power mean p-value [>0-1.0]
 
 //-------------------------------------------------------------------------------------------------
 

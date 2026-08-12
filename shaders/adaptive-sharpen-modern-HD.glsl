@@ -4,26 +4,26 @@
 
 //--------------------------------------- Settings ------------------------------------------------
 
-#define curve_height    1.05                 // "Super-Resolution" strength.
+#define curve_height    0.84                 // "Super-Resolution" strength.
                                              // Pushes 720p to look like 1080p+.
 
 #define overshoot_ctrl  true                 // ENABLED.
                                              // Keeps the image professional by killing halos.
 
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
-#define curveslope      0.5                  // Sharpening curve slope, high edge values
+#define curveslope      0.24                 // Sharpening curve slope, high edge values
 
 // STANDARD COMPRESSION (Balanced for clean HD)
-#define L_compr_low     0.167                
-#define L_compr_high    0.334                
+#define L_compr_low     0.124
+#define L_compr_high    0.302
 
-#define D_compr_low     0.250                
-#define D_compr_high    0.500                
+#define D_compr_low     0.214
+#define D_compr_high    0.445
 
-#define scale_lim       0.1                  // Abs max change before compression [>0.01]
-#define scale_cs        0.056                // Compression slope above scale_lim
+#define scale_lim       0.075                // Abs max change before compression [>0.01]
+#define scale_cs        0.042                // Compression slope above scale_lim
 
-#define pm_p            1.0                  // Power mean p-value [>0-1.0]
+#define pm_p            0.86                  // Power mean p-value [>0-1.0]
 
 //-------------------------------------------------------------------------------------------------
 

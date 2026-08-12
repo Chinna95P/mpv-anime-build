@@ -1,6 +1,6 @@
 -- [[
 --    FILENAME: track-selector.lua
---    VERSION:  v3.2 (Added Manual Override Detection)
+--    VERSION:  v3.3 (Added Manual Override Persistence for Resumed videos)
 --    DESCRIPTION: Enhances mpv's intelligent audio/subtitle track selection.
 -- ]]
 
@@ -13,6 +13,62 @@ local utils = require "mp.utils"
 -- ==================================================
 local manual_override = false
 local ignore_track_changes = true
+
+-- ==================================================
+-- PERSISTENT MANUAL OVERRIDE (PER VIDEO)
+-- ==================================================
+-- Stores only the videos for which the user explicitly changed a track.
+-- The override is used only when that same video is resumed later.
+local override_file = mp.command_native({"expand-path", "~~/track-selector-overrides.json"})
+local manual_overrides = {}
+
+local function load_manual_overrides()
+    local f = io.open(override_file, "r")
+    if not f then return end
+
+    local content = f:read("*all")
+    f:close()
+
+    if content and content ~= "" then
+        local data = utils.parse_json(content)
+        if type(data) == "table" then
+            manual_overrides = data
+        end
+    end
+end
+
+local function save_manual_overrides()
+    local f = io.open(override_file, "w")
+    if not f then
+        msg.warn("Smart Tracks: Could not save manual override state: " .. override_file)
+        return
+    end
+
+    f:write(utils.format_json(manual_overrides))
+    f:close()
+end
+
+local function get_current_video_key()
+    local path = mp.get_property("path")
+    if not path or path == "" then return nil end
+    return path
+end
+
+local function has_saved_manual_override()
+    local key = get_current_video_key()
+    return key and manual_overrides[key] == true
+end
+
+local function save_current_video_manual_override()
+    local key = get_current_video_key()
+    if not key then return end
+
+    manual_overrides[key] = true
+    save_manual_overrides()
+    msg.info("Smart Tracks: Saved manual override for this video.")
+end
+
+load_manual_overrides()
 
 -- Helper function to split comma-separated strings (like "jpn,eng,en")
 local function split_string(str)
@@ -319,15 +375,17 @@ end)
 
 mp.observe_property("aid", "string", function(name, val)
     if not ignore_track_changes then
-        msg.info("Smart Tracks: User manually changed AUDIO track. Disabling script for the rest of this session/playlist.")
+        msg.info("Smart Tracks: User manually changed AUDIO track. Disabling script for this video.")
         manual_override = true
+        save_current_video_manual_override()
     end
 end)
 
 mp.observe_property("sid", "string", function(name, val)
     if not ignore_track_changes then
-        msg.info("Smart Tracks: User manually changed SUBTITLE track. Disabling script for the rest of this session/playlist.")
+        msg.info("Smart Tracks: User manually changed SUBTITLE track. Disabling script for this video.")
         manual_override = true
+        save_current_video_manual_override()
     end
 end)
 
@@ -335,11 +393,9 @@ end)
 -- INITIALIZATION
 -- ==================================================
 mp.register_event("file-loaded", function()
-    -- Check if user has taken manual control previously in the playlist
-    if manual_override then
-        msg.info("Smart Tracks: Manual override is active. Skipping script selection.")
-        return
-    end
+    -- manual_override intentionally persists across files in the same MPV
+    -- session/playlist. It is only reset when the Lua script/MPV process starts.
+    ignore_track_changes = true
 
     if not is_video_file() then
         msg.info("Smart Tracks: Audio file detected. Script disabled.")
@@ -347,11 +403,30 @@ mp.register_event("file-loaded", function()
     end
 
     local resume_time = mp.get_property_number("playback-time") or 0
+    local saved_override = has_saved_manual_override()
+
+    -- On a new MPV session, restore the saved override only when this exact
+    -- video is being resumed. Once restored, manual_override stays true for
+    -- the rest of this MPV session/playlist, including next/previous files.
+    if not manual_override and resume_time > 1 and saved_override then
+        manual_override = true
+        msg.info("Smart Tracks: Resumed video has a saved manual override. "
+            .. "Manual override will remain active for this MPV session/playlist.")
+    end
+
+    if manual_override then
+        msg.info("Smart Tracks: Manual override is active. Skipping script selection.")
+        mp.add_timeout(0.5, function()
+            ignore_track_changes = false
+        end)
+        return
+    end
 
     if resume_time > 1 then
-        msg.info("Smart Tracks: Resumed file, respecting saved state.")
-        -- We still want to let the user manual override during a resumed file!
-        mp.add_timeout(0.5, function() ignore_track_changes = false end)
+        msg.info("Smart Tracks: Resumed video with no saved manual override. Respecting saved track state.")
+        mp.add_timeout(0.5, function()
+            ignore_track_changes = false
+        end)
         return
     end
 
@@ -359,7 +434,7 @@ mp.register_event("file-loaded", function()
         select_smart_tracks()
 
         -- After the script finishes its job, wait 0.5s for mpv's properties to settle.
-        -- Then, we stop ignoring track changes. Any change after this is considered a User Manual Change.
+        -- Then, any subsequent change is considered a user manual change.
         mp.add_timeout(0.5, function()
             ignore_track_changes = false
         end)

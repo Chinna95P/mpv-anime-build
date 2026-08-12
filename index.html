@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>MPV Anime Build v4.6 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
-    
+
+    <title>MPV Anime Build v4.7 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
+
     <meta name="description" content="Automated MPV configuration for Real-time Anime and Live-Action Upscaling.">
-    
+
     <meta name="google-site-verification" content="kPkxdMdgV6QxgkNovlceuet1aTb3W0Z1pnUOEg0WbsM" />
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
-    <meta property="og:title" content="MPV Anime Build v4.6">
+    <meta property="og:title" content="MPV Anime Build v4.7">
     <meta property="og:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="MPV Anime Build v4.6">
+    <meta property="twitter:title" content="MPV Anime Build v4.7">
     <meta property="twitter:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
-    
+
     <link rel="icon" type="image/svg+xml" href="https://chinna95p.github.io/mpv-anime-build/favicon.svg">
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -38,7 +38,7 @@
             --accent-blue-hover: #388bfd;
             --border-color: #30363d;
         }
-		
+
 			.highlight { color: var(--accent-blue); font-weight: bold; }
 			.highlight-red { color: #ff6b6b; font-weight: bold; }
 
@@ -65,7 +65,7 @@
 
         /* --- HERO SECTION --- */
         header {
-            padding: 100px 0 60px 0; 
+            padding: 100px 0 60px 0;
             text-align: center;
             background: radial-gradient(circle at top right, #1f2428 0%, #0d1117 60%);
         }
@@ -98,21 +98,21 @@
         .btn:hover { transform: translateY(-2px); }
 
         /* Primary Button Styles */
-        .btn-download { 
-            background: var(--accent-green); color: white; 
-            box-shadow: 0 4px 15px rgba(35, 134, 54, 0.3); 
+        .btn-download {
+            background: var(--accent-green); color: white;
+            box-shadow: 0 4px 15px rgba(35, 134, 54, 0.3);
         }
         .btn-download:hover { background: var(--accent-green-hover); box-shadow: 0 6px 20px rgba(35, 134, 54, 0.4); }
 
-        .btn-android { 
-            background: rgba(61, 220, 132, 0.15); color: #3DDC84; 
-            border-color: rgba(61, 220, 132, 0.3); backdrop-filter: blur(10px); 
+        .btn-android {
+            background: rgba(61, 220, 132, 0.15); color: #3DDC84;
+            border-color: rgba(61, 220, 132, 0.3); backdrop-filter: blur(10px);
         }
         .btn-android:hover { background: rgba(61, 220, 132, 0.25); color: #4fff9d; }
 
         /* Secondary Button Styles (Glassy/Compact) */
         .btn-sm { padding: 8px 16px; font-size: 0.9rem; border-radius: 6px; }
-        
+
         .btn-github { background: rgba(255,255,255,0.05); color: #c9d1d9; border-color: rgba(255,255,255,0.1); }
         .btn-github:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
 
@@ -157,7 +157,7 @@
         .c-compare {
             --handle-width: 50px;
             --handle-color: #fff;
-            position: relative; width: 100%; max-width: 900px; height: 500px; 
+            position: relative; width: 100%; max-width: 900px; height: 500px;
             margin: 0 auto 80px auto; border-radius: 12px; overflow: hidden;
             border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.6); user-select: none;
         }
@@ -201,7 +201,7 @@
         }
         .hdr-table tr:last-child td { border-bottom: none; }
         .hdr-table tr:hover td { background-color: rgba(255,255,255,0.02); }
-        
+
         .badge {
             display: inline-block; padding: 4px 10px; border-radius: 12px;
             font-size: 0.8rem; font-weight: bold;
@@ -229,7 +229,7 @@
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
-        
+
         .modal-content {
             background: #0d1117; width: 90%; max-width: 900px; height: 85vh;
             border-radius: 12px; border: 1px solid var(--border-color);
@@ -246,7 +246,7 @@
         }
         .modal-title { font-size: 1.2rem; font-weight: bold; color: #fff; }
         .modal-actions { display: flex; align-items: center; gap: 15px; }
-        
+
         .btn-source {
             font-size: 0.8rem; padding: 6px 12px; background: rgba(56, 139, 253, 0.15);
             color: #58a6ff; text-decoration: none; border-radius: 6px; border: 1px solid rgba(56, 139, 253, 0.4);
@@ -264,7 +264,7 @@
             flex: 1; padding: 40px; overflow-y: auto; color: var(--text-main);
             font-size: 1rem; line-height: 1.7;
         }
-        
+
         /* Markdown Styles Inside Modal */
         .modal-body h1, .modal-body h2, .modal-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: #fff; border-bottom: 1px solid #30363d; padding-bottom: 0.3em; }
         .modal-body h1 { font-size: 2rem; border-bottom: none; }
@@ -279,15 +279,15 @@
 
         /* --- FOOTER --- */
         footer { text-align: center; padding: 40px; border-top: 1px solid var(--border-color); color: var(--text-muted); }
-        
+
         @media (max-width: 768px) {
             .hero-content h1 { font-size: 2.5rem; }
-            .c-compare { height: 300px; } 
+            .c-compare { height: 300px; }
             .modal-content { width: 100%; height: 100%; border-radius: 0; }
             .hdr-table th, .hdr-table td { padding: 10px; font-size: 0.85rem; }
         }
     </style>
-    
+
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -306,7 +306,7 @@
         "name": "Chinna95P"
       },
       "downloadUrl": "https://github.com/Chinna95P/mpv-anime-build/releases",
-      "softwareVersion": "v4.6"
+      "softwareVersion": "v4.7"
     }
     </script>
 </head>
@@ -314,13 +314,13 @@
 
     <header>
         <div class="container hero-content">
-            <h1>MPV Anime Build v4.6</h1>
+            <h1>MPV Anime Build v4.7</h1>
             <p>Performance. Audio Profiling. Pure Immersive Media.</p>
-            
+
             <div class="hero-actions">
                 <div class="primary-buttons">
                     <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn btn-download">
-                        📥 Download v4.6 Release
+                        📥 Download v4.7 Release
                     </a>
                     <a href="https://github.com/Chinna95P/mpv-anime-build/tree/android" class="btn btn-android">
                         📱 Android Build
@@ -334,7 +334,7 @@
                         </svg>
                         Source
                     </a>
-                    
+
                     <a href="https://discord.gg/Pvf3huxFvU" class="btn btn-sm btn-discord">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M13.545 2.907a13.227 13.227 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.19 12.19 0 0 0-3.658 0 8.258 8.258 0 0 0-.412-.833.051.051 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.041.041 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032c.001.014.01.028.021.037a13.276 13.276 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019c.308-.42.582-.863.818-1.329a.05.05 0 0 0-.01-.059.051.051 0 0 0-.018-.011 8.875 8.875 0 0 1-1.248-.595.05.05 0 0 1-.02-.066.051.051 0 0 1 .015-.019c.084-.063.168-.129.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.052.052 0 0 1 .053.007c.08.066.164.132.248.195a.051.051 0 0 1-.004.085 8.254 8.254 0 0 1-1.249.594.05.05 0 0 0-.03.03.052.052 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.235 13.235 0 0 0 4.001-2.02.049.049 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.034.034 0 0 0-.02-.019Zm-8.198 7.307c-.789 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612Zm5.316 0c-.788 0-1.438-.724-1.438-1.612 0-.889.637-1.613 1.438-1.613.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612Z"/>
@@ -345,7 +345,7 @@
                     <a href="https://deepwiki.com/Chinna95P/mpv-anime-build" target="_blank">
 						<img src="https://deepwiki.com/badge.svg" alt="DeepWiki Badge" height="32">
 					</a>
-					
+
                 </div>
             </div>
 
@@ -372,7 +372,7 @@
     <section class="slider-section">
         <div class="container">
             <h2 class="slider-title reveal">Visual Comparisons</h2>
-			
+
 			<div class="reveal">
 				<h3 style="text-align:center; color:var(--text-muted); margin-bottom:15px;">Anime: Art vs. Fidelity</h3>
 					<div class="c-compare">
@@ -459,7 +459,7 @@
                         </ul>
                     </div>
                 </div>
-				
+
                 <h3 style="text-align: center; margin-bottom: 20px; color: #fff;">Resolution Handling Comparison</h3>
                 <div class="hdr-table-container">
                     <table class="hdr-table">
@@ -502,7 +502,7 @@
 
 				<div style="margin-top: 40px; background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); border-radius: 12px; padding: 20px; text-align: center;">
 					<h4 style="color: #58a6ff; margin-bottom: 20px;">💡 The "Purist" Workflow</h4>
-    
+
 					<div>
 						<p style="margin-bottom: 5px; color: #fff;"><strong>Want Studio-Mastered Quality with Professional Scaling?</strong></p>
 						<p style="margin-bottom: 0; font-size: 0.95rem;">
@@ -510,19 +510,19 @@
 							2. Press <strong>Q</strong> to toggle scaling: <strong>NNEDI3</strong> (Soft/Natural) or <strong>FSRCNNX</strong> (Sharp/Clean).
 						</p>
 					</div>
-				
+
 					<div style="border-top: 1px solid rgba(56, 139, 253, 0.3); margin: 15px 0;"></div>
-				
+
 					<div>
 						<p style="margin-bottom: 5px; color: #fff;"><strong>Want Absolute Raw Output?</strong></p>
 						<p style="margin-bottom: 0; font-size: 0.95rem;">
 							Press <strong>CTRL + g</strong> to engage the <span class="highlight">Master Kill Switch</span>. <br>
-							This instantly disables ALL shaders (Upscalers, Deband, Sharpening) for a 1:1 bit-perfect render. 
+							This instantly disables ALL shaders (Upscalers, Deband, Sharpening) for a 1:1 bit-perfect render.
 							<br><span style="font-size: 0.85rem; opacity: 0.7;">(Perfect for A/B testing. Your choice is saved automatically.)</span>
 						</p>
 					</div>
 				</div>
-				
+
 				<div class="reveal" style="margin-top: 60px;">
                 <h3 style="text-align: center; margin-bottom: 20px; color: #fff;">Native Scalers Guide (Manual Controls for when Shaders Master Switch is OFF)</h3>
                 <div class="hdr-table-container">
@@ -576,9 +576,9 @@
                     </table>
                 </div>
             </div>
-				
+
             </div>
-            
+
             <div class="reveal">
                 <h3 style="text-align:center; color:var(--text-muted); margin-bottom:20px; margin-top:60px;">HDR Tone Mapping & Passthrough Tests</h3>
                 <div class="hdr-table-container">
@@ -629,7 +629,7 @@
 
         </div>
     </section>
-	
+
 	<section style="background: #12161c; padding: 50px 0; border-bottom: 1px solid #30363d;">
         <div class="container">
             <h2 class="slider-title reveal" style="margin-bottom: 30px; font-size: 1.8rem;">🌊 Recommended Streaming Ecosystem</h2>
@@ -638,7 +638,7 @@
             </p>
 
             <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px;">
-                
+
                 <div class="card reveal" style="background: linear-gradient(145deg, #161b22 0%, #0d1117 100%); border-top: 3px solid #6b5ce7;">
                     <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
                         <span style="font-size: 2rem;">🎬</span>
@@ -646,7 +646,7 @@
                     </div>
                     <p style="margin-bottom: 15px; color: #fff;"><strong>Best For:</strong> Movies, TV & 4K HDR</p>
                     <p style="font-size: 0.95rem; line-height: 1.6;">
-                        The ultimate hub. Supports real-time torrent streaming, Dolby Vision, and 4K HDR. 
+                        The ultimate hub. Supports real-time torrent streaming, Dolby Vision, and 4K HDR.
                         <br><span style="color: #6b5ce7; font-size: 0.85rem;">*Enable "Play in External Player" in settings.</span>
                     </p>
                 </div>
@@ -670,7 +670,7 @@
     <section style="padding: 60px 0; background-color: #0d1117;">
         <div class="container">
             <h2 class="slider-title reveal">Interface Tour</h2>
-            
+
             <div class="reveal" style="margin-bottom: 50px;">
                 <h3 style="color: #fff; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px;">Smart Skip Logic</h3>
                 <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
@@ -680,11 +680,11 @@
                     </div>
                     <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
                         <img src="screenshots/ui9.jpg" alt="Blue ED Skip" style="width: 100%; border-radius: 4px; display: block;">
-                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Ending (ED)</strong> • Blue Indicator</p>
+                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Ending (ED)</strong> • Orange Indicator</p>
                     </div>
                     <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
-                        <img src="screenshots/ui8.jpg" alt="Orange Intro Skip" style="width: 100%; border-radius: 4px; display: block;">
-                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Generic Intro</strong> • Orange Theme</p>
+                        <img src="screenshots/ui8.jpg" alt="Blue Intro Skip" style="width: 100%; border-radius: 4px; display: block;">
+                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Generic Intro</strong> • Blue Theme</p>
                     </div>
                     <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
                         <img src="screenshots/ui10.jpg" alt="Skipped Feedback" style="width: 100%; border-radius: 4px; display: block;">
@@ -706,7 +706,7 @@
                     </div>
                 </div>
             </div>
-			
+
 			<div class="reveal" style="margin-top: 20px;">
                 <h3 style="color: #fff; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px;">Scaling Control Menu</h3>
                 <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
@@ -716,10 +716,10 @@
                     </p>
                 </div>
             </div>
-			
+
         </div>
     </section>
-	
+
 		<section class="features" style="background: #0d1117; padding-top: 0;">
     <div class="container">
         <h2 class="slider-title reveal" style="font-size: 1.5rem; margin-bottom: 20px;">Logic & Statistics</h2>
@@ -731,13 +731,55 @@
         </div>
     </div>
 	</section>
-	
-	<section class="features" style="padding-bottom: 0;"> 
+
+	<section class="features" style="padding-bottom: 0;">
         <div class="container">
-            
-            <h2 class="slider-title reveal">What's New (v3.0 - v4.6)</h2>
-            
+
+            <h2 class="slider-title reveal">What's New (v3.0 - v4.7)</h2>
+
             <div class="grid">
+
+                <div class="card reveal" style="border-top: 3px solid #00FF00;">
+                    <span class="icon">🌈</span>
+                    <h3>Color-Coded Chapter Timeline</h3>
+                    <p>UOSC 5.13.0 now highlights detected OP, ED, PV, and Intro chapters with the same transparent colors used by Skip Intro: <strong>OP green</strong>, <strong>ED orange</strong>, <strong>PV magenta</strong>, and <strong>Intro blue</strong>.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #2ea043;">
+                    <span class="icon">📥</span>
+                    <h3>Working Stream Downloads</h3>
+                    <p>Added <code>mpv-youtube-download</code> and bound it to the UOSC Download button. Downloads go to <code>~/ytdl</code> by default and can be changed in <code>youtube-download.conf</code>.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #58a6ff;">
+                    <span class="icon">🎨</span>
+                    <h3>Soothing Resolution-Aware Sharpening</h3>
+                    <p>Adjusted Adaptive Sharpen and Anime Line-Thinner values across resolution tiers for smoother edges while preserving background texture and subject detail in Anime and Live-Action content.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #e3b341;">
+                    <span class="icon">🌊</span>
+                    <h3>New Audio-Only Visualizers</h3>
+                    <p>Expanded the Audio-Only profile with additional visualizer styles for a more varied music playback experience.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #ff7b72;">
+                    <span class="icon">🪟</span>
+                    <h3>Windows CMD Flash Fix</h3>
+                    <p>Updated <code>mpvSockets.lua</code> to prevent command-window flashes on Windows when socket commands are executed.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #bc8cff;">
+                    <span class="icon">🎛️</span>
+                    <h3>UOSC 5.13.0</h3>
+                    <p>Updated the integrated UOSC interface to version 5.13.0 while preserving the custom MPV Anime Build menus and controls.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #d29922;">
+                    <span class="icon">💾</span>
+                    <h3>Persistent Track Manual Override</h3>
+                    <p>Manual audio/subtitle changes are remembered per video for resume. Once restored, the override remains active across next/previous files for the current MPV session or playlist.</p>
+                </div>
 
                 <div class="card reveal" style="border-top: 3px solid #bc8cff;">
                     <span class="icon">📜</span>
@@ -750,7 +792,7 @@
                     <h3>Status Overlay Overhaul</h3>
                     <p>Color-coded, neatly wrapped status display for active filters and shaders. Now uses native data parsing for zero-artifact output. Press 'k' for A/V Filter and Shaders Info</p>
                 </div>
-			
+
 				<div class="card reveal" style="border-top: 3px solid #2ea043;">
                     <span class="icon">🎵</span>
                     <h3>Audio-Only Control</h3>
@@ -764,7 +806,7 @@
                         Integrated the highly optimized <strong>Anime4K-Ultra</strong> shaders by <strong>Th-Underscore</strong>. Experience superior line thinning and pre-sharpen blur-pulls via a new 3-tier dynamic quality menu.
                     </p>
                 </div>
-			
+
 				<div class="card reveal" style="border-top: 3px solid #e3b341;">
                     <span class="icon">🧠</span>
                     <h3>Next-Gen ArtCNN Shaders</h3>
@@ -796,7 +838,7 @@
                         The core Windows engine now explicitly prioritizes NVIDIA's highly efficient <code>nvdec</code> decoder for ultra-smooth rendering on RTX/GTX hardware.
                     </p>
                 </div>
-                
+
                 <div class="card reveal" style="border-top: 3px solid #bc8cff;">
                     <span class="icon">🔊</span>
                     <h3>Global Volume Control</h3>
@@ -804,7 +846,7 @@
                         Seamlessly adjust audio levels and trigger the modern glass UOSC volume UI by simply scrolling your mouse wheel anywhere on the video.
                     </p>
                 </div>
-			
+
                 <div class="card reveal" style="border-top: 3px solid #e3b341;">
                     <span class="icon">🧠</span>
                     <h3>Resolution-Aware Anime4K</h3>
@@ -844,7 +886,7 @@
                         A new immersive viewing mode that fills black bars with glowing ambient colors.
                     </p>
                 </div>
-                
+
                 <div class="card reveal" style="border-top: 3px solid #6b5ce7;">
                     <span class="icon">📺</span>
                     <h3>PIP Mode</h3>
@@ -852,13 +894,13 @@
                         Seamlessly pop the video out into a <strong>Picture-in-Picture</strong> floating window for multitasking.
                     </p>
                 </div>
-                
+
                 <div class="card reveal" style="border-top: 3px solid #00d7ff;">
                     <span class="icon">🎚️</span>
                     <h3>Equalizer Controls</h3>
                     <p>Instantly fine-tune your audio frequencies directly from the newly overhauled UI without leaving the player.</p>
                 </div>
-			
+
 				<div class="card reveal" style="border-top: 3px solid #ff7b72;">
                     <span class="icon">⚡</span>
                     <h3>8K Optimized</h3>
@@ -874,7 +916,7 @@
                         Faster state transitions, lower startup overhead, and a completely reorganized UOSC Glass UI with new intuitive submenus.
                     </p>
                 </div>
-				
+
             </div>
 
         </div>
@@ -886,25 +928,25 @@
             <div class="grid">
 
                 <div class="card reveal"><span class="icon">🎨</span><h3>Neon Glass UI</h3><p>A completely reworked UOSC theme with translucent menus, neon accents, and a centralized control hub.</p></div>
-                
+
                 <div class="card reveal"><span class="icon">🌈</span><h3>True HDR Passthrough</h3><p>Reworked detection logic sends raw metadata to your display when Windows HDR is active.</p></div>
-                
+
                 <div class="card reveal"><span class="icon">✨</span><h3>Anime4K Pipeline</h3><p>Upscale 1080p anime to 4K with restoration, or clean up old 480p DVDs.</p></div>
 
                 <div class="card reveal"><span class="icon">🔍</span><h3>Fidelity Mode</h3><p>Don't like the "oil painting" look? Use <strong>FSRCNNX</strong> for anime. Pure scaling, no art alteration.</p></div>
-                
+
                 <div class="card reveal"><span class="icon">📺</span><h3>Modern TV Mode</h3><p>Live Action uses NNEDI3 and Adaptive Sharpen to mimic Sony/Samsung TV processing.</p></div>
 
                 <div class="card reveal"><span class="icon">🖱️</span><h3>Interactive Smart Cards</h3><p>"Up Next" and "Skip Intro" overlays are clickable. Hover to activate, click to skip instantly.</p></div>
-                
+
                 <div class="card reveal"><span class="icon">🌍</span><h3>Universal Stream Detection</h3><p>Detects Anime Mode on <strong>Stremio & Web Links</strong> by scanning internal audio tracks for Japanese language.</p></div>
-                
+
                 <div class="card reveal"><div class="icon">🚀</div><h3>Adaptive Nvidia VSR</h3><p>Scaling is no longer fixed. The build detects your monitor and applies <span class="highlight">Adaptive Scaling (1.0x - 4.0x)</span>.</p></div>
-                
+
                 <div class="card reveal"><div class="icon">⚡</div><h3>Power Guard</h3><p>Detects Laptop Battery. Actively <span class="highlight-red">LOCKS</span> heavy shaders to prevent drain and auto-switches to ECO Mode.</p></div>
 
                 <div class="card reveal"><span class="icon">🔀</span><h3>Shader Swapper & Split Logic</h3><p>Swap variants instantly. Separate memories for SD (Clean) & HD (Sharp) Live-Action content.</p></div>
-                
+
                 <div class="card reveal"><span class="icon">🎛️</span><h3>Pro Scaling Suite</h3><p>Includes <strong>Spline64</strong> and <strong>Lanczos</strong> to match SVP 4 Pro quality when downscaling 4K movies.</p></div>
 
                 <div class="card reveal"><div class="icon">💾</div><h3>Universal Memory</h3><p>The build remembers <strong>everything</strong>: Upscaler choice, Shader state, and HDR settings across restarts.</p></div>
@@ -912,24 +954,24 @@
                 <div class="card reveal"><span class="icon">🌙</span><h3>Night Mode</h3><p>Dynamic Range Compression for audio. Lowers explosions, boosts dialogue. Perfect for night watching.</p></div>
 
                 <div class="card reveal"><span class="icon">📊</span><h3>Motion & Stats Tech</h3><p>Controls for Video Sync/Temporal Scalers, plus a smart Stats overlay that calculates true target resolution.</p></div>
-                
+
             </div>
         </div>
     </section>
-    
+
     <section class="features" style="background: #0d1117; padding-top: 0;">
         <div class="container">
             <h2 class="slider-title reveal" style="font-size: 1.5rem; margin-bottom: 20px;">Included Shaders & Config Details</h2>
             <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 30px; color: #8b949e;">
                 <p style="margin-bottom: 15px;">
-                    This <strong>MPV Custom Build</strong> is a pre-packaged solution that replaces manual configuration. 
+                    This <strong>MPV Custom Build</strong> is a pre-packaged solution that replaces manual configuration.
                     It combines a highly tuned <code>mpv.conf</code> with the best open-source shaders available.
                 </p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left;">
                     <div>
                         <h4 style="color: #fff; margin-bottom: 10px;">🎨 Active Shaders</h4>
                         <ul style="list-style: none; padding: 0;">
-                            <li>• <strong>Anime4K v4.6</strong> (Upscale + Restore)</li>
+                            <li>• <strong>Anime4K v4.7</strong> (Upscale + Restore)</li>
                             <li>• <strong>NNEDI3</strong> (Neural Network Upscaling)</li>
                             <li>• <strong>FSRCNNX</strong> (High-Fidelity Resizing)</li>
                             <li>• <strong>SSimSuperRes</strong> (Correction)</li>
@@ -951,11 +993,11 @@
             </div>
         </div>
     </section>
-    
-	
+
+
     <footer>
-        <p>MPV Anime Build v4.6 • Maintained by Chinna95P</p>
-        <p>Credits: bloc97 (Anime4K), Th-Underscore (Anime4K-Ultra), igv (FSRCNNX), bjin (KrigBilateral), tomasklaen (UOSC), po5 (Thumbfast), @WaruiDevil (Up Next)</p>
+        <p>MPV Anime Build v4.7 • Maintained by Chinna95P</p>
+        <p>Credits: bloc97 (Anime4K), Th-Underscore (Anime4K-Ultra), igv (FSRCNNX), bjin (KrigBilateral), tomasklaen (UOSC), po5 (Thumbfast), cvzi (mpv-youtube-download), @WaruiDevil (Up Next)</p>
     </footer>
 
     <div id="doc-modal" class="modal-overlay">
@@ -1046,15 +1088,15 @@
                 // 2. Fetch RAW content from GitHub
                 const rawUrl = `https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/${filePath}`;
                 const response = await fetch(rawUrl);
-                
+
                 if (!response.ok) throw new Error("Failed to load file.");
-                
+
                 const markdownText = await response.text();
 
                 // 3. Convert Markdown to HTML using marked.js
                 // We fix image paths so screenshots work inside the modal
                 const htmlContent = marked.parse(markdownText);
-                
+
                 // Fix relative image paths in Markdown (e.g. "screenshots/img.jpg" -> full raw url)
                 const fixedHtml = htmlContent.replace(/src="screenshots\//g, 'src="https://raw.githubusercontent.com/Chinna95P/mpv-anime-build/main/screenshots/');
 
@@ -1073,7 +1115,7 @@
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeDoc();
         });
-        
+
         // Close on ESC key
         document.addEventListener('keydown', (e) => {
             if (e.key === "Escape" && modal.classList.contains('active')) {

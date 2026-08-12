@@ -10,18 +10,18 @@
 #define overshoot_ctrl  true                 // ENABLED.
 
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
-#define curveslope      0.5                  // Sharpening curve slope, high edge values
+#define curveslope      0.3                  // Sharpening curve slope, high edge values
 
-#define L_compr_low     0.167                // Default light compression
-#define L_compr_high    0.334                
+#define L_compr_low     0.101                // Default light compression
+#define L_compr_high    0.268
 
-#define D_compr_low     0.250                // Default dark compression
-#define D_compr_high    0.500                
+#define D_compr_low     0.172                // Default dark compression
+#define D_compr_high    0.438
 
-#define scale_lim       0.1                  // Abs max change before compression [>0.01]
-#define scale_cs        0.056                // Compression slope above scale_lim
+#define scale_lim       0.076                // Abs max change before compression [>0.01]
+#define scale_cs        0.031                // Compression slope above scale_lim
 
-#define pm_p            1.0                  // Power mean p-value [>0-1.0]
+#define pm_p            0.91                 // Power mean p-value [>0-1.0]
 
 //-------------------------------------------------------------------------------------------------
 

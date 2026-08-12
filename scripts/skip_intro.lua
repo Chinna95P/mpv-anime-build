@@ -18,7 +18,7 @@ local categories = {
     { 
         label = "OP", 
         keywords = { 
-            "opening", " op ", "^op$", "op%d", "theme song", "main theme",
+            "opening", " op ", "♪ OP" , "♪OP" , "^op$", "op%d", "theme song", "main theme",
             "オープニング", "オープニングテーマ", "OPテーマ", "主題歌",
             "ncop", "creditless op", "creditless opening"
         } 
@@ -26,7 +26,7 @@ local categories = {
     { 
         label = "ED", 
         keywords = { 
-            "ending", " ed ", "^ed$", "ed%d", "credits", "outro", "end roll",
+            "ending", " ed ", "♪ ED" , "♪ED" , "^ed$", "ed%d", "credits", "outro", "end roll",
             "エンディング", "エンディングテーマ", "EDテーマ", "結び",
             "nced", "creditless ed", "creditless ending"
         } 

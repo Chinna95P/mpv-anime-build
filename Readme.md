@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.6
-> **The Smart Override & Shader Fidelity Update: Manual Track Selection Memory, False-Positive Prevention, and FSRCNNX Pipeline Upgrades (Line Thinning & Anti-Aliasing).**
+# 🎬 MPV Anime Build v4.7
+> **The UOSC 5.13, Stream Download, Visual Processing & Smart Override Update: smoother resolution-aware sharpening, working stream downloads, expanded audio visualizers, color-coded chapter highlights, and persistent track-selection overrides.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -12,14 +12,22 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **Download:** Switch to the [**Android Branch**](https://github.com/Chinna95P/mpv-anime-build/tree/android) to get the mobile-specific files.
 
 <a href="https://github.com/Chinna95P/mpv-anime-build/releases?q=android">
-  <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
+<img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
 </a>
 
 **Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` only once for true HDR Passthrough.
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.5)
+## 🚀 What's New in (v4.0 - v4.7)
+
+* **🎨 Resolution-Tuned Adaptive Sharpen & Anime Line-Thinner (v4.7):** Adjusted sharpening and line-thinner strengths across resolution tiers for smoother, more soothing edges on both Anime and Live-Action content while retaining background and subject detail.
+* **📥 Working Stream Downloads (v4.7):** Added the [`mpv-youtube-download`](https://github.com/cvzi/mpv-youtube-download) script and connected it to the UOSC **Download** button. Stream downloads are saved to `~/ytdl` by default and can be redirected through `youtube-download.conf`.
+* **🪟 Windows CMD Flash Fix (v4.7):** Updated `mpvSockets.lua` to prevent command-window flashes on Windows when socket commands are issued.
+* **🌊 Expanded Audio-Only Visualizers (v4.7):** Added new visualizer styles to the Audio-Only profile for more visual variety during music playback.
+* **🎛️ UOSC 5.13.0 (v4.7):** Updated UOSC to the latest 5.13.0 release while retaining the MPV Anime Build's custom controls, menus, and integrations.
+* **🌈 Color-Coded Chapter Timeline (v4.7):** UOSC now highlights detected chapter ranges using the same colors as Skip Intro: **OP `#00FF00`**, **ED `#FF8000`**, **PV `#FF00FF`**, and **Intro `#0099FF`**, with transparent timeline colors.
+* **💾 Track Selector Resume Manual Override (v4.7):** Manual audio/subtitle overrides are persisted per video. When resumed in a later MPV session, the matching override is restored and then remains active for the rest of that session/playlist, including next/previous files.
 * **📜 Native Watch History & Progress Bars (v4.5):** Tracks up to 50 recent files with visual progress blocks, 95% watched thresholds, greyed-out completed entries, and a dedicated control bar button.
 * **🗡️ Anime Line-Thinner Suite & Context Locks (v4.5):** Resolution-aware line-thinning shaders mapped into FSRCNNX with a persistent menu toggle (`Ctrl+j`) and safety lockdown checks.
 * **✨ Refined Adaptive Sharpening (v4.5):** Balanced strength curves across SD, HD, FHD, and 4K tiers for pristine edge fidelity.
