@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>MPV Anime Build v4.7 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
+    <title>MPV Anime Build v4.8 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
 
     <meta name="description" content="Automated MPV configuration for Real-time Anime and Live-Action Upscaling.">
 
@@ -12,12 +12,12 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
-    <meta property="og:title" content="MPV Anime Build v4.7">
+    <meta property="og:title" content="MPV Anime Build v4.8">
     <meta property="og:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="MPV Anime Build v4.7">
+    <meta property="twitter:title" content="MPV Anime Build v4.8">
     <meta property="twitter:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
@@ -306,7 +306,7 @@
         "name": "Chinna95P"
       },
       "downloadUrl": "https://github.com/Chinna95P/mpv-anime-build/releases",
-      "softwareVersion": "v4.7"
+      "softwareVersion": "v4.8"
     }
     </script>
 </head>
@@ -314,13 +314,13 @@
 
     <header>
         <div class="container hero-content">
-            <h1>MPV Anime Build v4.7</h1>
+            <h1>MPV Anime Build v4.8</h1>
             <p>Performance. Audio Profiling. Pure Immersive Media.</p>
 
             <div class="hero-actions">
                 <div class="primary-buttons">
                     <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn btn-download">
-                        📥 Download v4.7 Release
+                        📥 Download v4.8 Release
                     </a>
                     <a href="https://github.com/Chinna95P/mpv-anime-build/tree/android" class="btn btn-android">
                         📱 Android Build
@@ -630,7 +630,28 @@
         </div>
     </section>
 
-	<section style="background: #12161c; padding: 50px 0; border-bottom: 1px solid #30363d;">
+	
+    <section style="background: #12161c; padding: 50px 0; border-bottom: 1px solid #30363d;">
+        <div class="container">
+            <h2 class="slider-title reveal" style="margin-bottom: 20px; font-size: 1.8rem;">📂 UOSC Open File Browser</h2>
+            <div class="card reveal" style="max-width: 900px; margin: 0 auto;">
+                <p style="margin-bottom: 15px;">
+                    v4.8 adds a dedicated <strong>Open File</strong> button to the UOSC controls bar. It opens UOSC's file-selection menu directly inside MPV for quick video and audio selection.
+                </p>
+                <p style="margin-bottom: 15px;">
+                    If your video folders contain poster, backdrop, thumbnail, or other image files, keep the browser focused on playable media with:
+                </p>
+                <pre><code>load_types=video,audio
+show_hidden_files=no
+image_types=</code></pre>
+                <p style="color: var(--text-muted);">
+                    This prevents image assets from appearing in the Open File menu while keeping video/audio selection available.
+                </p>
+            </div>
+        </div>
+    </section>
+
+<section style="background: #12161c; padding: 50px 0; border-bottom: 1px solid #30363d;">
         <div class="container">
             <h2 class="slider-title reveal" style="margin-bottom: 30px; font-size: 1.8rem;">🌊 Recommended Streaming Ecosystem</h2>
             <p style="text-align: center; color: var(--text-muted); margin-bottom: 40px; max-width: 800px; margin-left: auto; margin-right: auto;">
@@ -735,9 +756,40 @@
 	<section class="features" style="padding-bottom: 0;">
         <div class="container">
 
-            <h2 class="slider-title reveal">What's New (v3.0 - v4.7)</h2>
+            <h2 class="slider-title reveal">What's New (v3.0 - v4.8)</h2>
 
             <div class="grid">
+
+
+                <div class="card reveal" style="border-top: 3px solid #58a6ff;">
+                    <span class="icon">🧩</span>
+                    <h3>Controller & Main Logic Optimization</h3>
+                    <p>Optimized <code>anime_profile_controller.lua</code> and <code>main.lua</code> to fix minor bugs, reduce unnecessary processing, and improve state handling.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #2ea043;">
+                    <span class="icon">📂</span>
+                    <h3>Dedicated UOSC Open File Button</h3>
+                    <p>A new <strong>Open File</strong> control opens UOSC's native file-selection menu directly from the player for quick video and audio selection.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #d29922;">
+                    <span class="icon">🖼️</span>
+                    <h3>Cleaner Media File Browser</h3>
+                    <p>Configure UOSC with <code>load_types=video,audio</code>, <code>show_hidden_files=no</code>, and <code>image_types=</code> to keep poster and artwork files out of the Open File menu.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #bc8cff;">
+                    <span class="icon">🎛️</span>
+                    <h3>UOSC Behavior Refinements</h3>
+                    <p>Several UOSC controls, menus, and interaction behaviors were refined for a more consistent MPV Anime Build workflow.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #e3b341;">
+                    <span class="icon">🎵</span>
+                    <h3>Track Selector Refinement</h3>
+                    <p>Updated <code>track-selector.lua</code> with v4.8 fixes and behavior refinements to improve track-selection reliability while preserving manual selection and override behavior.</p>
+                </div>
 
                 <div class="card reveal" style="border-top: 3px solid #00FF00;">
                     <span class="icon">🌈</span>
@@ -996,7 +1048,7 @@
 
 
     <footer>
-        <p>MPV Anime Build v4.7 • Maintained by Chinna95P</p>
+        <p>MPV Anime Build v4.8 • Maintained by Chinna95P</p>
         <p>Credits: bloc97 (Anime4K), Th-Underscore (Anime4K-Ultra), igv (FSRCNNX), bjin (KrigBilateral), tomasklaen (UOSC), po5 (Thumbfast), cvzi (mpv-youtube-download), @WaruiDevil (Up Next)</p>
     </footer>
 

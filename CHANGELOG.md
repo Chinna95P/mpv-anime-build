@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.8] – UOSC File Browser, Controller Optimization & Track Selector Refinement
+
+### ✨ New Features & Enhancements
+* **Anime Profile Controller Optimization:** Optimized `anime_profile_controller.lua` and `main.lua` to reduce unnecessary work, improve state handling, and fix minor UI/logic bugs without changing the build's core profile behavior.
+* **UOSC Open-File Control:** Added a dedicated **Open File** button to the UOSC controls bar. It opens UOSC's native file-selection menu directly from the player, making video/audio selection available without relying on the operating system's file dialog.
+* **Video/Audio-Only File Browser:** The Open File menu is configured to show only supported **video and audio** files. Poster, backdrop, thumbnail, and other image assets can be excluded through the UOSC `image_types` configuration.
+* **UOSC Behavior Refinements:** Adjusted several UOSC behaviors and menu interactions to make the interface more consistent with the MPV Anime Build workflow.
+* **Track Selector Refinement:** Updated `track-selector.lua` with fixes and behavior refinements made during the v4.8 development cycle, improving track-selection reliability while preserving the build's manual-selection/override workflow.
+
+### ⚙️ Configuration Note
+For users maintaining a custom `uosc.conf`, the Open File browser can be restricted with:
+
+```ini
+load_types=video,audio
+show_hidden_files=no
+image_types=
+```
+
+This keeps normal video/audio selection available while preventing poster and other image files from appearing in the Open File menu.
+
+---
+
 ## [v4.7] – UOSC 5.13, Stream Downloads, Visualizer Expansion & Smoothed Processing
 
 ### ✨ New Features & Enhancements

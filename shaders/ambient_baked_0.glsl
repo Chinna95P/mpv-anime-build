@@ -17,7 +17,7 @@ float hash(vec2 p) {
 vec4 hook() {
     vec2 uv = HOOKED_pos;
     
-    vec2 inv_scale = vec2(1.3333333333333, 1);
+    vec2 inv_scale = vec2(1.3370473537604, 1);
     vec2 center_uv = (uv - 0.5) * inv_scale + 0.5;
     
     if (all(greaterThanEqual(center_uv, vec2(0.0))) && all(lessThanEqual(center_uv, vec2(1.0)))) {

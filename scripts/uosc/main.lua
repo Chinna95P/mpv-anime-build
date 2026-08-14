@@ -1203,6 +1203,7 @@ function create_default_menu_items()
                         { title = 'History CARD', value = 'script-message toggle-history', active = get_anime_state("history_enabled") }, -- [v4.5] History Card Toggle
                         { title = 'Skip Intro/OP/ED CARD', value = 'script-message toggle-skip-intro', active = get_anime_state("skip_intro_enabled") },
                         { title = 'Up Next CARD', value = 'script-message toggle-up-next', active = get_anime_state("up_next_enabled") },
+                        { title = 'Track Selector: ' .. (get_anime_state("track_selector_enabled") and 'AUTO' or 'DISABLED'), value = 'script-message toggle-track-selector', active = get_anime_state("track_selector_enabled") },
                     }
                 },
 				
@@ -1217,7 +1218,7 @@ function create_default_menu_items()
 				},	
 				
                 -- Advanced Controls Shortcut
-                { title = 'Advanced Controls...', icon = 'tune', value = 'script-binding uosc/open-menu-controls', bold = true, active = true },
+                { title = 'Advanced Controls...', icon = 'tune', value = 'script-binding uosc/open-controls-menu', bold = true, active = true },
             },
         },
 

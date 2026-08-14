@@ -5,7 +5,7 @@
 -- appropriate deinterlacing filter based on a short section of the
 -- currently playing video.
 --
--- It registers the key-binding ctrl+d, which when pressed, inserts the filters
+-- It registers the key-binding ctrl+c, which when pressed, inserts the filters
 -- ``vf=lavfi=idet,pullup,vf=lavfi=idet``. After 4 seconds, it removes these
 -- filters and decides whether the content is progressive, interlaced, or
 -- telecined and the interlacing field dominance.
@@ -155,4 +155,4 @@ function select_filter()
     end
 end
 
-mp.add_key_binding("ctrl+d", script_name, start_detect)
+mp.add_key_binding("ctrl+c", script_name, start_detect)

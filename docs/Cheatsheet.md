@@ -1,43 +1,51 @@
-# ⚡ MPV Anime Build v1.9.2 – Cheat Sheet
+# ⚡ MPV Anime Build v4.8 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
 ---
 
 ## 🖱️ Mouse Controls
+
 | Key | Function | Description |
 | :--- | :--- | :--- |
 | **`Left Click`** | **Pause** | Cycle pause/play. |
 | **`Double Click`** | **Fullscreen** | Cycle fullscreen. |
-| **`Scroll Wheel Up`** | **Vol +1 (Global)** | Scroll up **anywhere** on the screen to increase volume & trigger the UOSC flash UI. |
-| **`Scroll Wheel Down`** | **Vol -1 (Global)** | Scroll down **anywhere** on the screen to decrease volume & trigger the UOSC flash UI. |
 | **`Back Thumb Btn`** | **Prev Chapter** | Go to previous chapter. |
 | **`Fwd Thumb Btn`** | **Next Chapter** | Go to next chapter. |
+| **`Scroll Wheel Up`** | **Vol +1 (Global)** | Increase volume anywhere on the screen and trigger the UOSC volume UI. |
+| **`Scroll Wheel Down`** | **Vol -1 (Global)** | Decrease volume anywhere on the screen and trigger the UOSC volume UI. |
 
 ---
 
 ## ⏯️ Navigation & Seeking
+
 | Key | Function | Description |
 | :--- | :--- | :--- |
 | **`RIGHT`** | **Seek +5s** | Seek forward 5 seconds. |
 | **`LEFT`** | **Seek -5s** | Seek backward 5 seconds. |
 | **`SHIFT+RIGHT`** | **Seek +1s** | Exact seek forward 1 second. |
 | **`SHIFT+LEFT`** | **Seek -1s** | Exact seek backward 1 second. |
+| **`CTRL+RIGHT`** | **Frame Step** | Advance one frame and show the current frame number. |
+| **`CTRL+LEFT`** | **Frame Back** | Go back one frame and show the current frame number. |
+| **`TAB`** | **Flash UOSC UI** | Flash the UOSC interface. |
+| **`UP`** | **Vol +** | Increase volume (+1) and trigger the UOSC volume UI. |
+| **`DOWN`** | **Vol -** | Decrease volume (-1) and trigger the UOSC volume UI. |
 | **`SHIFT+UP`** | **Seek +2m** | Seek forward 2 minutes. |
 | **`SHIFT+DOWN`** | **Seek -2m** | Seek backward 2 minutes. |
-| **`CTRL+RIGHT`** | **Frame Step** | Advance one frame. |
-| **`CTRL+LEFT`** | **Frame Back** | Go back one frame. |
-| **`e`** | **Prev File** | Play previous file in playlist. |
-| **`r`** | **Next File** | Play next file in playlist. |
-| **`w`** | **Playlist List** | Show playlist list onscreen (OSC). |
+| **`ENTER`** | **Seek +85s** | Seek forward 85 seconds. |
+| **`GO_BACK`** | **Seek -85s** | Seek backward 85 seconds. |
 | **`-`** | **Prev Chapter** | Go to previous chapter. |
 | **`=`** | **Next Chapter** | Go to next chapter. |
-| **`z`** | **Chapter/Playlist Next** | Intelligent skip (Chapter -> Playlist). |
-| **`Z`** | **Chapter/Playlist Prev** | Intelligent skip (Chapter -> Playlist). |
+| **`w`** | **Playlist List** | Open the UOSC playlist/items menu. |
+| **`e`** | **Prev File** | Play previous file in the playlist. |
+| **`r`** | **Next File** | Play next file in the playlist. |
+| **`z`** | **Chapter/Playlist Next** | Intelligent next: chapter, then playlist. |
+| **`Z`** | **Chapter/Playlist Prev** | Intelligent previous: chapter, then playlist. |
 
 ---
 
 ## 🔊 Audio & Subtitles
+
 | Key | Function | Description |
 | :--- | :--- | :--- |
 | **`UP`** | **Vol +** | Increase volume (+1). |
@@ -67,12 +75,9 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 ---
 
 ## 📺 Video & Display
+
 | Key | Function | Description |
 | :--- | :--- | :--- |
-| **`f`** | **Fullscreen** | Toggle fullscreen. |
-| **`p`** | **Rotate** | Rotate video 90 degrees. |
-| **`P`** | **Aspect Ratio** | Cycle Aspect Ratio (16:9, 4:3, etc). |
-| **`!`** | **On Top** | Toggle "Always on Top" window mode. |
 | **`1`** | **Contrast -** | Decrease contrast. |
 | **`2`** | **Contrast +** | Increase contrast. |
 | **`3`** | **Bright -** | Decrease brightness. |
@@ -81,23 +86,34 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`6`** | **Gamma +** | Increase gamma. |
 | **`7`** | **Saturation -** | Decrease saturation. |
 | **`8`** | **Saturation +** | Increase saturation. |
-| **`g`** | **Interpolation** | Toggle Motion Interpolation. |
-| **`G`** | **Tscale Mode** | Cycle interpolation filters (linear/catmull_rom/etc). |
+| **`9`** | **Vol --** | Decrease volume by 2. |
+| **`0`** | **Vol ++** | Increase volume by 2. |
+| **`!`** | **On Top** | Toggle Always on Top. |
+| **`F5`** | **Screenshot** | Take a window screenshot. |
+| **`p`** | **Rotate** | Cycle video rotation: 90 / 180 / 270 / 0 degrees. |
+| **`P`** | **Aspect Ratio** | Cycle aspect ratio: 16:9 / 4:3 / 2.35:1 / 16:10 / Auto. |
+| **`f`** | **Fullscreen** | Toggle fullscreen. |
+| **`g`** | **Interpolation** | Toggle motion interpolation. |
+| **`G`** | **Tscale Mode** | Cycle interpolation filters. |
 | **`h`** | **Deinterlace** | Toggle deinterlacing. |
-| **`H`** | **HDR Mode** | Manual Toggle: Passthrough ↔ Tone Mapping. |
-| **`V`** | **Nvidia VSR** | Toggle Video Super Resolution (Shift+v). |
+| **`H`** | **HDR Mode** | Toggle hybrid HDR behavior: passthrough / tone mapping. |
 | **`j`** | **Deband** | Cycle debanding filter. |
-| **`u`** | **HW Dec** | Cycle Hardware Decoding (auto-copy / no). |
+| **`u`** | **HW Dec** | Cycle hardware decoding: auto / no / auto-copy. |
+| **`Right Mouse Button`** | **UOSC Menu** | Open the UOSC menu. |
+| **`Menu Key`** | **UOSC Menu** | Open the UOSC menu. |
 
 ---
 
 ## 📊 Stats & Info
+
 | Key | Function | Description |
 | :--- | :--- | :--- |
+| **`K`** | **Build Status** | Show active profile and Anime Mode status. |
+| **`CTRL+i`** | **Stats Overlay** | Toggle the Neon Glass Statistics overlay. |
 | **`i`** | **Stats (Quick)** | Show stats temporarily. |
 | **`I`** | **Stats (Toggle)** | Toggle persistent stats overlay. |
-| **`k`** | **Tech Info** | Show Audio/Video Filters and Shaders. |
-| **`o`** | **OSD Level** | Cycle OSD level (1 / 3). |
+| **`k`** | **Tech Info** | Show wrapped audio/video filter and shader status. |
+| **`o`** | **OSD Level** | Cycle OSD level: 3 / 1. |
 
 ---
 
@@ -105,29 +121,29 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 
 | Key | Function | Description |
 | :--- | :--- | :--- |
-| **`K`** | **Build Status** | Show Active Profile and Anime Mode Status. |
-| **`q`** | **Quit (Save)** | Quit and save watch-later state conditionally. |
+| **`CTRL+p`** | **Power Mode** | Toggle Low-Power/Battery Saver mode manually. |
+| **`D`** | **Anime Menu** | Open the Anime Build menu. |
+| **`CTRL+1`** | **Mode A** | Anime4K Mode A. |
+| **`CTRL+2`** | **Mode B** | Anime4K Mode B. |
+| **`CTRL+3`** | **Mode C** | Anime4K Mode C. |
+| **`CTRL+4`** | **Mode AA** | Anime4K Mode A+A. |
+| **`CTRL+5`** | **Mode BB** | Anime4K Mode B+B. |
+| **`CTRL+6`** | **Mode CA** | Anime4K Mode C+A. |
+| **`CTRL+7`** | **Mode Ani4Kv2** | Apply next-generation ArtCNN Ani4Kv2 shaders. |
+| **`CTRL+8`** | **Mode AniSD** | Apply next-generation ArtCNN AniSD shaders. |
+| **`L`** | **Anime4K Quality** | Toggle Anime4K quality: Fast ↔ HQ ↔ Ultra. |
+| **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
 | **`CTRL+l`** | **Mode: Auto** | Set Anime Mode to Auto. |
-| **`CTRL+g`** | **Master Switch** | Toggle ALL Shaders ON/OFF (Persistent). |
 | **`CTRL+;`** | **Mode: On** | Force Anime Mode ON. |
 | **`CTRL+'`** | **Mode: Off** | Force Anime Mode OFF. |
-| **`L`** | **Anime4K Qual** | Toggle Anime4K Quality (Fast ↔ HQ ↔ Ultra). |
-| **`CTRL+1`** | **Mode A** | Anime4K Mode A (Restore+Upscale). |
-| **`CTRL+2`** | **Mode B** | Anime4K Mode B (Soft). |
-| **`CTRL+3`** | **Mode C** | Anime4K Mode C (Denoise). |
-| **`CTRL+4`** | **Mode AA** | Anime4K Mode A+A (Ultra Sharp). |
-| **`CTRL+5`** | **Mode BB** | Anime4K Mode B+B (Ultra Soft). |
-| **`CTRL+6`** | **Mode CA** | Anime4K Mode C+A (Denoise+Restore). |
-| **`CTRL+7`** | **Mode Ani4Kv2**| Apply next-gen **ArtCNN Ani4Kv2** shaders. |
-| **`CTRL+8`** | **Mode AniSD** | Apply next-gen **ArtCNN AniSD** shaders. |
-| **`CTRL+-`** | **Clear Shaders** | Clear all GLSL shaders. |
-| **`CTRL+q`** | **SD Textures** | Toggle Clean ↔ Texture (Locked if Sharp Mode active). |
-| **`Q`** | **Master Upscaler** | Toggle NNEDI3 ↔ FSRCNNX (Works for SD & HD seperately). <br>*(Remembers the preference for the SD/HD resolution: NNEDI3 ↔ FSRCNNX)* |
-| **`CTRL+k`** | **Adaptive Sharpen Toggle** | Toggle Adaptive Sharpen ON/OFF (Works for Anime-Fidelity & Live-Action). |
-| **`CTRL+j`** | **Anime Line Thinning Shader Toggle** | Toggle Anime Line Thinning Shader ON/OFF (Works for Anime-Fidelity Mode only). |
-| **`CTRL+p`** | **Power Mode** | Toggle Low-Power Mode (Battery Saver) manually. |
-| **`CTRL+i`** | **Stats Overlay** | Toggle 'Statistics' Display. |
-| **`CTRL+b`** | **Anime-Fidelity** | Toggle Anime-Fidelity Mode [Anime4K <=> FSRCNNX (Anime Enhanced)] manually. |
-
+| **`CTRL+q`** | **SD Texture Mode** | Toggle SD Clean ↔ Texture. |
+| **`Q`** | **HD Upscaler** | Toggle HD NNEDI3 ↔ FSRCNNX. |
+| **`CTRL+b`** | **Anime Fidelity** | Toggle Anime Fidelity: Anime4K ↔ FSRCNNX. |
+| **`CTRL+c`** | **Auto-Deinterlace Detection** | Toggle Auto Deinterlace Detection. |
+| **`CTRL+g`** | **Master Shader Switch** | Toggle all shaders ON/OFF (persistent). |
+| **`CTRL+k`** | **Adaptive Sharpen** | Toggle Adaptive Sharpen ON/OFF. |
+| **`Ctrl+j`** | **Anime Line Thinning** | Toggle Anime Line Thinning shader; Anime Fidelity Mode only. |
+| **`CTRL+x`** | **Ambient Crop** | Toggle Ambient Crop. |
+| **`q`** | **Quit (Save)** | Quit and conditionally save watch-later state. |
 
 ---

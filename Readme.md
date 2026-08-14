@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.7
-> **The UOSC 5.13, Stream Download, Visual Processing & Smart Override Update: smoother resolution-aware sharpening, working stream downloads, expanded audio visualizers, color-coded chapter highlights, and persistent track-selection overrides.**
+# 🎬 MPV Anime Build v4.8
+> **The UOSC File Browser, Controller Optimization & Track Selector Refinement Update: optimized controller logic, a dedicated Open File control, refined UOSC behavior, and improved track-selection handling.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -19,8 +19,13 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.7)
+## 🚀 What's New in (v4.0 - v4.8)
 
+* **🧩 Optimized Anime Profile Controller & Main UI Logic (v4.8):** Optimized `anime_profile_controller.lua` and `main.lua` to fix minor bugs and reduce unnecessary processing while preserving the existing profile system and menu synchronization.
+* **📂 Dedicated UOSC Open File Button (v4.8):** Added an **Open File** button directly to the UOSC controls bar. It opens UOSC's file-selection menu for selecting video and audio files without leaving the player.
+* **🖼️ Image Filtering in Open File Menu (v4.8):** The UOSC file browser can now be configured with `load_types=video,audio`, `show_hidden_files=no`, and an empty `image_types` value so poster/backdrop image assets are not shown alongside playable media.
+* **🎛️ Refined UOSC Behaviors (v4.8):** Adjusted several UOSC controls and menu behaviors for a cleaner, more consistent MPV Anime Build experience.
+* **🎵 Track Selector Fixes & Refinements (v4.8):** Updated `track-selector.lua` with the fixes and behavior changes developed for v4.8, improving track-selection reliability while retaining the manual-selection/override workflow.
 * **🎨 Resolution-Tuned Adaptive Sharpen & Anime Line-Thinner (v4.7):** Adjusted sharpening and line-thinner strengths across resolution tiers for smoother, more soothing edges on both Anime and Live-Action content while retaining background and subject detail.
 * **📥 Working Stream Downloads (v4.7):** Added the [`mpv-youtube-download`](https://github.com/cvzi/mpv-youtube-download) script and connected it to the UOSC **Download** button. Stream downloads are saved to `~/ytdl` by default and can be redirected through `youtube-download.conf`.
 * **🪟 Windows CMD Flash Fix (v4.7):** Updated `mpvSockets.lua` to prevent command-window flashes on Windows when socket commands are issued.
@@ -272,4 +277,5 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 * **Up Next Script:** @WaruiDevil (Telegram User)
 * **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
 * **Equalizer:** DonCanjas
+* **mpv-youtube-download:** cvzi
 * **Config & Logic:** Customized and built by Chinna95P

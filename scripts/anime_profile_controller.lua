@@ -1,7 +1,7 @@
 -- [[ 
 --    FILENAME: anime_profile_controller.lua
---    VERSION:  v4.6 (Modified Anime Detection Logic and Fidelity Shader Chains)
---    UPDATED:  2026-07-23
+--    VERSION:  v4.8 (Added Track-Selector Smart Card Toggle)
+--    UPDATED:  2026-08-12
 -- ]]
 
 local mp = require("mp")
@@ -126,6 +126,7 @@ local up_next_enabled = true
 local skip_intro_enabled = true
 local history_enabled = true -- [v4.5] History State
 local line_thinner_enabled = true -- [v4.5] Line Thinner State
+local track_selector_enabled = true -- [v4.7] Track Selector AUTO/DISABLED
 
 -------------------------------------------------
 -- COLORS (BGR Hex)
@@ -211,6 +212,7 @@ local function sync_state()
         skip_intro_enabled = skip_intro_enabled,
         history_enabled = history_enabled, -- [v4.5] History Sync
         line_thinner_enabled = line_thinner_enabled, -- [v4.5] Line Thinner Sync
+        track_selector_enabled = track_selector_enabled, -- [v4.7] Track Selector Sync
         
         -- Live Action Logic
         sd_texture = (sd_mode == "texture"),
@@ -385,6 +387,8 @@ local function load_anime_mode()
         if he then history_enabled = (he == "true") end -- [v4.5] History Load
         local lt = l:match("line_thinner_enabled=(%S+)") -- [v4.5] Line Thinner Check
         if lt then line_thinner_enabled = (lt == "true") end -- [v4.5] Line Thinner Load
+        local ts = l:match("track_selector_enabled=(%S+)") -- [v4.7] Track Selector Check
+        if ts then track_selector_enabled = (ts == "true") end -- [v4.7] Track Selector Load
 		
     end
     f:close()
@@ -426,6 +430,7 @@ local function save_anime_mode()
         f:write("skip_intro_enabled=" .. tostring(skip_intro_enabled) .. "\n")
         f:write("history_enabled=" .. tostring(history_enabled) .. "\n") -- [v4.5] History Save
         f:write("line_thinner_enabled=" .. tostring(line_thinner_enabled) .. "\n") -- [v4.5] Line Thinner Save
+        f:write("track_selector_enabled=" .. tostring(track_selector_enabled) .. "\n") -- [v4.7] Track Selector Save
 		
         f:close() 
     end
@@ -1127,6 +1132,7 @@ local function get_anime_menu_json()
                 { title = "History CARD", value = "script-message toggle-history", active = history_enabled }, -- [v4.5] History Toggle
                 { title = "Skip Intro/OP/ED CARD", value = "script-message toggle-skip-intro", active = skip_intro_enabled },
                 { title = "Up Next CARD", value = "script-message toggle-up-next", active = up_next_enabled },
+                { title = "Track Selector: " .. (track_selector_enabled and "AUTO" or "DISABLED"), value = "script-message toggle-track-selector", active = track_selector_enabled },
             }
         },
         {
@@ -1137,7 +1143,7 @@ local function get_anime_menu_json()
                         { title = "Show Statistics", value = "script-binding toggle-stats", icon = 'info' },
                     }
         },
-        { title = "Advanced Controls...", icon = 'tune', value = "script-binding uosc/open-menu-controls", bold = true, active = true },
+        { title = "Advanced Controls...", icon = 'tune', value = "script-binding uosc/open-controls-menu", bold = true, active = true },
     }
 
     return utils.format_json({
@@ -1281,6 +1287,16 @@ mp.register_script_message("toggle-global-shaders", function()
     end
     sync_state()
 	update_uosc_menu()
+end)
+
+-- [v4.7] Track Selector AUTO/DISABLED Listener
+mp.register_script_message("toggle-track-selector", function()
+    track_selector_enabled = not track_selector_enabled
+    save_anime_mode()
+    mp.commandv("script-message-to", "track-selector", "set-enabled", tostring(track_selector_enabled))
+    show_temp_osd("Track Selector: " .. (track_selector_enabled and "AUTO" or "DISABLED"), 2)
+    sync_state()
+    update_uosc_menu()
 end)
 
 -- [v4.5] History Listener
@@ -1495,12 +1511,6 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
 	update_uosc_menu()
 end)
 
-mp.register_script_message("force-evaluate-profile", function()
-    current_profile = "" 
-    evaluate()
-    show_temp_osd(profile_message(), 2)
-end)
-
 mp.register_script_message("show-current-version", function()
     show_temp_osd(C.GREEN .. "Anime Build: " .. C.WHITE .. BUILD_VERSION, 3)
 end)
@@ -1541,6 +1551,9 @@ mp.register_event("file-loaded", function()
     
     load_anime_mode()
     load_anime4k()
+
+    -- Synchronize the persisted Track Selector master mode immediately.
+    mp.commandv("script-message-to", "track-selector", "set-enabled", tostring(track_selector_enabled))
     
 	evaluate_audio()
 	
