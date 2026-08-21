@@ -169,7 +169,7 @@ local function sync_state()
     local current_fidelity = user_anime_fidelity[res]
 	-- [v2.2 FIX] Determine Logic based strictly on Active Profile Name
     local p = current_profile or ""
-    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and current_fidelity)
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "FHD-Native") or (p == "anime-shaders" and current_fidelity)
     local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
     
     -- 2. Define the state table
@@ -319,7 +319,7 @@ local function profile_message()
         end
     else
         local prof_color = C.WHITE
-        if current_profile == "High-Quality" or current_profile == "HQ-SD-FSRCNNX" then prof_color = C.CYAN
+        if current_profile == "FHD-Native" or current_profile == "HQ-SD-FSRCNNX" then prof_color = C.CYAN
         elseif current_profile and current_profile:find("HQ%-HD") then prof_color = C.GOLD
         elseif current_profile and current_profile:find("HQ%-SD") then prof_color = C.ORANGE
         elseif current_profile == "4K-Native" then prof_color = C.GREEN
@@ -836,7 +836,7 @@ local function evaluate()
     elseif res == "4K" then
         apply_profile("4K-Native")
     elseif res == "2K" or res == "FHD" then
-         apply_profile("High-Quality")
+         apply_profile("FHD-Native")
     else -- HD 720p
         apply_profile(hd_manual_override and "HQ-HD-FSRCNNX" or "HQ-HD-NNEDI")
     end
@@ -877,7 +877,7 @@ local function get_anime_menu_json()
     
     -- [v2.2 FIX] Menu Visual State based strictly on Profile Name
     local p = current_profile or ""
-    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "High-Quality") or (p == "anime-shaders" and current_fidelity)
+    local fsr_active = (p == "HQ-SD-FSRCNNX") or (p == "HQ-HD-FSRCNNX") or (p == "FHD-Native") or (p == "anime-shaders" and current_fidelity)
     local nnedi_active = (p == "HQ-SD-Clean") or (p == "HQ-SD-Texture") or (p == "HQ-HD-NNEDI")
 
     -- Logic for SD Mode Lock (Locked if we are in SD but FSRCNNX is running)
@@ -1502,7 +1502,7 @@ mp.register_script_message("toggle-hq-hd-nnedi", function()
     else 
         hd_manual_override = not hd_manual_override
         evaluate()
-        mode_name = hd_manual_override and "FSRCNNX (High-Quality)" or "NNEDI3 (Geometry)"
+        mode_name = hd_manual_override and "FSRCNNX (FHD-Native)" or "NNEDI3 (Geometry)"
         mode_color = hd_manual_override and C.CYAN or C.GOLD
     end
     save_anime_mode()
