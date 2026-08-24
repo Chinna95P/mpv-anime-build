@@ -1,4 +1,4 @@
--- power_manager.lua for mpv-anime-build v1.9
+-- power_manager.lua for mpv-anime-build v4.9
 -- Features: Silent Laptop Check, Smart Resume, OSD Overlay Stacking
 -- UPDATED: Increased Safety Delay to 0.5s to fix VSR Race Condition
 
@@ -11,6 +11,62 @@ local opts = {
     low_power_profile = "Low-End", 
     forced_hotkey = "toggle-power", 
 }
+
+-- PLATFORM SUPPORT
+-- mpv exposes "platform" on current builds. Keep a separator-based fallback
+-- for older builds so this script remains portable without user edits.
+local function detect_platform()
+    local value = (mp.get_property("platform") or ""):lower()
+    if value == "windows" or value == "linux" then
+        return value
+    end
+    return package.config:sub(1, 1) == "\\" and "windows" or "linux"
+end
+
+local platform = detect_platform()
+
+local function read_trimmed(path)
+    local file = io.open(path, "r")
+    if not file then return nil end
+    local value = file:read("*l")
+    file:close()
+    return value and value:match("^%s*(.-)%s*$") or nil
+end
+
+local function find_linux_batteries()
+    local batteries = {}
+    local root = "/sys/class/power_supply"
+    local entries = utils.readdir(root) or {}
+
+    for _, entry in ipairs(entries) do
+        local path = root .. "/" .. entry
+        local supply_type = read_trimmed(path .. "/type")
+        if supply_type and supply_type:lower() == "battery" then
+            batteries[#batteries + 1] = path
+        end
+    end
+    return batteries
+end
+
+local linux_batteries = platform == "linux" and find_linux_batteries() or {}
+
+local function run_powershell(command)
+    -- Windows PowerShell is built into supported Windows versions. pwsh is a
+    -- fallback for systems that have replaced it with PowerShell 7.
+    for _, executable in ipairs({"powershell.exe", "pwsh.exe", "powershell", "pwsh"}) do
+        local result = mp.command_native({
+            name = "subprocess",
+            args = {executable, "-NoProfile", "-NonInteractive", "-Command", command},
+            playback_only = false,
+            capture_stdout = true,
+            capture_stderr = true,
+        })
+        if result and result.status == 0 then
+            return (result.stdout or ""):match("^%s*(.-)%s*$")
+        end
+    end
+    return nil
+end
 
 -- OSD COLORS 
 local C = {
@@ -44,7 +100,9 @@ local state = {
     forced_mode = false,
     initialized = false,
     timer = nil,
-    resume_timer = nil
+    resume_timer = nil,
+    low_power_active = false,
+    saved_hwdec = nil
 }
 
 -- Hybrid Helper: Broadcast + User-Data
@@ -59,33 +117,46 @@ end
 
 -- HELPER: Check if system is a laptop
 local function check_is_laptop()
-    local res = utils.subprocess({ 
-        args = {"powershell", "-command", "Get-WmiObject Win32_Battery"}, 
-        cancellable = false,
-        playback_only = false
-    })
-    if res.status == 0 and res.stdout and res.stdout ~= "" then
-        return true
+    if platform == "windows" then
+        local output = run_powershell(
+            "$b = Get-CimInstance -ClassName Win32_Battery -ErrorAction SilentlyContinue; " ..
+            "if ($null -ne $b) { 'true' } else { 'false' }"
+        )
+        return output and output:lower() == "true" or false
+    elseif platform == "linux" then
+        return #linux_batteries > 0
     end
     return false
 end
 
 -- HELPER: Check Battery Status
 local function check_battery_status()
-    local res = utils.subprocess({ 
-        args = {"powershell", "-command", "(Get-WmiObject Win32_Battery).BatteryStatus"}, 
-        cancellable = false 
-    })
-    if res.status == 0 and res.stdout then
-        local status = res.stdout:gsub("%s+", "")
-        return (status == "1") -- 1 = Discharging
+    if platform == "windows" then
+        local output = run_powershell(
+            "$b = Get-CimInstance -ClassName Win32_Battery -ErrorAction SilentlyContinue; " ..
+            "if ($b | Where-Object { $_.BatteryStatus -eq 1 }) { 'true' } else { 'false' }"
+        )
+        return output and output:lower() == "true" or false
+    elseif platform == "linux" then
+        for _, path in ipairs(linux_batteries) do
+            local status = read_trimmed(path .. "/status")
+            if status and status:lower() == "discharging" then
+                return true
+            end
+        end
     end
     return false
 end
 
 -- LOGIC: Apply Low Power Mode
 local function enable_low_power()
-    if mp.get_property("profile") == opts.low_power_profile then return end
+    if state.low_power_active then return end
+
+    -- Preserve the decoder selected by the active platform/SVP profile. This
+    -- lets the normal profile be restored without hard-coding a Windows or
+    -- Linux hardware decoder.
+    state.saved_hwdec = mp.get_property("hwdec")
+    state.low_power_active = true
 
     show_power_osd(C.YELLOW .. "⚡ {\\b1}Power Saving:{\\b0} " .. C.GREEN .. "Enabled")
     msg.info("Power Manager: Switching to [Low-End]")
@@ -112,14 +183,13 @@ local function disable_low_power()
     msg.info("Power Manager: Handing control to Anime Profile Controller")
     show_power_osd(C.YELLOW .. "🔌 {\\b1}AC Power:{\\b0} " .. C.CYAN .. "Restoring Smart Profile...")
     
-    -- [FIX] Check Resolution before applying decoder
-    -- If 8K (Width > 3840), force Native D3D11. Otherwise use Auto-Copy for SVP.
-    local w = mp.get_property_number("video-params/w") or 0
-    if w > 3840 then
-        mp.set_property("hwdec", "d3d11va")
-    else
-        mp.set_property("hwdec", "auto-copy")
+    -- Restore exactly what was selected before Eco mode. On Windows this can
+    -- be D3D11VA; on Linux it can be NVDEC, VA-API, Vulkan, or SVP copy-back.
+    if state.saved_hwdec and state.saved_hwdec ~= "" then
+        mp.set_property("hwdec", state.saved_hwdec)
     end
+    state.saved_hwdec = nil
+    state.low_power_active = false
     
     -- [STEP 1] Update Status immediately so VSR knows it can resume
     update_menu_status(false)
@@ -172,11 +242,11 @@ mp.register_event("file-loaded", function()
         state.initialized = true
         update_menu_status(false) -- Init state
         if check_is_laptop() then
-            msg.info("Laptop detected. Power Monitor Active.")
+            msg.info((platform == "windows" and "Windows" or "Linux") .. " laptop detected. Power Monitor Active.")
             state.is_laptop = true
             state.timer = mp.add_periodic_timer(opts.check_interval, on_tick)
         else
-            msg.info("Desktop detected. Manual Toggle Only.")
+            msg.info((platform == "windows" and "Windows" or "Linux") .. " desktop detected. Manual Toggle Only.")
         end
         mp.add_key_binding(nil, "toggle-power", toggle_force_mode)
     end
