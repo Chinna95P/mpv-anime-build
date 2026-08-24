@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.8
-> **The UOSC File Browser, Controller Optimization & Track Selector Refinement Update: optimized controller logic, a dedicated Open File control, refined UOSC behavior, and improved track-selection handling.**
+# 🎬 MPV Anime Build v4.9
+> **The Cross-Platform Power Guard & Smoother Scaling Update: native Windows/Linux battery monitoring, safe decoder restoration, refined FHD profile handling, and smoother Anime rendering.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -19,8 +19,14 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.8)
+## 🚀 What's New in (v4.0 - v4.9)
 
+* **🔋 Cross-Platform Power Guard (v4.9):** Completely reworked `power_manager.lua` for automatic Windows and Linux support. Windows uses modern PowerShell/CIM battery monitoring, while Linux reads the native system power-supply interface without requiring PowerShell or manual platform-specific edits.
+* **🖥️ Smart Desktop/Laptop Detection (v4.9):** Battery-equipped laptops retain automatic Eco switching on battery and smart restoration on AC power. Desktop systems cleanly use **Manual Toggle Only** mode without generating failed-subprocess warnings.
+* **🎞️ Safe Decoder Restoration (v4.9):** Power Guard now remembers and restores the active hardware decoder instead of forcing a platform-specific value. This preserves D3D11VA on Windows and NVDEC, VA-API, Vulkan, or SVP copy-back decoding on Linux.
+* **✨ Smoother High-Quality Scaling (v4.9):** Enabled MPV's built-in `high-quality` rendering foundation and changed Anime native scaling from `ewa_lanczossharp` to `spline64` for smoother edges, reduced ringing, and more consistent rendering.
+* **📺 FHD-Native Profile Clarity (v4.9):** Renamed the custom `[High-Quality]` profile to `[FHD-Native]` and synchronized controller state detection, profile evaluation, menus, and OSD labels to distinguish it from MPV's built-in `high-quality` profile.
+* **📸 Video-Only Screenshots (v4.9):** Added `F6` for clean video-frame screenshots alongside the existing `F5` window screenshot shortcut.
 * **🧩 Optimized Anime Profile Controller & Main UI Logic (v4.8):** Optimized `anime_profile_controller.lua` and `main.lua` to fix minor bugs and reduce unnecessary processing while preserving the existing profile system and menu synchronization.
 * **📂 Dedicated UOSC Open File Button (v4.8):** Added an **Open File** button directly to the UOSC controls bar. It opens UOSC's file-selection menu for selecting video and audio files without leaving the player.
 * **🖼️ Image Filtering in Open File Menu (v4.8):** The UOSC file browser can now be configured with `load_types=video,audio`, `show_hidden_files=no`, and an empty `image_types` value so poster/backdrop image assets are not shown alongside playable media.
@@ -74,9 +80,12 @@ The build automatically switches profiles (Anime vs Live Action) based on what y
 * **Streaming Detection:** Works flawlessly on Web Streams (Stremio, Debrid, URLs) by automatically scanning audio tracks for Japanese language tags to trigger Anime Mode.
 
 ### 2. Power Guard (Battery Safety)
-A smart power manager designed for laptops and portable devices.
-* **Auto-Eco:** Unplugging your laptop instantly disables high-end shaders (Anime4K/FSRCNNX) and locks them out, switching to a `[Low-End]` bilinear profile to save battery.
-* **Auto-Restore:** Plugging it back in instantly restores your exact previous High-Quality profile.
+A cross-platform power manager designed for Windows and Linux laptops, portable systems, and desktops.
+* **Automatic Platform Detection:** Uses modern PowerShell/CIM battery monitoring on Windows and the native system power-supply interface on Linux. No platform-specific script editing is required.
+* **Auto-Eco:** Unplugging a laptop automatically disables high-end shaders (Anime4K/FSRCNNX), locks them out, and switches to the lightweight `[Low-End]` bilinear profile.
+* **Auto-Restore:** Reconnecting AC power restores the smart video profile and the exact hardware decoder that was active before Eco mode.
+* **Desktop Mode:** Systems without a battery automatically use **Manual Toggle Only** mode through `Ctrl+P` or the UOSC power menu.
+* **Decoder Safety:** Preserves D3D11VA, NVDEC, VA-API, Vulkan, and SVP copy-back configurations instead of forcing an incompatible decoder.
 * *Note for SVP Users:* Create a "Battery Profile" in SVP 4 Pro to disable frame interpolation when on battery to ensure total efficiency.
 
 ### 3. Adaptive Nvidia VSR (RTX AI Upscaling)
@@ -106,10 +115,10 @@ Non-anime content uses a completely separate "Modern TV" adaptive processing pat
 * **8K (4320p) [v3.0]:** Engages Hardware-Decoded optimized mode. Bypasses all post-processing.
 
 ### Native Scalers Guide (Manual Overrides)
-If you disable shaders (`CTRL+g`), MPV falls back to these high-end native scalers:
-* **`ewa_lanczossharp`:** Best general upscaler. Sharp but clean.
-* **`spline64`:** Best downscaler (watching 4K on 1080p) and best Chroma scaler.
-* **`mitchell`:** Best for soft, smooth images to hide compression artifacts.
+If you disable shaders (`CTRL+g`), MPV falls back to its high-quality native scaling configuration:
+* **`spline64`:** The v4.9 default for Anime and native FHD processing. Produces smooth, stable edges with less aggressive ringing.
+* **`ewa_lanczossharp`:** A sharper manual alternative when stronger edge definition is preferred.
+* **`mitchell`:** A softer option that can help conceal compression artifacts and low-quality source detail.
 
 ---
 
@@ -169,6 +178,7 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 | `CTRL + k` | **Toggle Adaptive Sharpen** (ON/OFF). |
 | `CTRL + g` | **Master Shader Killswitch.** Disables all AI processing for raw playback. |
 | `CTRL + p` | **Toggle Power Saving Mode** manually. |
+| `F5` / `F6` | **Window Screenshot / Clean Video-Frame Screenshot** |
 | `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues. |
 
 ### Anime Pipeline Overrides

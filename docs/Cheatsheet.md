@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v4.8 – Cheat Sheet
+# ⚡ MPV Anime Build v4.9 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
@@ -89,7 +89,8 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`9`** | **Vol --** | Decrease volume by 2. |
 | **`0`** | **Vol ++** | Increase volume by 2. |
 | **`!`** | **On Top** | Toggle Always on Top. |
-| **`F5`** | **Screenshot** | Take a window screenshot. |
+| **`F5`** | **Window Screenshot** | Capture the complete rendered MPV window. |
+| **`F6`** | **Video Screenshot** | Capture a clean video-frame screenshot. |
 | **`p`** | **Rotate** | Cycle video rotation: 90 / 180 / 270 / 0 degrees. |
 | **`P`** | **Aspect Ratio** | Cycle aspect ratio: 16:9 / 4:3 / 2.35:1 / 16:10 / Auto. |
 | **`f`** | **Fullscreen** | Toggle fullscreen. |
@@ -121,7 +122,7 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 
 | Key | Function | Description |
 | :--- | :--- | :--- |
-| **`CTRL+p`** | **Power Mode** | Toggle Low-Power/Battery Saver mode manually. |
+| **`CTRL+p`** | **Power Mode** | Toggle the cross-platform Low-Power/Battery Saver mode manually. |
 | **`D`** | **Anime Menu** | Open the Anime Build menu. |
 | **`CTRL+1`** | **Mode A** | Anime4K Mode A. |
 | **`CTRL+2`** | **Mode B** | Anime4K Mode B. |
@@ -145,5 +146,30 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`Ctrl+j`** | **Anime Line Thinning** | Toggle Anime Line Thinning shader; Anime Fidelity Mode only. |
 | **`CTRL+x`** | **Ambient Crop** | Toggle Ambient Crop. |
 | **`q`** | **Quit (Save)** | Quit and conditionally save watch-later state. |
+
+---
+
+## 🔋 Power Guard Quick Reference (v4.9)
+
+| System State | Automatic Behavior |
+| :--- | :--- |
+| **Windows Laptop** | Uses PowerShell/CIM battery detection and automatically enables `[Low-End]` while discharging. |
+| **Linux Laptop** | Uses the native `/sys/class/power_supply` interface and automatically enables `[Low-End]` while discharging. |
+| **Windows/Linux Desktop** | Uses **Manual Toggle Only** mode; press `CTRL+p` or use the UOSC power menu. |
+| **Eco Mode Enabled** | Disables high-cost shaders and switches scaling to the lightweight bilinear `[Low-End]` profile. |
+| **Eco Mode Disabled / AC Restored** | Restores the smart video profile and the exact hardware-decoding configuration that was active before Eco mode. |
+
+Power Guard preserves platform-appropriate decoding, including D3D11VA on Windows and NVDEC, VA-API, Vulkan, or SVP copy-back decoding on Linux.
+
+---
+
+## 🎨 v4.9 Rendering Quick Reference
+
+| Setting | v4.9 Behavior |
+| :--- | :--- |
+| **Global Rendering Base** | MPV's built-in `high-quality` profile provides the rendering foundation. |
+| **Anime Native Scaler** | `spline64` is used for smoother edges and reduced ringing. |
+| **Live-Action FHD/2K Profile** | The custom profile is named `[FHD-Native]`, clearly separating it from MPV's built-in `high-quality` profile. |
+| **Manual Sharp Alternative** | `ewa_lanczossharp` remains available when stronger edge definition is preferred. |
 
 ---

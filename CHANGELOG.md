@@ -4,6 +4,24 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v4.9] – Cross-Platform Power Guard, Smoother Scaling & Profile Clarity
+
+### ✨ New Features & Enhancements
+* **Cross-Platform Power Guard:** Reworked `power_manager.lua` to automatically support both **Windows and Linux** without requiring separate scripts or manual platform-specific edits. Windows battery monitoring now uses modern PowerShell/CIM detection, while Linux reads battery and charging status directly from the system power-supply interface.
+* **Smart Desktop and Laptop Detection:** Battery-equipped laptops continue to switch automatically between normal and `[Low-End]` modes, while desktop systems cleanly use **Manual Toggle Only** mode without generating failed-subprocess warnings.
+* **Safe Hardware Decoder Restoration:** Power Guard now remembers the active hardware-decoding configuration before entering Eco mode and restores it afterward. This preserves D3D11VA on Windows and NVDEC, VA-API, Vulkan, or SVP copy-back decoding on Linux without forcing an incompatible decoder.
+* **High-Quality Rendering Baseline:** Enabled MPV's built-in `high-quality` profile as the global rendering foundation while retaining the build's resolution-aware shader and processing logic.
+* **Smoother Anime Scaling:** Changed the Anime profile's native scaler from `ewa_lanczossharp` to `spline64` and removed the forced anti-ringing/radius overrides, producing smoother edges with less aggressive ringing.
+* **FHD Profile and OSD Clarity:** Renamed the custom `[High-Quality]` profile to `[FHD-Native]` and updated controller state detection, profile evaluation, menus, and OSD labels to clearly distinguish it from MPV's built-in `high-quality` profile.
+* **Video-Only Screenshot Shortcut:** Added `F6` for clean video-frame screenshots, complementing the existing `F5` window screenshot shortcut.
+
+### 🐛 Fixed
+* **Linux Power Manager Warning:** Fixed the recurring `[power_manager] Subprocess failed: init` warning caused by attempting to run Windows PowerShell battery checks on Linux.
+* **Cross-Platform Decoder Override:** Fixed Power Guard restoration forcing `d3d11va` or `auto-copy` regardless of the operating system, which could interfere with native Linux hardware decoding or unexpectedly switch playback to copy-back decoding.
+* **Power Mode State Handling:** Added explicit Eco-mode state tracking to prevent repeated profile application and ensure the correct decoder is restored when leaving power-saving mode.
+
+---
+
 ## [v4.8] – UOSC File Browser, Controller Optimization & Track Selector Refinement
 
 ### ✨ New Features & Enhancements
