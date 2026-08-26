@@ -1,6 +1,6 @@
 -- [[ 
 --    FILENAME: scripts/hdr_detect.lua
---    VERSION: v2.2 (DisplayConfig Detection + Cached Checks)
+--    VERSION: v2.3 (Isolated Windows/Linux HDR Detection)
 -- ]]
 
 local mp = require 'mp'
@@ -11,14 +11,24 @@ local user_config = dofile(user_config_path)
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_state = nil 
-local os_hdr_state = false 
-local windows_hdr_checked = false
+local os_hdr_state = nil
+local os_hdr_checked = false
 local manual_override = false 
 local last_osd_state = nil
 
 -- [NEW] Config Path
 local hdr_defaults_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
 local windows_hdr_script = mp.command_native({"expand-path", "~~/script-modules/windows_hdr_status.ps1"})
+
+local function detect_platform()
+    local value = (mp.get_property("platform") or ""):lower()
+    if value == "windows" or value == "linux" then
+        return value
+    end
+    return package.config:sub(1, 1) == "\\" and "windows" or "linux"
+end
+
+local platform = detect_platform()
 
 -- [NEW] Helper to read the user's saved preference
 local function read_hdr_config()
@@ -57,12 +67,10 @@ function show_hdr_osd(text)
 end
 
 -- --------------------------------------------------------------------------
--- 1. DETECT WINDOWS HDR STATUS
+-- 1. DETECT OS HDR STATUS
 -- --------------------------------------------------------------------------
 local function check_windows_hdr()
-    if mp.get_property("platform") ~= "windows" then return false end
-    if windows_hdr_checked then return os_hdr_state end
-    windows_hdr_checked = true
+    if platform ~= "windows" then return nil end
 
     local res = utils.subprocess({
         args = {
@@ -72,28 +80,129 @@ local function check_windows_hdr()
         playback_only = false,
         capture_stdout = true,
         capture_stderr = true
-    })
+    }) or {}
 
     if res.status == 0 and res.stdout then
         local output = res.stdout:gsub("%s+", "")
         if output == "True" then 
-            os_hdr_state = true
             print("[HDR-Detect] Windows DisplayConfig: HDR ON")
             return true 
         elseif output == "False" then
-            os_hdr_state = false
             print("[HDR-Detect] Windows DisplayConfig: HDR OFF")
             return false
         end
     end
 
-    os_hdr_state = false
     local helper_error = (res.stderr or ""):gsub("%s+$", "")
     if helper_error ~= "" then
         msg.warn("[HDR-Detect] " .. helper_error:gsub("%s*\n%s*", " | "))
     end
     print("[HDR-Detect] Windows HDR status unavailable; defaulting to HDR OFF")
     return false
+end
+
+local function strip_ansi(text)
+    return (text or ""):gsub("\27%[[0-9;]*m", "")
+end
+
+local function parse_kscreen_hdr(output)
+    local outputs = {}
+    local current = nil
+
+    for raw_line in strip_ansi(output):gmatch("[^\r\n]+") do
+        local line = raw_line:match("^%s*(.-)%s*$")
+        if line:match("^Output:%s") then
+            current = { enabled = false, connected = false, hdr = nil }
+            outputs[#outputs + 1] = current
+        elseif current then
+            if line == "enabled" then
+                current.enabled = true
+            elseif line == "connected" then
+                current.connected = true
+            else
+                local hdr_value = line:match("^HDR:%s*(%S+)")
+                if hdr_value then
+                    hdr_value = hdr_value:lower()
+                    if hdr_value == "enabled" then
+                        current.hdr = true
+                    elseif hdr_value == "disabled" or hdr_value == "incapable" then
+                        current.hdr = false
+                    end
+                end
+            end
+        end
+    end
+
+    local found_active_status = false
+    for _, output in ipairs(outputs) do
+        if output.enabled and output.connected and output.hdr ~= nil then
+            found_active_status = true
+            if output.hdr then return true end
+        end
+    end
+    if found_active_status then return false end
+    return nil
+end
+
+local function check_linux_hdr()
+    if platform ~= "linux" then return nil end
+
+    -- Plasma exposes the active output HDR state through kscreen-doctor.
+    -- Other compositors have no common status API, so leave them to mpv's
+    -- native target-colorspace negotiation instead of guessing.
+    local desktop = ((os.getenv("XDG_CURRENT_DESKTOP") or "") .. ":" ..
+        (os.getenv("KDE_FULL_SESSION") or "")):lower()
+    if not desktop:find("kde", 1, true) and not desktop:find("plasma", 1, true) then
+        msg.verbose("[HDR-Detect] Linux compositor has no supported HDR status API; using mpv auto negotiation.")
+        return nil
+    end
+
+    local environment = utils.get_env_list()
+    for index = #environment, 1, -1 do
+        if environment[index]:match("^LC_ALL=") then
+            table.remove(environment, index)
+        end
+    end
+    environment[#environment + 1] = "LC_ALL=C"
+
+    local res = utils.subprocess({
+        args = {"kscreen-doctor", "-o"},
+        env = environment,
+        playback_only = false,
+        capture_stdout = true,
+        capture_stderr = true
+    }) or {}
+
+    if res.status == 0 and res.stdout then
+        local state = parse_kscreen_hdr(res.stdout)
+        if state ~= nil then
+            print("[HDR-Detect] Linux KScreen: HDR " .. (state and "ON" or "OFF"))
+            return state
+        end
+    end
+
+    local helper_error = (res.stderr or ""):gsub("%s+$", "")
+    if helper_error ~= "" then
+        msg.verbose("[HDR-Detect] KScreen HDR status unavailable: " .. helper_error:gsub("%s*\n%s*", " | "))
+    end
+    print("[HDR-Detect] Linux HDR status unavailable; using mpv auto negotiation")
+    return nil
+end
+
+local function check_os_hdr()
+    if os_hdr_checked then return os_hdr_state end
+    os_hdr_checked = true
+
+    -- Keep platform backends mutually exclusive: Windows never launches a
+    -- Linux helper, and Linux never launches PowerShell.
+    if platform == "windows" then
+        os_hdr_state = check_windows_hdr()
+    elseif platform == "linux" then
+        os_hdr_state = check_linux_hdr()
+    else
+        os_hdr_state = nil
+    end
+    return os_hdr_state
 end
 
 -- --------------------------------------------------------------------------
@@ -117,9 +226,16 @@ function evaluate_hdr_state()
         elseif d_mode == "sdr" then
             target_state = "tonemap"
         else
-            -- [GATE LOCK] Explicitly isolate Windows HDR checks to Auto Mode only
-            os_hdr_state = check_windows_hdr()
-            target_state = os_hdr_state and "passthrough" or "tonemap"
+            -- OS detection remains locked to Auto mode. An unknown Linux
+            -- state uses mpv's native Wayland/compositor negotiation.
+            local detected_hdr = check_os_hdr()
+            if detected_hdr == true then
+                target_state = "passthrough"
+            elseif detected_hdr == false then
+                target_state = "tonemap"
+            else
+                target_state = "managed"
+            end
         end
     else
         target_state = "sdr_video"
@@ -133,6 +249,10 @@ function evaluate_hdr_state()
     elseif target_state == "tonemap" then
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
+        mp.set_property("tone-mapping", tm_mode)
+    elseif target_state == "managed" then
+        mp.set_property("target-colorspace-hint", "auto")
+        mp.set_property("target-trc", "auto")
         mp.set_property("tone-mapping", tm_mode)
     else
         -- Standard SDR Video defaults
@@ -156,6 +276,8 @@ function evaluate_hdr_state()
                     show_hdr_osd(C.GREEN .. "HDR Switch: " .. C.WHITE .. "Auto (Passthrough)")
                 elseif target_state == "tonemap" then
                     show_hdr_osd(C.GREEN .. "HDR Switch: " .. C.WHITE .. "Auto (Tone-Mapping)")
+                elseif target_state == "managed" then
+                    show_hdr_osd(C.GREEN .. "HDR Switch: " .. C.WHITE .. "Auto (Compositor Managed)")
                 end
             end
         end
@@ -204,7 +326,8 @@ end
 
 mp.register_event("start-file", function()
     manual_override = false 
-    windows_hdr_checked = false
+    os_hdr_checked = false
+    os_hdr_state = nil
     last_osd_state = nil 
 end)
 
@@ -226,6 +349,7 @@ mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
 mp.register_script_message("toggle-hdr-mode", toggle_hdr_manual)
 mp.register_script_message("update-hdr-detect-mode", function()
     manual_override = false
-    windows_hdr_checked = false
+    os_hdr_checked = false
+    os_hdr_state = nil
     evaluate_hdr_state()
 end)
