@@ -144,7 +144,7 @@ This usually happens if your GPU drivers are outdated or unstable.
 Windows HDR auto-detection can sometimes be unreliable depending on your monitor drivers. We added a 3-Way Switch in the **Audio & HDR** menu to give you absolute control:
 
 * **Auto (Detected):** MPV listens to Windows. If Windows HDR is ON, it uses Passthrough. If OFF, it uses Tone-Mapping.
-* **HDR Display (Passthrough):** Forces MPV to send raw HDR metadata directly to your display, completely ignoring what Windows reports. Use this if your TV is in HDR mode but MPV looks washed out.
+* **HDR Display (Passthrough):** Forces MPV to use HDR display output, completely ignoring what Windows reports. The tone-mapping algorithm selected in the same menu remains active, including metadata-aware curves such as ST.2094-40.
 * **SDR Display (Tone-Map):** Forces MPV to convert HDR colors into standard SDR format. Use this if you are on a standard monitor and the colors look weird or blown out.
 </details>
 
@@ -154,7 +154,7 @@ Windows HDR auto-detection can sometimes be unreliable depending on your monitor
 **Just toggle the Windows HDR switch.**
 1.  Go to Windows Display Settings and turn **"Use HDR"** to **ON**.
 2.  MPV detects this and activates **True Passthrough** (`target-colorspace-hint=yes`).
-3.  This bypasses MPV's processing and sends the raw metadata (MaxCLL/FALL) directly to your display, ensuring your TV handles the brightness mapping perfectly.
+3.  MPV keeps HDR display signaling enabled and uses your selected tone-mapping curve instead of forcing a hard clip.
 </details>
 
 <details>
@@ -168,7 +168,7 @@ MPV requires the Windows D3D11 Swapchain to be in HDR mode to send metadata.
 <details>
 <summary><b>Why is Passthrough better than Tone Mapping?</b></summary>
 
-* **Passthrough:** Allows your TV/Monitor to use its internal processor (and dynamic tone mapping) to handle the brightness. This usually results in the most accurate image for OLEDs.
+* **Passthrough:** Keeps HDR display output enabled while honoring your selected tone-mapping curve. Metadata-aware curves can preserve dynamic HDR highlight guidance instead of hard-clipping it.
 * **Tone Mapping:** MPV converts the colors to fit an SDR container. This is better for projectors or standard monitors that don't support native HDR.
 </details>
 

@@ -1,3 +1,4 @@
+// FSRCNNX Anime Mild
 //!HOOK LUMA
 //!WHEN OUTPUT.w LUMA.w / 1.400 > OUTPUT.h LUMA.h / 1.400 > *
 //!DESC feature map 1

@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v4.9
-> **The Cross-Platform Power Guard & Smoother Scaling Update: native Windows/Linux battery monitoring, safe decoder restoration, refined FHD profile handling, and smoother Anime rendering.**
+# 🎬 MPV Anime Build v5.0
+> **The Cross-Platform HDR & Remembered Settings Update: reliable Windows/Linux HDR handling, durable user overrides, community-reported fixes, and clearer Anime shader naming.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -15,11 +15,16 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
 </a>
 
-**Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` only once for true HDR Passthrough.
+**Note for HDR Users:** `Auto (Detected)` follows active Windows HDR displays and KDE Plasma's Linux HDR state. Other Linux compositors use mpv's native colorspace negotiation. `HDR Display (Passthrough)` remains available as a manual override when a display driver does not expose its HDR state correctly.
 
 ---
 
-## 🚀 What's New in (v4.0 - v4.9)
+## 🚀 What's New in (v4.0 - v5.0)
+
+* **🌈 Cross-Platform HDR Detection (v5.0):** Windows uses the DisplayConfig API with a WMI compatibility fallback, KDE Plasma uses KScreen, and other Linux compositors defer safely to mpv's native colorspace negotiation. Windows and Linux detection paths remain strictly isolated.
+* **💾 Durable User Overrides (v5.0):** UOSC Controls and HDR choices are remembered in untracked `user-<custom-name>.conf` files, loaded alphabetically and reapplied after profile evaluation so build updates do not overwrite personal settings.
+* **🧩 Community-Reported Reliability Fixes (v5.0):** Fixed disabled track-selector overrides, wireless peripheral batteries forcing Linux desktops into Eco mode, and nil-sensitive profile conditions during startup.
+* **🎨 Clear Anime FSRCNNX Names (v5.0):** Renamed the two easily-confused Anime FSRCNNX shaders to explicit `anime_mild` and `anime_aggressive` filenames, with automatic migration of saved legacy paths.
 
 * **🔋 Cross-Platform Power Guard (v4.9):** Completely reworked `power_manager.lua` for automatic Windows and Linux support. Windows uses modern PowerShell/CIM battery monitoring, while Linux reads the native system power-supply interface without requiring PowerShell or manual platform-specific edits.
 * **🖥️ Smart Desktop/Laptop Detection (v4.9):** Battery-equipped laptops retain automatic Eco switching on battery and smart restoration on AC power. Desktop systems cleanly use **Manual Toggle Only** mode without generating failed-subprocess warnings.
@@ -132,7 +137,7 @@ If you disable shaders (`CTRL+g`), MPV falls back to its high-quality native sca
 
 ### True HDR & Dolby Vision
 Automatically detects your monitor's capabilities via Windows.
-* **Windows HDR ON:** Activates **True Passthrough**. Sends raw metadata directly to your TV.
+* **Windows HDR ON:** Activates the **HDR Display** output path. The selected metadata-aware tone-mapping curve remains active for HDR10+/Dolby Vision highlight handling.
 * **Windows HDR OFF:** Switches to **High-Quality Tone Mapping** (Spline/BT.2390) for SDR monitors.
 * **Dolby Vision:** Plays correctly on all devices, automatically falling back to the HDR10 Base Layer if your display lacks DV support (fixes purple/green screen errors).
 * **Calibration:** Manually set Target Peak Brightness (e.g., 400 nits, 1000 nits) and Tone-Mapping algorithms via the menu.
@@ -209,6 +214,14 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 2. **Install SVP 4 Pro (Optional):** Ensure SVP is installed if you want motion interpolation.
 3. **Copy Files:** Extract the contents of this build into your `%APPDATA%/mpv/` folder (Windows) or `~/.config/mpv` (Linux).
 4. **Fonts:** Install `Source Sans Pro` (included) to ensure the Stats overlay renders correctly.
+
+### User overrides and remembered menu settings
+Settings changed in **UOSC → Controls** are saved outside the tracked defaults, so updating the build does not reset them. The HDR display mode, target peak, and tone-mapping choice use the same override layer.
+
+* User files must be named `user-<custom-name>.conf`; `<custom-name>` can be any non-empty name.
+* If no user file exists, the first remembered change creates `user-settings.conf`.
+* Multiple user files are loaded alphabetically. Later files override earlier files, and the last file is updated when a menu choice is saved.
+* Built-in script defaults and `mpv.conf` remain the fallback when a setting has no user override.
 
 ---
 

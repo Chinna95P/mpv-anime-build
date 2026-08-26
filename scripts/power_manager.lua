@@ -41,7 +41,9 @@ local function find_linux_batteries()
     for _, entry in ipairs(entries) do
         local path = root .. "/" .. entry
         local supply_type = read_trimmed(path .. "/type")
-        if supply_type and supply_type:lower() == "battery" then
+        local scope = read_trimmed(path .. "/scope")
+        local powers_system = scope == nil or scope:lower() == "system"
+        if supply_type and supply_type:lower() == "battery" and powers_system then
             batteries[#batteries + 1] = path
         end
     end

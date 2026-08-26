@@ -399,7 +399,7 @@ local function audio_match_score(track, wanted)
 end
 
 local function find_manual_track(kind, wanted, tracks)
-    if not wanted then return nil end
+    if not wanted or wanted.disabled then return nil end
 
     local best_id = nil
     local best_score = -1

@@ -7,6 +7,8 @@
 local mp = require("mp")
 local utils = require("mp.utils")
 local opts = require("mp.options")
+local user_config_path = mp.command_native({"expand-path", "~~/script-modules/user_config.lua"})
+local user_config = dofile(user_config_path)
 
 local config = { version = "v0.0.0" }
 opts.read_options(config, "build_info")
@@ -22,10 +24,10 @@ local anime4k_opts_path = mp.command_native({
     "expand-path", "~~/script-opts/anime4k.conf"
 })
 
-local hdr_opts_path = mp.command_native({
+local hdr_defaults_path = mp.command_native({
     "expand-path", "~~/script-opts/hdr-mode.conf"
 })
-local user_hdr_mode = nil -- Holds the saved setting
+local user_hdr_mode = "bt.2390" -- Built-in default; user-*.conf can override it
 
 -- v2.2 Persistent Shader Swaps
 -- Format: user_shaders[context][res] = "path/to/custom/shader.glsl"
@@ -37,6 +39,18 @@ local user_nnedi = {
     anime = { SD = nil, HD = nil, FHD = nil },
     live  = { SD = nil, HD = nil, FHD = nil }
 }
+
+local legacy_shader_names = {
+    ["FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"] = "FSRCNNX_x2_16-0-4-1_anime_mild.glsl",
+    ["FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"] = "FSRCNNX_x2_16-0-4-1_anime_aggressive.glsl",
+}
+
+local function normalize_shader_path(path)
+    if not path then return nil end
+    local prefix, name = path:match("^(.-)([^/\\]+)$")
+    local replacement = name and legacy_shader_names[name]
+    return replacement and (prefix .. replacement) or path
+end
 
 -------------------------------------------------
 -- STATE
@@ -372,6 +386,7 @@ local function load_anime_mode()
 		-- [v2.2] Load Custom Shader Paths
         -- Pattern: custom_TYPE_CONTEXT_RES=PATH
         local s_type, s_ctx, s_res, s_path = l:match("custom_(%a+)_(%a+)_(%w+)=(%S+)")
+        s_path = normalize_shader_path(s_path)
         if s_type == "fsrcnnx" then 
             if user_fsrcnnx[s_ctx] then user_fsrcnnx[s_ctx][s_res] = s_path end
         elseif s_type == "nnedi" then 
@@ -470,27 +485,34 @@ local user_target_peak = "auto"
 local user_hdr_display_mode = "auto"
 
 local function load_hdr_mode()
-    local f = io.open(hdr_opts_path, "r")
-    if not f then return end
-    for l in f:lines() do
-        local v = l:match("tone_mapping=(%S+)")
-        if v then user_hdr_mode = v end
-        local p = l:match("target_peak=(%S+)")
-        if p then user_target_peak = p end
-        local d = l:match("hdr_display_mode=(%S+)")
-        if d then user_hdr_display_mode = d end
+    local function apply_defaults(path)
+        local f = io.open(path, "r")
+        if not f then return end
+        for l in f:lines() do
+            local v = l:match("tone_mapping=(%S+)")
+            if v then user_hdr_mode = v end
+            local p = l:match("target_peak=(%S+)")
+            if p then user_target_peak = p end
+            local d = l:match("hdr_display_mode=(%S+)")
+            if d then user_hdr_display_mode = d end
+        end
+        f:close()
     end
-    f:close()
+
+    apply_defaults(hdr_defaults_path)
+    local settings = user_config.read()
+    if settings.tone_mapping then user_hdr_mode = settings.tone_mapping end
+    if settings.target_peak then user_target_peak = settings.target_peak end
+    if settings.hdr_display_mode then user_hdr_display_mode = settings.hdr_display_mode end
 end
 
 local function save_hdr_mode()
-    local f = io.open(hdr_opts_path, "w")
-    if f then
-        f:write("tone_mapping=" .. (user_hdr_mode or "bt.2390") .. "\n")
-        f:write("target_peak=" .. (user_target_peak or "auto") .. "\n")
-        f:write("hdr_display_mode=" .. (user_hdr_display_mode or "auto") .. "\n")
-        f:close()
-    end
+    local values = {
+        tone_mapping = user_hdr_mode or "bt.2390",
+        target_peak = user_target_peak or "auto",
+        hdr_display_mode = user_hdr_display_mode or "auto",
+    }
+    user_config.update(values, {"tone_mapping", "target_peak", "hdr_display_mode"})
 end
 
 -------------------------------------------------
@@ -613,7 +635,7 @@ end
 -------------------------------------------------
 -- [v4.6] Added Anime Line Thinners with Anime4K Restore Shaders for anti-aliasing
 local FSRCNNX = {
-    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-SD.glsl",
+    SD = "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_mild.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-SD.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-SD.glsl",
     HD_720 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-720p.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-HD.glsl",
     HD_1080 = "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl;~~/shaders/KrigBilateral.glsl;~~/shaders/SSimSuperRes.glsl;~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-1080p.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-FHD.glsl",
     UHD = "~~/shaders/SSimDownscaler.glsl;~~/shaders/adaptive-sharpen-anime-4K.glsl;~~/shaders/Anime4K_Restore_CNN_Soft_S.glsl;~~/shaders/Anime-Line-Thinner-4K.glsl"
@@ -921,8 +943,8 @@ local function get_anime_menu_json()
     local primaries = mp.get_property("video-params/primaries")
     local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
     local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
-    local tm_locked = not (is_hdr and not hdr_passthrough)
-    local tm_status_hint = not is_hdr and " (Locked: SDR)" or (hdr_passthrough and " (Locked: Passthrough)" or " (Active)")
+    local tm_locked = not is_hdr
+    local tm_status_hint = not is_hdr and " (Locked: SDR)" or (hdr_passthrough and " (Active: Passthrough)" or " (Active)")
     local current_tm = mp.get_property("tone-mapping") or "hable"
 
     local tm_menu = {
@@ -1045,8 +1067,8 @@ local function get_anime_menu_json()
                         { title = "FSRCNNX (Standard 16)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1.glsl" },
                         { title = "FSRCNNX (Standard 8)",  active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1.glsl" },
                         -- Custom
-                        { title = "FSRCNNX (Anime Mild)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance_anime.glsl" },
-                        { title = "FSRCNNX (Anime Aggressive)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_enhance.glsl" },
+                        { title = "FSRCNNX (Anime Mild)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_mild.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_mild.glsl" },
+                        { title = "FSRCNNX (Anime Aggressive)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_aggressive.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_aggressive.glsl" },
                         { title = "FSRCNNX (Anime Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_anime_distort.glsl" },
                         { title = "FSRCNNX (Anime Distort 1x Filter)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_anime_distort.glsl" },
 						{ title = "FSRCNNX (Line Art)",      active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_8-0-4-1_LineArt.glsl" },
@@ -1564,6 +1586,7 @@ mp.register_event("file-loaded", function()
         mp.commandv("script-message-to", "Up_Next", "toggle-state", tostring(up_next_enabled))
         show_temp_osd(profile_message(), 2)
         sync_state()
+        mp.commandv("script-message", "reapply-user-settings")
         
         loading_lock = false -- Unlock after everything is done
     end)
@@ -1631,6 +1654,7 @@ end)
 -------------------------------------------------
 mp.register_script_message("set-resolution-shader", function(type, context, res, path)
     -- type is 'fsrcnnx' or 'nnedi'
+    path = normalize_shader_path(path)
     if type == "fsrcnnx" then
         user_fsrcnnx[context][res] = path
     elseif type == "nnedi" then
