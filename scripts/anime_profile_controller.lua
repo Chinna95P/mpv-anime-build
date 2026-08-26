@@ -7,8 +7,8 @@
 local mp = require("mp")
 local utils = require("mp.utils")
 local opts = require("mp.options")
-local script_dir = utils.split_path(debug.getinfo(1, "S").source:sub(2))
-local user_config = dofile(utils.join_path(script_dir, "lib/user_config.lua"))
+local user_config_path = mp.command_native({"expand-path", "~~/script-modules/user_config.lua"})
+local user_config = dofile(user_config_path)
 
 local config = { version = "v0.0.0" }
 opts.read_options(config, "build_info")
@@ -1573,6 +1573,7 @@ mp.register_event("file-loaded", function()
         mp.commandv("script-message-to", "Up_Next", "toggle-state", tostring(up_next_enabled))
         show_temp_osd(profile_message(), 2)
         sync_state()
+        mp.commandv("script-message", "reapply-user-settings")
         
         loading_lock = false -- Unlock after everything is done
     end)

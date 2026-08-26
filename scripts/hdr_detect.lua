@@ -5,8 +5,9 @@
 
 local mp = require 'mp'
 local utils = require 'mp.utils'
-local script_dir = utils.split_path(debug.getinfo(1, "S").source:sub(2))
-local user_config = dofile(utils.join_path(script_dir, "lib/user_config.lua"))
+local msg = require 'mp.msg'
+local user_config_path = mp.command_native({"expand-path", "~~/script-modules/user_config.lua"})
+local user_config = dofile(user_config_path)
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_state = nil 
@@ -17,7 +18,7 @@ local last_osd_state = nil
 
 -- [NEW] Config Path
 local hdr_defaults_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
-local windows_hdr_script = utils.join_path(script_dir, "lib/windows_hdr_status.ps1")
+local windows_hdr_script = mp.command_native({"expand-path", "~~/script-modules/windows_hdr_status.ps1"})
 
 -- [NEW] Helper to read the user's saved preference
 local function read_hdr_config()
@@ -69,7 +70,8 @@ local function check_windows_hdr()
             "-ExecutionPolicy", "Bypass", "-File", windows_hdr_script
         },
         playback_only = false,
-        capture_stdout = true
+        capture_stdout = true,
+        capture_stderr = true
     })
 
     if res.status == 0 and res.stdout then
@@ -86,6 +88,10 @@ local function check_windows_hdr()
     end
 
     os_hdr_state = false
+    local helper_error = (res.stderr or ""):gsub("%s+$", "")
+    if helper_error ~= "" then
+        msg.warn("[HDR-Detect] " .. helper_error:gsub("%s*\n%s*", " | "))
+    end
     print("[HDR-Detect] Windows HDR status unavailable; defaulting to HDR OFF")
     return false
 end

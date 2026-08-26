@@ -3,9 +3,8 @@
 
 local mp = require("mp")
 local msg = require("mp.msg")
-local utils = require("mp.utils")
-local script_dir = utils.split_path(debug.getinfo(1, "S").source:sub(2))
-local user_config = dofile(utils.join_path(script_dir, "lib/user_config.lua"))
+local user_config_path = mp.command_native({"expand-path", "~~/script-modules/user_config.lua"})
+local user_config = dofile(user_config_path)
 
 local properties = {
     "interpolation",
@@ -25,13 +24,21 @@ local properties = {
 local property_set = {}
 for _, property in ipairs(properties) do property_set[property] = true end
 
+local apply_timer = nil
+
 local function apply_saved_settings()
+    apply_timer = nil
     local settings = user_config.read()
     for key, value in pairs(settings) do
         if property_set[key] and mp.get_property(key) ~= value then
             mp.set_property(key, value)
         end
     end
+end
+
+local function schedule_apply_saved_settings()
+    if apply_timer then apply_timer:kill() end
+    apply_timer = mp.add_timeout(0, apply_saved_settings)
 end
 
 local function changed_properties(command)
@@ -65,10 +72,11 @@ end
 
 apply_saved_settings()
 
--- Conditional and controller-applied profiles run after script initialization.
--- Reapply user-owned values once those per-file defaults have settled.
-mp.register_event("file-loaded", function()
-    mp.add_timeout(0.25, apply_saved_settings)
-end)
+-- Native conditional profiles are reevaluated as video metadata appears.
+-- Queue the user layer for the next event-loop turn so it remains last.
+mp.observe_property("video-params", "native", schedule_apply_saved_settings)
+mp.observe_property("current-tracks/video/image", "bool", schedule_apply_saved_settings)
+mp.register_event("file-loaded", schedule_apply_saved_settings)
 
 mp.register_script_message("persist-user-settings", persist_current_settings)
+mp.register_script_message("reapply-user-settings", schedule_apply_saved_settings)

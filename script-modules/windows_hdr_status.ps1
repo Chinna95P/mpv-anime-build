@@ -116,8 +116,8 @@ public static class MpvHdrDisplayConfig
 
         if (GetAdvancedColorInfo2(ref info2) == ERROR_SUCCESS)
         {
-            bool hdrSupported = (info2.Values & 0x10) != 0;
-            if (!hdrSupported) return -1;
+            bool hdrSupportedV2 = (info2.Values & 0x10) != 0;
+            if (!hdrSupportedV2) return -1;
             return info2.ActiveColorMode == 2 ? 1 : 0;
         }
 
@@ -190,17 +190,29 @@ public static class MpvHdrDisplayConfig
 try {
     Add-Type -TypeDefinition $source -ErrorAction Stop
     $state = [MpvHdrDisplayConfig]::GetAnyActiveHdrState()
-    if ($state -eq 1) { 'True' }
-    elseif ($state -eq 0) { 'False' }
-    else {
-        # Compatibility fallback for Windows installations that expose the
-        # older optional WMI provider.
+} catch {
+    $nativeError = $_.Exception.Message
+    $state = -1
+}
+
+if ($state -eq 1) { 'True' }
+elseif ($state -eq 0) { 'False' }
+else {
+    # Compatibility fallback for Windows installations that expose the
+    # older optional WMI provider. This still runs if Add-Type itself fails.
+    try {
         $states = @(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction Stop |
             ForEach-Object { [bool]$_.AdvancedColorEnabled })
         if ($states -contains $true) { 'True' }
         elseif ($states.Count -gt 0) { 'False' }
         else { 'Fallback' }
+    } catch {
+        if ($nativeError) {
+            [Console]::Error.WriteLine("DisplayConfig failed: $nativeError")
+        } else {
+            [Console]::Error.WriteLine("DisplayConfig could not determine HDR state.")
+        }
+        [Console]::Error.WriteLine("WMI fallback failed: $($_.Exception.Message)")
+        'Fallback'
     }
-} catch {
-    'Fallback'
 }
