@@ -7,6 +7,8 @@
 local mp = require("mp")
 local utils = require("mp.utils")
 local opts = require("mp.options")
+local script_dir = utils.split_path(debug.getinfo(1, "S").source:sub(2))
+local user_config = dofile(utils.join_path(script_dir, "lib/user_config.lua"))
 
 local config = { version = "v0.0.0" }
 opts.read_options(config, "build_info")
@@ -22,7 +24,7 @@ local anime4k_opts_path = mp.command_native({
     "expand-path", "~~/script-opts/anime4k.conf"
 })
 
-local hdr_opts_path = mp.command_native({
+local hdr_defaults_path = mp.command_native({
     "expand-path", "~~/script-opts/hdr-mode.conf"
 })
 local user_hdr_mode = nil -- Holds the saved setting
@@ -470,27 +472,34 @@ local user_target_peak = "auto"
 local user_hdr_display_mode = "auto"
 
 local function load_hdr_mode()
-    local f = io.open(hdr_opts_path, "r")
-    if not f then return end
-    for l in f:lines() do
-        local v = l:match("tone_mapping=(%S+)")
-        if v then user_hdr_mode = v end
-        local p = l:match("target_peak=(%S+)")
-        if p then user_target_peak = p end
-        local d = l:match("hdr_display_mode=(%S+)")
-        if d then user_hdr_display_mode = d end
+    local function apply_defaults(path)
+        local f = io.open(path, "r")
+        if not f then return end
+        for l in f:lines() do
+            local v = l:match("tone_mapping=(%S+)")
+            if v then user_hdr_mode = v end
+            local p = l:match("target_peak=(%S+)")
+            if p then user_target_peak = p end
+            local d = l:match("hdr_display_mode=(%S+)")
+            if d then user_hdr_display_mode = d end
+        end
+        f:close()
     end
-    f:close()
+
+    apply_defaults(hdr_defaults_path)
+    local settings = user_config.read()
+    if settings.tone_mapping then user_hdr_mode = settings.tone_mapping end
+    if settings.target_peak then user_target_peak = settings.target_peak end
+    if settings.hdr_display_mode then user_hdr_display_mode = settings.hdr_display_mode end
 end
 
 local function save_hdr_mode()
-    local f = io.open(hdr_opts_path, "w")
-    if f then
-        f:write("tone_mapping=" .. (user_hdr_mode or "bt.2390") .. "\n")
-        f:write("target_peak=" .. (user_target_peak or "auto") .. "\n")
-        f:write("hdr_display_mode=" .. (user_hdr_display_mode or "auto") .. "\n")
-        f:close()
-    end
+    local values = {
+        tone_mapping = user_hdr_mode or "bt.2390",
+        target_peak = user_target_peak or "auto",
+        hdr_display_mode = user_hdr_display_mode or "auto",
+    }
+    user_config.update(values, {"tone_mapping", "target_peak", "hdr_display_mode"})
 end
 
 -------------------------------------------------
@@ -921,8 +930,8 @@ local function get_anime_menu_json()
     local primaries = mp.get_property("video-params/primaries")
     local hdr_passthrough = mp.get_property("target-colorspace-hint") == "yes"
     local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
-    local tm_locked = not (is_hdr and not hdr_passthrough)
-    local tm_status_hint = not is_hdr and " (Locked: SDR)" or (hdr_passthrough and " (Locked: Passthrough)" or " (Active)")
+    local tm_locked = not is_hdr
+    local tm_status_hint = not is_hdr and " (Locked: SDR)" or (hdr_passthrough and " (Active: Passthrough)" or " (Active)")
     local current_tm = mp.get_property("tone-mapping") or "hable"
 
     local tm_menu = {

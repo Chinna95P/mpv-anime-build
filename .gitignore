@@ -1,4 +1,5 @@
 watch_later/
+user-*.conf
 vs-plugins/
 icc-cache/
 mpv-livetweet.lua

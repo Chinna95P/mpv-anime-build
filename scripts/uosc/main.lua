@@ -418,6 +418,9 @@ mp.register_script_message('control-update', function(command, submenu_id, activ
     -- [FIX] Wait 50ms for asynchronous mpv commands (like Denoise) to fully process
     -- before telling the UI to redraw. This eliminates the visual "lag" race condition.
     mp.add_timeout(0.05, function()
+        -- Persist the resulting Controls values in the user's untracked override file.
+        mp.commandv("script-message", "persist-user-settings", command)
+
         -- 1. Refresh the Menu Content
         if Menu:is_open('menu') then
             local items = create_default_menu_items()
@@ -875,13 +878,13 @@ function create_default_menu_items()
     local is_hdr = (primaries == "bt.2020" or primaries == "dci-p3")
 
     -- 2. DETERMINE IF LOCKED
-    local tm_locked = not (is_hdr and not hdr_passthrough)
+    local tm_locked = not is_hdr
     local tm_status_hint = ""
 
     if not is_hdr then
         tm_status_hint = " (Locked: SDR Content)"
     elseif hdr_passthrough then
-        tm_status_hint = " (Locked: Passthrough Active)"
+        tm_status_hint = " (Active: Passthrough)"
     else
         tm_status_hint = " (Active)"
     end

@@ -15,7 +15,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 <img src="https://img.shields.io/badge/📱_Android_Releases-000000?style=for-the-badge&logo=android&logoColor=white" alt="Android Releases"/>
 </a>
 
-**Note for HDR Users:** HDR Display users should enable the `HDR Display (Passthrough)` Option found in `UOSC Menu->Anime Mode->Audio & HDR->HDR Switch Mode->HDR Display` only once for true HDR Passthrough.
+**Note for HDR Users:** `Auto (Detected)` follows the Windows HDR switch, including multi-monitor systems. `HDR Display (Passthrough)` remains available as a manual override when a display driver does not expose its HDR state correctly.
 
 ---
 
@@ -132,7 +132,7 @@ If you disable shaders (`CTRL+g`), MPV falls back to its high-quality native sca
 
 ### True HDR & Dolby Vision
 Automatically detects your monitor's capabilities via Windows.
-* **Windows HDR ON:** Activates **True Passthrough**. Sends raw metadata directly to your TV.
+* **Windows HDR ON:** Activates the **HDR Display** output path. The selected metadata-aware tone-mapping curve remains active for HDR10+/Dolby Vision highlight handling.
 * **Windows HDR OFF:** Switches to **High-Quality Tone Mapping** (Spline/BT.2390) for SDR monitors.
 * **Dolby Vision:** Plays correctly on all devices, automatically falling back to the HDR10 Base Layer if your display lacks DV support (fixes purple/green screen errors).
 * **Calibration:** Manually set Target Peak Brightness (e.g., 400 nits, 1000 nits) and Tone-Mapping algorithms via the menu.
@@ -209,6 +209,14 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 2. **Install SVP 4 Pro (Optional):** Ensure SVP is installed if you want motion interpolation.
 3. **Copy Files:** Extract the contents of this build into your `%APPDATA%/mpv/` folder (Windows) or `~/.config/mpv` (Linux).
 4. **Fonts:** Install `Source Sans Pro` (included) to ensure the Stats overlay renders correctly.
+
+### User overrides and remembered menu settings
+Settings changed in **UOSC → Controls** are saved outside the tracked defaults, so updating the build does not reset them. The HDR display mode, target peak, and tone-mapping choice use the same override layer.
+
+* User files must be named `user-<custom-name>.conf`; `<custom-name>` can be any non-empty name.
+* If no user file exists, the first remembered change creates `user-settings.conf`.
+* Multiple user files are loaded alphabetically. Later files override earlier files, and the last file is updated when a menu choice is saved.
+* `mpv.conf` and `script-opts/hdr-mode.conf` remain the fallback defaults when a setting has no user override.
 
 ---
 

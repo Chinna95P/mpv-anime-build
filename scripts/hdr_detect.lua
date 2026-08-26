@@ -5,6 +5,8 @@
 
 local mp = require 'mp'
 local utils = require 'mp.utils'
+local script_dir = utils.split_path(debug.getinfo(1, "S").source:sub(2))
+local user_config = dofile(utils.join_path(script_dir, "lib/user_config.lua"))
 local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_state = nil 
@@ -13,13 +15,13 @@ local manual_override = false
 local last_osd_state = nil
 
 -- [NEW] Config Path
-local hdr_conf_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
+local hdr_defaults_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
 
 -- [NEW] Helper to read the user's saved preference
 local function read_hdr_config()
     local mode = "bt.2390" -- Default fallback
     local d_mode = "auto"  -- Default display mode
-    local f = io.open(hdr_conf_path, "r")
+    local f = io.open(hdr_defaults_path, "r")
     if f then
         for line in f:lines() do
             local v = line:match("tone_mapping=(%S+)")
@@ -29,6 +31,9 @@ local function read_hdr_config()
         end
         f:close()
     end
+    local settings = user_config.read()
+    if settings.tone_mapping then mode = settings.tone_mapping end
+    if settings.hdr_display_mode then d_mode = settings.hdr_display_mode end
     return mode, d_mode
 end
 
@@ -49,16 +54,21 @@ function show_hdr_osd(text)
 end
 
 -- --------------------------------------------------------------------------
--- 1. DETECT WINDOWS HDR STATUS (Hybrid Method)
+-- 1. DETECT WINDOWS HDR STATUS
 -- --------------------------------------------------------------------------
 local function check_windows_hdr()
     if mp.get_property("platform") ~= "windows" then return false end
 
-    -- METHOD A: PowerShell WMI (The most accurate, if it works)
-    local cmd = 'powershell -NoProfile -Command "try { (Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction Stop).AdvancedColorEnabled } catch { Write-Output \'Fallback\' }"'
+    -- PowerShell WMI reports one state per connected monitor.
+    local command = [[try {
+        $states = @(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction Stop | ForEach-Object { [bool]$_.AdvancedColorEnabled })
+        if ($states -contains $true) { 'True' }
+        elseif ($states.Count -gt 0) { 'False' }
+        else { 'Fallback' }
+    } catch { 'Fallback' }]]
     
     local res = utils.subprocess({
-        args = {"powershell", "-NoProfile", "-Command", cmd},
+        args = {"powershell", "-NoProfile", "-NonInteractive", "-Command", command},
         playback_only = false,
         capture_stdout = true
     })
@@ -74,16 +84,7 @@ local function check_windows_hdr()
         end
     end
 
-    -- METHOD B: Internal MPV Fallback
-    local d = mp.get_property_native("display-params")
-    if d then
-        if d.primaries == "bt.2020" or d.primaries == "dci-p3" or d.gamma == "pq" or d.gamma == "st2084" then
-            print("[HDR-Detect] Fallback Check: HDR ON (Detected via display-params)")
-            return true
-        end
-    end
-    
-    print("[HDR-Detect] Checks finished: HDR OFF")
+    print("[HDR-Detect] WMI check unavailable; defaulting to HDR OFF")
     return false
 end
 
@@ -120,7 +121,7 @@ function evaluate_hdr_state()
     if target_state == "passthrough" then
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
-        mp.set_property("tone-mapping", "clip")
+        mp.set_property("tone-mapping", tm_mode)
     elseif target_state == "tonemap" then
         mp.set_property("target-colorspace-hint", "no")
         mp.set_property("target-trc", "srgb")
@@ -184,9 +185,9 @@ function toggle_hdr_manual()
     else
         mp.set_property("target-colorspace-hint", "yes")
         mp.set_property("target-trc", "auto")
-        mp.set_property("tone-mapping", "clip")
+        mp.set_property("tone-mapping", tm_mode)
         last_state = "passthrough"
-        show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "True Passthrough (Forced)")
+        show_hdr_osd(C.ORANGE .. "HDR Manual: " .. C.WHITE .. "HDR Output (Forced)")
     end
 end
 
