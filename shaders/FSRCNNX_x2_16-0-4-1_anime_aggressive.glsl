@@ -1,3 +1,4 @@
+// FSRCNNX Anime Aggressive
 //!HOOK LUMA
 //!WHEN OUTPUT.w LUMA.w / 1.400 > OUTPUT.h LUMA.h / 1.400 > *
 //!DESC FSRCNNX 16-0-4-1 (Anime Enhance)

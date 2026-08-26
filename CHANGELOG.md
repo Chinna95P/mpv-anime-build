@@ -4,6 +4,26 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.0] – Cross-Platform HDR, Durable User Overrides & Community Fixes
+
+### ✨ New Features & Enhancements
+* **Cross-Platform HDR Auto Detection:** Windows now reads active-display HDR state through the DisplayConfig API with a WMI compatibility fallback. KDE Plasma reads active output state through KScreen, while other Linux compositors defer to mpv's native colorspace negotiation.
+* **Strict Platform Isolation:** Windows never launches Linux HDR helpers, Linux never launches PowerShell, and manual HDR/SDR modes bypass OS detection entirely.
+* **Durable User Overrides:** Settings changed through UOSC Controls, including HDR mode, target peak, and tone-mapping selection, persist in update-safe `user-<custom-name>.conf` files.
+* **Clear Anime FSRCNNX Naming:** Renamed the adjacent Anime shaders to `FSRCNNX_x2_16-0-4-1_anime_mild.glsl` and `FSRCNNX_x2_16-0-4-1_anime_aggressive.glsl`. Existing saved paths are migrated automatically.
+* **Clean Shared Script Options:** Removed tracked per-user Anime, Anime4K, HDR, and equalizer state files. Scripts retain safe built-in defaults and recreate personal files locally when settings change.
+
+### 🐛 Fixed
+* **HDR Output Processing:** HDR display output now honors the selected tone-mapping curve instead of forcing `clip`, and the HDR menu remains usable during HDR output.
+* **Startup Profile Conditions:** Made SVP, HDR, and 8K conditions safe while height and HDR metadata are temporarily unavailable.
+* **Disabled Track Overrides:** Restoring saved disabled audio or subtitle selections no longer passes incomplete records into the track matcher.
+* **Linux Peripheral Batteries:** Wireless mouse, keyboard, and headset batteries with `scope=Device` no longer make desktops enter `[Low-End]`; system batteries and older drivers remain supported.
+
+### 🙏 Community
+* Thanks to **dovahkinGH** for the HDR, remembered-settings, and track-selector reports and testing, and to **francomeisterm** for the Linux battery report and clearer Anime FSRCNNX naming suggestion.
+
+---
+
 ## [v4.9] – Cross-Platform Power Guard, Smoother Scaling & Profile Clarity
 
 ### ✨ New Features & Enhancements

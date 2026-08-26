@@ -1,5 +1,13 @@
 watch_later/
 user-*.conf
+script-opts/*
+!script-opts/autoload.conf
+!script-opts/blacklist_extensions.conf
+!script-opts/build_info.conf
+!script-opts/stats.conf
+!script-opts/thumbfast.conf
+!script-opts/uosc.conf
+!script-opts/youtube-download.conf
 vs-plugins/
 icc-cache/
 mpv-livetweet.lua
