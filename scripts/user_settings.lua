@@ -28,7 +28,9 @@ for _, property in ipairs(properties) do property_set[property] = true end
 local function apply_saved_settings()
     local settings = user_config.read()
     for key, value in pairs(settings) do
-        if property_set[key] then mp.set_property(key, value) end
+        if property_set[key] and mp.get_property(key) ~= value then
+            mp.set_property(key, value)
+        end
     end
 end
 
@@ -62,4 +64,11 @@ local function persist_current_settings(command)
 end
 
 apply_saved_settings()
+
+-- Conditional and controller-applied profiles run after script initialization.
+-- Reapply user-owned values once those per-file defaults have settled.
+mp.register_event("file-loaded", function()
+    mp.add_timeout(0.25, apply_saved_settings)
+end)
+
 mp.register_script_message("persist-user-settings", persist_current_settings)

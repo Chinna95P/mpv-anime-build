@@ -1,6 +1,6 @@
 -- [[ 
 --    FILENAME: scripts/hdr_detect.lua
---    VERSION: v2.1 (Optimized Execution Gates)
+--    VERSION: v2.2 (DisplayConfig Detection + Cached Checks)
 -- ]]
 
 local mp = require 'mp'
@@ -11,11 +11,13 @@ local overlay = mp.create_osd_overlay("ass-events")
 local timer = nil
 local last_state = nil 
 local os_hdr_state = false 
+local windows_hdr_checked = false
 local manual_override = false 
 local last_osd_state = nil
 
 -- [NEW] Config Path
 local hdr_defaults_path = mp.command_native({"expand-path", "~~/script-opts/hdr-mode.conf"})
+local windows_hdr_script = utils.join_path(script_dir, "lib/windows_hdr_status.ps1")
 
 -- [NEW] Helper to read the user's saved preference
 local function read_hdr_config()
@@ -58,17 +60,14 @@ end
 -- --------------------------------------------------------------------------
 local function check_windows_hdr()
     if mp.get_property("platform") ~= "windows" then return false end
+    if windows_hdr_checked then return os_hdr_state end
+    windows_hdr_checked = true
 
-    -- PowerShell WMI reports one state per connected monitor.
-    local command = [[try {
-        $states = @(Get-CimInstance -Namespace root/WMI -ClassName WmiMonitorAdvancedColorProperties -ErrorAction Stop | ForEach-Object { [bool]$_.AdvancedColorEnabled })
-        if ($states -contains $true) { 'True' }
-        elseif ($states.Count -gt 0) { 'False' }
-        else { 'Fallback' }
-    } catch { 'Fallback' }]]
-    
     local res = utils.subprocess({
-        args = {"powershell", "-NoProfile", "-NonInteractive", "-Command", command},
+        args = {
+            "powershell", "-NoProfile", "-NonInteractive",
+            "-ExecutionPolicy", "Bypass", "-File", windows_hdr_script
+        },
         playback_only = false,
         capture_stdout = true
     })
@@ -76,15 +75,18 @@ local function check_windows_hdr()
     if res.status == 0 and res.stdout then
         local output = res.stdout:gsub("%s+", "")
         if output == "True" then 
-            print("[HDR-Detect] WMI Check: HDR ON")
+            os_hdr_state = true
+            print("[HDR-Detect] Windows DisplayConfig: HDR ON")
             return true 
         elseif output == "False" then
-            print("[HDR-Detect] WMI Check: HDR OFF")
+            os_hdr_state = false
+            print("[HDR-Detect] Windows DisplayConfig: HDR OFF")
             return false
         end
     end
 
-    print("[HDR-Detect] WMI check unavailable; defaulting to HDR OFF")
+    os_hdr_state = false
+    print("[HDR-Detect] Windows HDR status unavailable; defaulting to HDR OFF")
     return false
 end
 
@@ -163,7 +165,6 @@ end
 -- --------------------------------------------------------------------------
 function toggle_hdr_manual()
     manual_override = true
-    os_hdr_state = check_windows_hdr()
     
     local video_peak = mp.get_property_number("video-params/sig-peak", 0)
     local primaries = mp.get_property("video-params/primaries")
@@ -195,9 +196,13 @@ end
 -- 4. TRIGGERS (Stripped of unconditional OS scanning)
 -- --------------------------------------------------------------------------
 
-mp.register_event("file-loaded", function()
+mp.register_event("start-file", function()
     manual_override = false 
+    windows_hdr_checked = false
     last_osd_state = nil 
+end)
+
+mp.register_event("file-loaded", function()
     evaluate_hdr_state()
 end)
 
@@ -214,5 +219,7 @@ end)
 mp.add_key_binding(nil, "toggle-hdr-hybrid", toggle_hdr_manual)
 mp.register_script_message("toggle-hdr-mode", toggle_hdr_manual)
 mp.register_script_message("update-hdr-detect-mode", function()
+    manual_override = false
+    windows_hdr_checked = false
     evaluate_hdr_state()
 end)
