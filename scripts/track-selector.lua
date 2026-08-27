@@ -471,6 +471,7 @@ local function select_smart_tracks()
     -- Keywords to ignore
     local ignore_audio = {"commentary", "description", "adh", "comment", "extra"}
     local ignore_subs = {"signs", "songs", "lyrics", "forced", "sdh", "colored", "karaoke"}
+    local incomplete_subs = {"signs", "songs", "lyrics", "forced", "colored", "karaoke"}
 
     -- Get Currently Active Tracks for the Check Gate
     local current_aid = mp.get_property_number("aid")
@@ -577,7 +578,8 @@ local function select_smart_tracks()
                     local lang = (t.lang or ""):lower()
                     local title = (t.title or ""):lower()
                     if matches_lang(lang, pref_lang) then
-                        if title:find("dialogue") or title:find("full") or title:find("script") then
+                        if (title:find("dialogue") or title:find("full") or title:find("script"))
+                                and not track_is_ignored_subtitle(t) then
                             selected_sid = apply_sub(t.id, "Anime Dialogue matched (Slang)")
                             break
                         end
@@ -615,11 +617,17 @@ local function select_smart_tracks()
                 if t.type == "sub" and not selected_sid then
                     local lang = (t.lang or ""):lower()
                     local title = (t.title or ""):lower()
-                    if matches_lang(lang, pref_lang)
-                        and not contains_keyword(title, ignore_subs)
-                        and not t.forced
-                        and not t["hearing-impaired"] then
-                        selected_sid = apply_sub(t.id, "Fallback Match (Slang)")
+                    local is_sdh = title:find("sdh", 1, true)
+                        or t["hearing-impaired"] == true
+                    local is_incomplete = contains_keyword(title, incomplete_subs)
+                        or t.forced == true
+
+                    -- An accessible full-dialogue track in the requested
+                    -- language is more useful than a clean subtitle in an
+                    -- unrelated language. Keep incomplete forced/signs-only
+                    -- tracks excluded from this fallback.
+                    if matches_lang(lang, pref_lang) and is_sdh and not is_incomplete then
+                        selected_sid = apply_sub(t.id, "Preferred SDH Match (Slang)")
                         break
                     end
                 end
@@ -632,7 +640,8 @@ local function select_smart_tracks()
         for _, t in ipairs(tracks) do
             if t.type == "sub" then
                 local title = (t.title or ""):lower()
-                if title:find("full") or title:find("dialogue") or title:find("script") then
+                if (title:find("full") or title:find("dialogue") or title:find("script"))
+                        and not track_is_ignored_subtitle(t) then
                     selected_sid = apply_sub(t.id, "Anime Dialogue matched (Language Fallback)")
                     break
                 end
