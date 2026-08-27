@@ -1565,6 +1565,10 @@ mp.register_script_message("force-evaluate-profile", function()
     current_profile = "" 
     evaluate()
     show_temp_osd(profile_message(), 2)
+    -- Keep the same precedence as file-loaded: automatic profiles first,
+    -- persistent user choices second. Power-owned values remain protected by
+    -- user_settings.lua while Eco is active.
+    mp.commandv("script-message", "reapply-user-settings")
 end)
 
 -- [UPDATED] File Loaded Logic
