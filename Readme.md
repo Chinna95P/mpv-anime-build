@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v5.0
-> **The Cross-Platform HDR & Remembered Settings Update: reliable Windows/Linux HDR handling, durable user overrides, community-reported fixes, and clearer Anime shader naming.**
+# 🎬 MPV Anime Build v5.1
+> **The Eco Persistence & Preferred Subtitle Update: reliable Power Saving across file changes and smarter preferred-language SDH selection.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -19,7 +19,10 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v5.0)
+## 🚀 What's New in (v4.0 - v5.1)
+
+* **🔋 Durable Eco Profile Ownership (v5.1):** Power Saving now remains authoritative across file loads, metadata changes, and saved UOSC setting updates. User preferences are preserved for normal playback and restored deterministically when Eco mode ends.
+* **💬 Preferred-Language SDH Fallback (v5.1):** When no clean preferred-language subtitle exists, the selector now chooses a preferred-language SDH or hearing-impaired track before an unrelated clean language, while still rejecting forced and signs-only tracks.
 
 * **🌈 Cross-Platform HDR Detection (v5.0):** Windows uses the DisplayConfig API with a WMI compatibility fallback, KDE Plasma uses KScreen, and other Linux compositors defer safely to mpv's native colorspace negotiation. Windows and Linux detection paths remain strictly isolated.
 * **💾 Durable User Overrides (v5.0):** UOSC Controls and HDR choices are remembered in untracked `user-<custom-name>.conf` files, loaded alphabetically and reapplied after profile evaluation so build updates do not overwrite personal settings.
