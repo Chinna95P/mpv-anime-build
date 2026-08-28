@@ -26,11 +26,44 @@ for _, property in ipairs(properties) do property_set[property] = true end
 
 local apply_timer = nil
 
+-- Power Saving owns the options declared by [Low-End] while it is active.
+-- Read the profile so this follows future profile changes automatically.
+local power_owned = {}
+local low_end_found = false
+for _, profile in ipairs(mp.get_property_native("profile-list") or {}) do
+    if profile.name == "Low-End" then
+        low_end_found = true
+        for _, entry in ipairs(profile.options or {}) do
+            power_owned[entry.key] = true
+        end
+        break
+    end
+end
+
+-- Supported mpv versions expose profile-list, but retain the shipped overlap
+-- as a safe fallback instead of silently allowing saved settings to undo Eco.
+if not low_end_found then
+    msg.warn("Could not inspect [Low-End]; using the built-in ownership fallback")
+    for _, property in ipairs({
+        "scale", "cscale", "dscale", "dither-depth",
+        "correct-downscaling", "linear-downscaling", "sigmoid-upscaling",
+    }) do
+        power_owned[property] = true
+    end
+end
+
+local function power_is_active()
+    -- String reads of user-data are JSON-quoted; native reads are not.
+    return mp.get_property_native("user-data/power_active") == "yes"
+end
+
 local function apply_saved_settings()
     apply_timer = nil
+    local power_active = power_is_active()
     local settings = user_config.read()
     for key, value in pairs(settings) do
-        if property_set[key] and mp.get_property(key) ~= value then
+        if property_set[key] and not (power_active and power_owned[key])
+                and mp.get_property(key) ~= value then
             mp.set_property(key, value)
         end
     end
@@ -68,6 +101,17 @@ local function persist_current_settings(command)
 
     local ok, result = user_config.update(values, changed)
     if not ok then msg.error("Could not save user settings: " .. tostring(result)) end
+
+    -- The UOSC command has already changed the live property. Preserve the
+    -- choice for later, but immediately restore Eco's owned values.
+    if power_is_active() then
+        for _, property in ipairs(changed) do
+            if power_owned[property] then
+                mp.commandv("script-message-to", "power_manager", "reassert-low-power")
+                break
+            end
+        end
+    end
 end
 
 apply_saved_settings()

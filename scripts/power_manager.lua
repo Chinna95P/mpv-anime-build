@@ -103,8 +103,11 @@ local state = {
     initialized = false,
     timer = nil,
     resume_timer = nil,
+    exit_timer = nil,
+    reassert_timer = nil,
     low_power_active = false,
-    saved_hwdec = nil
+    saved_hwdec = nil,
+    paused_by_power = false
 }
 
 -- Hybrid Helper: Broadcast + User-Data
@@ -151,8 +154,32 @@ local function check_battery_status()
 end
 
 -- LOGIC: Apply Low Power Mode
+local function apply_low_power_profile()
+    mp.commandv("apply-profile", opts.low_power_profile)
+end
+
+local function cancel_timer(name)
+    if state[name] then
+        state[name]:kill()
+        state[name] = nil
+    end
+end
+
+local function schedule_low_power_reassert()
+    if not state.low_power_active then return end
+    cancel_timer("reassert_timer")
+    state.reassert_timer = mp.add_timeout(0, function()
+        state.reassert_timer = nil
+        if state.low_power_active then apply_low_power_profile() end
+    end)
+end
+
 local function enable_low_power()
     if state.low_power_active then return end
+
+    -- A quick Off -> On transition must invalidate the older exit handoff.
+    cancel_timer("exit_timer")
+    cancel_timer("resume_timer")
 
     -- Preserve the decoder selected by the active platform/SVP profile. This
     -- lets the normal profile be restored without hard-coding a Windows or
@@ -164,17 +191,19 @@ local function enable_low_power()
     msg.info("Power Manager: Switching to [Low-End]")
 
     local was_paused = mp.get_property_bool("pause")
+    state.paused_by_power = not was_paused
     mp.set_property_bool("pause", true)
-    
-    mp.commandv("apply-profile", opts.low_power_profile)
-    
-    -- Broadcast State Active
-    update_menu_status(true)
 
-    if not was_paused then
-        if state.resume_timer then state.resume_timer:kill() end
+    -- Publish ownership before profile changes can trigger observers.
+    update_menu_status(true)
+    apply_low_power_profile()
+
+    if state.paused_by_power then
         state.resume_timer = mp.add_timeout(2.0, function()
+            state.resume_timer = nil
+            if not state.low_power_active then return end
             mp.set_property_bool("pause", false)
+            state.paused_by_power = false
             show_power_osd(C.YELLOW .. "⚡ {\\b1}Power Saving:{\\b0} " .. C.GREEN .. "Active")
         end)
     end
@@ -182,9 +211,22 @@ end
 
 -- LOGIC: Restore Normal Mode
 local function disable_low_power()
+    if not state.low_power_active then
+        update_menu_status(false)
+        return
+    end
+
     msg.info("Power Manager: Handing control to Anime Profile Controller")
     show_power_osd(C.YELLOW .. "🔌 {\\b1}AC Power:{\\b0} " .. C.CYAN .. "Restoring Smart Profile...")
-    
+
+    cancel_timer("resume_timer")
+    cancel_timer("reassert_timer")
+    cancel_timer("exit_timer")
+    if state.paused_by_power then
+        mp.set_property_bool("pause", false)
+        state.paused_by_power = false
+    end
+
     -- Restore exactly what was selected before Eco mode. On Windows this can
     -- be D3D11VA; on Linux it can be NVDEC, VA-API, Vulkan, or SVP copy-back.
     if state.saved_hwdec and state.saved_hwdec ~= "" then
@@ -195,9 +237,13 @@ local function disable_low_power()
     
     -- [STEP 1] Update Status immediately so VSR knows it can resume
     update_menu_status(false)
-    
-    -- [STEP 2] INCREASED DELAY (0.5s)
-    mp.add_timeout(0.5, function()
+
+    -- [STEP 2] Restore every option owned by [Low-End], then let the
+    -- controller select the correct profile for the current file.
+    state.exit_timer = mp.add_timeout(0.5, function()
+        state.exit_timer = nil
+        if state.low_power_active then return end
+        mp.commandv("apply-profile", opts.low_power_profile, "restore")
         mp.commandv("script-message", "force-evaluate-profile")
     end)
 end
@@ -235,7 +281,13 @@ end
 -- Respond to menu open requests
 mp.register_script_message("force-evaluate-profile", function()
     -- Re-broadcast current state
-    update_menu_status(state.forced_mode or state.on_battery)
+    update_menu_status(state.low_power_active)
+end)
+
+-- UOSC may save an Eco-owned property while Power Saving is active. Keep the
+-- saved preference for normal mode, but make Low-End authoritative right now.
+mp.register_script_message("reassert-low-power", function()
+    schedule_low_power_reassert()
 end)
 
 -- INITIALIZATION
@@ -251,5 +303,13 @@ mp.register_event("file-loaded", function()
             msg.info((platform == "windows" and "Windows" or "Linux") .. " desktop detected. Manual Toggle Only.")
         end
         mp.add_key_binding(nil, "toggle-power", toggle_force_mode)
+    elseif state.low_power_active then
+        -- reset-on-next-file includes vf, and metadata-dependent profiles can
+        -- also run during load. Put the complete Low-End profile back on top.
+        schedule_low_power_reassert()
     end
 end)
+
+-- Keep Eco last when native conditional profiles react to metadata changes.
+mp.observe_property("video-params", "native", schedule_low_power_reassert)
+mp.observe_property("current-tracks/video/image", "bool", schedule_low_power_reassert)
