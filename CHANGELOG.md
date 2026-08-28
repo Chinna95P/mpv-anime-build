@@ -4,6 +4,30 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.1] – Reliable Eco Persistence & Preferred Subtitle Fallbacks
+
+### 🔋 Power Saving & User Settings
+* **Durable Eco Ownership:** The complete `[Low-End]` profile now remains authoritative while Power Saving is active, including across playlist/file changes and metadata-triggered profile evaluation.
+* **Safe Remembered Settings:** Saved `user-<custom-name>.conf` preferences that overlap with `[Low-End]` no longer silently undo Eco scalers or dithering. Settings outside the Eco profile continue to apply normally.
+* **Deterministic Eco Exit:** Leaving Power Saving restores every option owned by `[Low-End]`, then hands control back to the smart profile and reapplies the user's saved preferences in a defined order.
+* **Stable Power Transitions:** Rapid battery/AC changes cancel stale timers, preserve user-paused playback, and avoid stuck pause or outdated Eco state.
+* **Profile-Driven Ownership:** Eco-owned properties are read from mpv's `[Low-End]` profile with a safe built-in fallback, keeping the persistence layer synchronized with future profile changes.
+
+### 💬 Subtitle Selection
+* **Preferred SDH Fallback:** If the only complete subtitle in a preferred `slang` language is SDH or marked hearing-impaired, it is now chosen before a clean subtitle in an unrelated language.
+* **Clean Track Priority Preserved:** A clean preferred-language subtitle still outranks a preferred-language SDH track.
+* **Incomplete Track Protection:** Forced, signs-only, songs, lyrics, colored, and karaoke tracks remain excluded from the SDH fallback and Anime dialogue shortcuts.
+
+### ✅ Cross-Platform Validation
+* Tested automatic and manual Eco transitions, next-file persistence, rapid power-state changes, settings restoration, and HDR coexistence on real Linux and Windows 11 hardware.
+* Independently tested the subtitle fix against purpose-built MKVs covering clean, SDH, hearing-impaired, forced, signs-only, and unrelated-language combinations.
+
+### 🙏 Community
+* Thanks to **francomeisterm** for identifying the Eco persistence conflict, reviewing the ownership model, and thoroughly validating the Linux behavior.
+* Thanks to **dovahkinGH** for validating the Windows power/HDR paths on real laptop hardware and independently testing the complete preferred-subtitle matrix.
+
+---
+
 ## [v5.0] – Cross-Platform HDR, Durable User Overrides & Community Fixes
 
 ### ✨ New Features & Enhancements

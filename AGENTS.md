@@ -3,7 +3,7 @@
 ## Project
 
 - **Project:** MPV Anime Build
-- **Current version:** v5.0
+- **Current version:** v5.1
 - **Repository:** https://github.com/Chinna95P/mpv-anime-build
 
 ## General development rules
