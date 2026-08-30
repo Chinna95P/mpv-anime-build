@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.2] – Live-Action Detection & Safer Playback Defaults
+
+### 🎬 Profile Detection
+* **Restored Live-Action Override:** Reconnected `is_live_action(path, title)` to the main profile evaluation flow so explicit Live-Action signals take priority over Anime folder, Japanese-audio, release-syntax, and CRC signals in Auto mode.
+* **Path and Title Coverage:** `Live Action`, `Live-Action`, `liveaction`, `drama`, and `real person` continue to be recognized in either the media path or title.
+* **Anime Mode Semantics Preserved:** Forced Anime Mode still selects Anime processing, while Auto mode now correctly routes explicitly marked Live-Action content to its resolution-appropriate profile.
+
+### 🖼️ Thumbnail Playback
+* **Software-Decoded Thumbfast:** Changed the shipped Thumbfast option from `hwdec=yes` to `hwdec=no`, matching the script's safe default and preventing the thumbnail helper from depending on hardware-decoder support.
+
+### 🌐 Stream Subtitles
+* **English-Only yt-dlp Requests:** Removed the accidental Telugu `te` and `tel` entries from `ytdl-raw-options-append`; authored and automatic stream subtitles now request only `en` and `en-orig`.
+
+### 🎨 Documentation
+* **Correct Smart Skip Colors:** Corrected the Smart Skip screenshot descriptions and chapter-timeline documentation to identify OP as green, ED as blue, PV as magenta, and Intro as orange.
+
+### ✅ Validation
+* Verified the explicit Live-Action override with the 1920×1080 `Ranma ½ Live-Action.mkv` test case inside an Anime folder with Japanese audio; Auto mode selected the Live-Action context and `FHD-Native` profile.
+* Loaded the affected controller and Thumbfast scripts through mpv's embedded Lua runtime without script errors, and validated the updated yt-dlp option syntax with mpv.
+
+---
+
 ## [v5.1] – Reliable Eco Persistence & Preferred Subtitle Fallbacks
 
 ### 🔋 Power Saving & User Settings

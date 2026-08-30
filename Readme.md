@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v5.1
-> **The Eco Persistence & Preferred Subtitle Update: reliable Power Saving across file changes and smarter preferred-language SDH selection.**
+# 🎬 MPV Anime Build v5.2
+> **The Detection & Playback Defaults Update: reliable Live-Action overrides, safer thumbnail decoding, and focused English stream subtitles.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -21,7 +21,12 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v5.1)
+## 🚀 What's New in (v4.0 - v5.2)
+
+* **🎬 Restored Live-Action Path Override (v5.2):** Explicit `Live Action`, `Live-Action`, `liveaction`, `drama`, and `real person` path/title signals once again take priority over Anime folder and Japanese-audio signals while Anime Mode is set to Auto.
+* **🖼️ Safer Thumbfast Decoding (v5.2):** Thumbnail generation now explicitly uses software decoding by default, matching Thumbfast's built-in safe fallback and avoiding hardware-decoder instability in the helper process.
+* **🌐 English-Only Stream Subtitles (v5.2):** yt-dlp automatic and authored subtitle requests are limited to English and original-English tracks; unintended Telugu language requests were removed.
+* **🎨 Correct Smart Skip Documentation (v5.2):** Website image descriptions and chapter-timeline documentation now match the displayed colors: OP green, ED blue, PV magenta, and Intro orange.
 
 * **🔋 Durable Eco Profile Ownership (v5.1):** Power Saving now remains authoritative across file loads, metadata changes, and saved UOSC setting updates. User preferences are preserved for normal playback and restored deterministically when Eco mode ends.
 * **💬 Preferred-Language SDH Fallback (v5.1):** When no clean preferred-language subtitle exists, the selector now chooses a preferred-language SDH or hearing-impaired track before an unrelated clean language, while still rejecting forced and signs-only tracks.

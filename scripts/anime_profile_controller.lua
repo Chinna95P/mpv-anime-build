@@ -747,6 +747,9 @@ local function evaluate()
     local signal_folder = is_anime_folder(path)
     local signal_shiru  = (shiru_opt == "anime")
 
+    -- B. Explicit Live Action Override (checks both path and title)
+    local signal_live_action = is_live_action(path, title)
+
     -- [v4.6] Strict Syntax Check: MUST have [Prefix] AND ([Suffix] OR " - 01" episode dash)
     local signal_syntax = false
     if filename:match("^%[.-%]") then
