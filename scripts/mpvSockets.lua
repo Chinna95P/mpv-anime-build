@@ -1,54 +1,70 @@
--- mpvSockets, one socket per instance, removes socket on exit
+-- mpvSockets: provide one discoverable IPC endpoint per mpv instance without
+-- replacing an endpoint supplied by an external controller such as MediaFlick.
 
-local utils = require 'mp.utils'
-local ppid = utils.getpid()
+local mp = require "mp"
+local utils = require "mp.utils"
 
--- Detect OS based on the directory separator
-local is_windows = package.config:sub(1,1) == "\\"
+local pid = utils.getpid()
+local is_windows = package.config:sub(1, 1) == "\\"
+local existing_ipc = mp.get_property("options/input-ipc-server", "")
+
+local function set_external_ipc_state(value)
+    mp.set_property_native("user-data/mpv-sockets/external-ipc", value)
+end
+
+if existing_ipc ~= "" then
+    -- An embedding application owns the real endpoint. Never replace it: doing
+    -- so disconnects that application's controller. On Unix, expose a symlink
+    -- under the usual mpvSockets path so SVP and other discovery tools can use
+    -- the same endpoint simultaneously.
+    set_external_ipc_state(true)
+
+    if not is_windows then
+        local temp_dir = os.getenv("TMPDIR") or "/tmp"
+        local socket_dir = utils.join_path(temp_dir, "mpvSockets")
+        local alias_path = utils.join_path(socket_dir, tostring(pid))
+
+        utils.subprocess({
+            args = { "mkdir", "-p", socket_dir },
+            playback_only = false,
+            cancellable = false,
+        })
+        pcall(os.remove, alias_path)
+        local result = utils.subprocess({
+            args = { "ln", "-s", existing_ipc, alias_path },
+            playback_only = false,
+            cancellable = false,
+        })
+
+        if result.status == 0 then
+            mp.register_event("shutdown", function()
+                pcall(os.remove, alias_path)
+            end)
+        else
+            mp.msg.warn("Could not create IPC discovery alias: " .. (result.error_string or "unknown error"))
+        end
+    end
+
+    return
+end
+
+set_external_ipc_state(false)
 
 if is_windows then
-    -- WINDOWS: Use Named Pipes (No cmd flash, no directory needed)
-    local pipe_name = "\\\\.\\pipe\\mpvSockets_" .. ppid
-    mp.set_property("options/input-ipc-server", pipe_name)
-
-    -- Note: Windows named pipes self-destruct when the process closes,
--- so we don't even need a shutdown cleanup handler here.
+    -- Windows named pipes disappear automatically when mpv exits.
+    mp.set_property("options/input-ipc-server", "\\\\.\\pipe\\mpvSockets_" .. pid)
 else
-    -- UNIX-LIKE (Linux/macOS): Standard temp directory method
-    local function get_temp_path()
-    local directory_seperator = package.config:match("([^\n]*)\n?")
-    local example_temp_file_path = os.tmpname()
+    local temp_dir = os.getenv("TMPDIR") or "/tmp"
+    local socket_dir = utils.join_path(temp_dir, "mpvSockets")
+    local socket_path = utils.join_path(socket_dir, tostring(pid))
 
-    -- remove generated temp file
-    pcall(os.remove, example_temp_file_path)
-
-    local seperator_idx = example_temp_file_path:reverse():find(directory_seperator)
-    local temp_path_length = #example_temp_file_path - seperator_idx
-
-    return example_temp_file_path:sub(1, temp_path_length)
-    end
-
-    local tempDir = get_temp_path()
-
-    local function join_paths(...)
-    local arg={...}
-    local path = ""
-    for i,v in ipairs(arg) do
-        path = utils.join_path(path, tostring(v))
-        end
-        return path;
-    end
-
-    local socket_dir = join_paths(tempDir, "mpvSockets")
-    local socket_path = join_paths(socket_dir, ppid)
-
-    -- Create directory (silently fails if it already exists)
-    os.execute("mkdir -p '" .. socket_dir .. "' 2>/dev/null")
-
+    utils.subprocess({
+        args = { "mkdir", "-p", socket_dir },
+        playback_only = false,
+        cancellable = false,
+    })
     mp.set_property("options/input-ipc-server", socket_path)
-
-    local function shutdown_handler()
-    os.remove(socket_path)
-    end
-    mp.register_event("shutdown", shutdown_handler)
-    end
+    mp.register_event("shutdown", function()
+        pcall(os.remove, socket_path)
+    end)
+end
