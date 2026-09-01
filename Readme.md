@@ -26,7 +26,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **🎬 Restored Live-Action Path Override (v5.2):** Explicit `Live Action`, `Live-Action`, `liveaction`, `drama`, and `real person` path/title signals once again take priority over Anime folder and Japanese-audio signals while Anime Mode is set to Auto.
 * **🖼️ Safer Thumbfast Decoding (v5.2):** Thumbnail generation now explicitly uses software decoding by default, matching Thumbfast's built-in safe fallback and avoiding hardware-decoder instability in the helper process.
 * **🌐 English-Only Stream Subtitles (v5.2):** yt-dlp automatic and authored subtitle requests are limited to English and original-English tracks; unintended Telugu language requests were removed.
-* **🎨 Correct Smart Skip Documentation (v5.2):** Website image descriptions and chapter-timeline documentation now match the displayed colors: OP green, ED blue, PV magenta, and Intro orange.
+* **🎨 Contrast-Separated Smart Skip Colors (v5.2):** Swapped the Intro and PV colors across Skip Intro and the UOSC chapter timeline so adjacent chapter categories remain visually distinct: OP green, ED blue, PV orange, and Intro magenta.
 
 * **🔋 Durable Eco Profile Ownership (v5.1):** Power Saving now remains authoritative across file loads, metadata changes, and saved UOSC setting updates. User preferences are preserved for normal playback and restored deterministically when Eco mode ends.
 * **💬 Preferred-Language SDH Fallback (v5.1):** When no clean preferred-language subtitle exists, the selector now chooses a preferred-language SDH or hearing-impaired track before an unrelated clean language, while still rejecting forced and signs-only tracks.
@@ -52,7 +52,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **🪟 Windows CMD Flash Fix (v4.7):** Updated `mpvSockets.lua` to prevent command-window flashes on Windows when socket commands are issued.
 * **🌊 Expanded Audio-Only Visualizers (v4.7):** Added new visualizer styles to the Audio-Only profile for more visual variety during music playback.
 * **🎛️ UOSC 5.13.0 (v4.7):** Updated UOSC to the latest 5.13.0 release while retaining the MPV Anime Build's custom controls, menus, and integrations.
-* **🌈 Color-Coded Chapter Timeline (v4.7):** UOSC now highlights detected chapter ranges using the same colors as Skip Intro: **OP `#00FF00`**, **ED `#FF8000`**, **PV `#FF00FF`**, and **Intro `#0099FF`**, with transparent timeline colors.
+* **🌈 Color-Coded Chapter Timeline (v4.7):** UOSC highlights detected chapter ranges using the same colors as Skip Intro. The current displayed palette is **OP `#00FF00`**, **ED `#0080FF`**, **PV `#FF9900`**, and **Intro `#FF00FF`**, with transparent timeline colors. *(PV and Intro used the opposite colors in the original v4.7 palette and were swapped in v5.2 for stronger contrast between neighboring chapter ranges.)*
 * **💾 Track Selector Resume Manual Override (v4.7):** Manual audio/subtitle overrides are persisted per video. When resumed in a later MPV session, the matching override is restored and then remains active for the rest of that session/playlist, including next/previous files.
 * **📜 Native Watch History & Progress Bars (v4.5):** Tracks up to 50 recent files with visual progress blocks, 95% watched thresholds, greyed-out completed entries, and a dedicated control bar button.
 * **🗡️ Anime Line-Thinner Suite & Context Locks (v4.5):** Resolution-aware line-thinning shaders mapped into FSRCNNX with a persistent menu toggle (`Ctrl+j`) and safety lockdown checks.

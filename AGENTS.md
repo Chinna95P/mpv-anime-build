@@ -86,11 +86,9 @@
 
 - `skip_intro.lua` detects OP, ED, PV, and Intro chapters.
 - UOSC chapter highlighting uses the same category/color mapping.
-- Current category colors are:
-  - Intro = `0099FF`
-  - OP = `00FF00`
-  - PV = `FF00FF`
-  - ED = `FF8000`
+- Current displayed category colors are Intro = `#FF00FF`, OP = `#00FF00`, PV = `#FF9900`, and ED = `#0080FF`.
+- `skip_intro.lua` stores those colors in ASS BGR order: Intro = `FF00FF`, OP = `00FF00`, PV = `0099FF`, and ED = `FF8000`.
+- UOSC stores the same displayed colors in RGB/RGBA order.
 - UOSC chapter range colors use transparency consistent with the timeline.
 - Preserve the relationship between `skip_intro.lua` category colors and UOSC chapter-range colors.
 

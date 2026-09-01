@@ -44,6 +44,19 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 
 ---
 
+## 🎨 Smart Skip & Chapter Colors
+
+Skip Intro and the UOSC timeline use one synchronized palette for detected chapter categories:
+
+| Chapter Category | Current Color | Skip Action |
+| :--- | :--- | :--- |
+| **Opening / OP** | Green (`#00FF00`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Ending / ED** | Blue (`#0080FF`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Preview / PV** | Orange (`#FF9900`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Intro / Prologue** | Magenta (`#FF00FF`) | Press **`ENTER`** while the Skip Intro card is visible. |
+
+---
+
 ## 🔊 Audio & Subtitles
 
 | Key | Function | Description |

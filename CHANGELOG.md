@@ -17,8 +17,9 @@ All notable changes to this project are documented here.
 ### 🌐 Stream Subtitles
 * **English-Only yt-dlp Requests:** Removed the accidental Telugu `te` and `tel` entries from `ytdl-raw-options-append`; authored and automatic stream subtitles now request only `en` and `en-orig`.
 
-### 🎨 Documentation
-* **Correct Smart Skip Colors:** Corrected the Smart Skip screenshot descriptions and chapter-timeline documentation to identify OP as green, ED as blue, PV as magenta, and Intro as orange.
+### 🎨 Smart Skip & Documentation
+* **Contrast-Separated Intro/PV Colors:** Swapped the Intro and PV colors in both `skip_intro.lua` and the UOSC chapter timeline. Intro now uses magenta (`#FF00FF`) and PV uses orange (`#FF9900`), improving contrast between neighboring chapter ranges while preserving OP green and ED blue.
+* **Synchronized Color Documentation:** Updated the README, cheat sheet, website descriptions, and repository guidance to use the same current Smart Skip palette.
 
 ### ✅ Validation
 * Verified the explicit Live-Action override with the 1920×1080 `Ranma ½ Live-Action.mkv` test case inside an Anime folder with Japanese audio; Auto mode selected the Live-Action context and `FHD-Native` profile.
@@ -120,9 +121,11 @@ This keeps normal video/audio selection available while preventing poster and ot
 * **UOSC 5.13.0:** Updated the integrated UOSC interface to the latest 5.13.0 release while preserving the MPV Anime Build custom controls and menu integration.
 * **Color-Coded UOSC Chapter Timeline:** Added custom transparent timeline highlights for detected **OP, ED, PV, and Intro** chapter names. The colors match the Skip Intro palette:
   * 🟢 **OP:** `#00FF00`
-  * 🟠 **ED:** `#FF8000`
+  * 🔵 **ED:** `#0080FF`
   * 🟣 **PV:** `#FF00FF`
-  * 🔵 **Intro:** `#0099FF`
+  * 🟠 **Intro:** `#FF9900`
+
+  *The entries above record the original v4.7 palette. In v5.2, PV changed to orange (`#FF9900`) and Intro changed to magenta (`#FF00FF`) for stronger contrast between neighboring chapter ranges.*
 * **Track Selector Resume Override:** Extended the Track Selector manual-override system so the override is persisted per video. When the same video is resumed in a later MPV session, the saved override is restored; once active, it remains in effect for the rest of that session/playlist, including next/previous files.
 
 ---
