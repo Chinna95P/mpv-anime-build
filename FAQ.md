@@ -304,6 +304,24 @@ All files (`mpv.conf`, `input.conf`, `scripts/`, etc.) go into your MPV configur
 </details>
 
 <details>
+<summary><b>How can I keep my own MPV options without editing mpv.conf?</b></summary>
+
+Create exactly one file named `mpv-<custom-name>.conf` beside the shipped `mpv.conf`. For example:
+
+```conf
+# mpv-personal.conf
+fullscreen=no
+volume=80
+```
+
+The build loads this file after `mpv.conf`, so matching values in the personal file win. Add only your changed options. The same filename convention works on Windows and Linux.
+
+If multiple `mpv-*.conf` files exist, the build loads none of them and displays a warning. This safety rule prevents an accidental or unclear override order.
+
+The existing `user-*.conf` files serve a different purpose: they store remembered Anime Build menu settings.
+</details>
+
+<details>
 <summary><b>How does Auto-Detection for Anime work? (Updated v2.0)</b></summary>
 
 The build uses a **3-Layer Detection System**:

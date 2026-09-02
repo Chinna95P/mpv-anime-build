@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [Unreleased] – Update-Safe Personal MPV Configuration
+
+### ⚙️ Configuration
+* **Custom MPV Override File:** Added automatic cross-platform loading for one `mpv-<custom-name>.conf` file placed beside `mpv.conf`. The file loads after the shipped configuration, allowing personal values such as `fullscreen=no` to override build defaults without modifying tracked files.
+* **Safe Discovery:** If multiple matching custom files are present, none are loaded and MPV reports the conflict instead of applying an ambiguous precedence order.
+* **Override Separation:** Documented that `mpv-*.conf` files control normal MPV options, while the existing `user-*.conf` layer continues to store remembered Anime Build menu settings.
+
+---
+
 ## [v5.2] – Live-Action Detection & Safer Playback Defaults
 
 ### 🎬 Profile Detection

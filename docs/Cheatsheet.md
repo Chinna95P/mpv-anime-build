@@ -178,6 +178,19 @@ Power Guard preserves platform-appropriate decoding, including D3D11VA on Window
 
 ---
 
+## ⚙️ Personal MPV Config Quick Reference
+
+| Item | Behavior |
+| :--- | :--- |
+| **Filename** | Create exactly one `mpv-<custom-name>.conf` beside `mpv.conf`, such as `mpv-personal.conf`. |
+| **Precedence** | Options in the custom file load after and override matching options from the shipped `mpv.conf`. |
+| **Recommended Content** | Add only the options you want to change, such as `fullscreen=no`. |
+| **Multiple Files** | No custom file is loaded; MPV displays a warning until only one `mpv-*.conf` remains. |
+| **Platform Support** | The same convention works on Windows and Linux. |
+| **Different Purpose** | `mpv-*.conf` overrides normal MPV options; `user-*.conf` stores remembered Anime Build menu settings. |
+
+---
+
 ## 🎨 v4.9 Rendering Quick Reference
 
 | Setting | v4.9 Behavior |

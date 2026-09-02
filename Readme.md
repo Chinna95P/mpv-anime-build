@@ -234,6 +234,15 @@ Settings changed in **UOSC → Controls** are saved outside the tracked defaults
 * Multiple user files are loaded alphabetically. Later files override earlier files, and the last file is updated when a menu choice is saved.
 * Built-in script defaults and `mpv.conf` remain the fallback when a setting has no user override.
 
+### Personal MPV configuration overrides
+To override any normal MPV option without editing the build's tracked `mpv.conf`, create exactly one file named `mpv-<custom-name>.conf` beside `mpv.conf`. For example, `mpv-personal.conf` containing `fullscreen=no` overrides the build's `fullscreen=yes` default.
+
+* The custom file is loaded after the shipped `mpv.conf`, so duplicate options in it take precedence.
+* Only the settings you want to change need to be added; do not copy the complete shipped configuration.
+* The filename works the same on Windows and Linux, and the file remains separate during build updates.
+* If multiple `mpv-*.conf` files are present, none are loaded and MPV displays a warning. Keep exactly one active custom file.
+* `mpv-*.conf` controls normal MPV options. The separate `user-*.conf` files above store remembered Anime Build menu settings.
+
 ---
 
 ## 📸 Gallery, Visual Comparisons & Tech Verification

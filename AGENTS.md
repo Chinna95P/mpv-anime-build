@@ -108,6 +108,8 @@
 
 - `input.conf` bindings are coupled to Lua scripts and UOSC script messages.
 - `script-opts/*.conf` contains important persistent configuration.
+- `scripts/custom-config-loader.lua` loads exactly one root-level `mpv-<custom-name>.conf` after the shipped `mpv.conf`; preserve its Windows/Linux behavior and its safe refusal when multiple matching files exist.
+- Keep general MPV overrides in `mpv-*.conf` conceptually separate from remembered Anime Build menu settings in `user-*.conf`.
 - Do not rename configuration keys casually.
 - When changing a configuration option, check all scripts that read it.
 
