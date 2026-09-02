@@ -27,6 +27,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **🖼️ Safer Thumbfast Decoding (v5.2):** Thumbnail generation now explicitly uses software decoding by default, matching Thumbfast's built-in safe fallback and avoiding hardware-decoder instability in the helper process.
 * **🌐 English-Only Stream Subtitles (v5.2):** yt-dlp automatic and authored subtitle requests are limited to English and original-English tracks; unintended Telugu language requests were removed.
 * **🎨 Contrast-Separated Smart Skip Colors (v5.2):** Swapped the Intro and PV colors across Skip Intro and the UOSC chapter timeline so adjacent chapter categories remain visually distinct: OP green, ED blue, PV orange, and Intro magenta.
+* **💬 Commentary-Safe Subtitle Fallbacks (v5.2):** Automatic selection completely skips commentary subtitles, preserves clean-track priority, and falls back to a complete SDH or hearing-impaired track when no usable clean subtitle exists—even when the SDH track lacks preferred-language metadata.
 
 * **🔋 Durable Eco Profile Ownership (v5.1):** Power Saving now remains authoritative across file loads, metadata changes, and saved UOSC setting updates. User preferences are preserved for normal playback and restored deterministically when Eco mode ends.
 * **💬 Preferred-Language SDH Fallback (v5.1):** When no clean preferred-language subtitle exists, the selector now chooses a preferred-language SDH or hearing-impaired track before an unrelated clean language, while still rejecting forced and signs-only tracks.

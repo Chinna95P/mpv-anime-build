@@ -85,6 +85,8 @@ Skip Intro and the UOSC timeline use one synchronized palette for detected chapt
 | **`CTRL+t`** | **Blend Subs** | Toggle subtitle blending (Fixes rendering issues). |
 | **`y`** | **Sub Video Data** | Cycle how subs use video data (None / Aspect / All). |
 
+**Automatic subtitle priority:** Preferred clean tracks → preferred complete SDH → clean language fallbacks → any complete SDH. Commentary is never selected automatically; an explicit manual commentary selection is still respected.
+
 ---
 
 ## 📺 Video & Display

@@ -325,6 +325,35 @@ local function track_is_ignored_subtitle(track)
         or track["hearing-impaired"] == true
 end
 
+-- Commentary subtitles are never automatic candidates. Keep this separate
+-- from track_is_ignored_subtitle so an explicit manual selection can still be
+-- restored by the manual-override system.
+local function track_is_commentary_subtitle(track)
+    if not track then return false end
+    local title = (track.title or ""):lower()
+    return contains_keyword(title, {"commentary", "comment"})
+end
+
+local function track_is_ignored_auto_subtitle(track)
+    return track_is_commentary_subtitle(track)
+        or track_is_ignored_subtitle(track)
+end
+
+local function track_is_usable_sdh(track)
+    if not track or track.type ~= "sub" or track_is_commentary_subtitle(track) then
+        return false
+    end
+
+    local title = (track.title or ""):lower()
+    local incomplete_subs = {"signs", "songs", "lyrics", "forced", "colored", "karaoke"}
+    local is_sdh = title:find("sdh", 1, true)
+        or track["hearing-impaired"] == true
+
+    return is_sdh
+        and not contains_keyword(title, incomplete_subs)
+        and track.forced ~= true
+end
+
 local function subtitle_match_score(track, wanted)
     if not track or track.type ~= "sub" or not wanted then return -1 end
 
@@ -470,9 +499,6 @@ local function select_smart_tracks()
 
     -- Keywords to ignore
     local ignore_audio = {"commentary", "description", "adh", "comment", "extra"}
-    local ignore_subs = {"signs", "songs", "lyrics", "forced", "sdh", "colored", "karaoke"}
-    local incomplete_subs = {"signs", "songs", "lyrics", "forced", "colored", "karaoke"}
-
     -- Get Currently Active Tracks for the Check Gate
     local current_aid = mp.get_property_number("aid")
     local current_sid = mp.get_property_number("sid")
@@ -560,7 +586,8 @@ local function select_smart_tracks()
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and t.default then
                     local lang = (t.lang or ""):lower()
-                    if lang == "jpn" or lang == "ja" or lang == "jp" then
+                    if (lang == "jpn" or lang == "ja" or lang == "jp")
+                            and not track_is_commentary_subtitle(t) then
                         selected_sid = apply_sub(t.id, "Native File Default Japanese Sub")
                     end
                     break
@@ -579,7 +606,7 @@ local function select_smart_tracks()
                     local title = (t.title or ""):lower()
                     if matches_lang(lang, pref_lang) then
                         if (title:find("dialogue") or title:find("full") or title:find("script"))
-                                and not track_is_ignored_subtitle(t) then
+                                and not track_is_ignored_auto_subtitle(t) then
                             selected_sid = apply_sub(t.id, "Anime Dialogue matched (Slang)")
                             break
                         end
@@ -595,12 +622,8 @@ local function select_smart_tracks()
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and not selected_sid then
                     local lang = (t.lang or ""):lower()
-                    local title = (t.title or ""):lower()
-                    local is_forced = t.forced or false
-                    local is_sdh = t["hearing-impaired"] or false
-
                     if matches_lang(lang, pref_lang) then
-                        if not contains_keyword(title, ignore_subs) and not is_forced and not is_sdh then
+                        if not track_is_ignored_auto_subtitle(t) then
                             selected_sid = apply_sub(t.id, "Clean Match (Slang)")
                             break
                         end
@@ -616,17 +639,11 @@ local function select_smart_tracks()
             for _, t in ipairs(tracks) do
                 if t.type == "sub" and not selected_sid then
                     local lang = (t.lang or ""):lower()
-                    local title = (t.title or ""):lower()
-                    local is_sdh = title:find("sdh", 1, true)
-                        or t["hearing-impaired"] == true
-                    local is_incomplete = contains_keyword(title, incomplete_subs)
-                        or t.forced == true
-
                     -- An accessible full-dialogue track in the requested
                     -- language is more useful than a clean subtitle in an
                     -- unrelated language. Keep incomplete forced/signs-only
-                    -- tracks excluded from this fallback.
-                    if matches_lang(lang, pref_lang) and is_sdh and not is_incomplete then
+                    -- and commentary tracks excluded from this fallback.
+                    if matches_lang(lang, pref_lang) and track_is_usable_sdh(t) then
                         selected_sid = apply_sub(t.id, "Preferred SDH Match (Slang)")
                         break
                     end
@@ -641,7 +658,7 @@ local function select_smart_tracks()
             if t.type == "sub" then
                 local title = (t.title or ""):lower()
                 if (title:find("full") or title:find("dialogue") or title:find("script"))
-                        and not track_is_ignored_subtitle(t) then
+                        and not track_is_ignored_auto_subtitle(t) then
                     selected_sid = apply_sub(t.id, "Anime Dialogue matched (Language Fallback)")
                     break
                 end
@@ -652,9 +669,8 @@ local function select_smart_tracks()
     if not selected_sid then
         for _, t in ipairs(tracks) do
             if t.type == "sub" then
-                local title = (t.title or ""):lower()
                 if t.default == true then
-                    if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
+                    if not track_is_ignored_auto_subtitle(t) then
                         selected_sid = apply_sub(t.id, "Default Track Match (Language Fallback)")
                         break
                     end
@@ -665,12 +681,46 @@ local function select_smart_tracks()
         if not selected_sid then
             for _, t in ipairs(tracks) do
                 if t.type == "sub" then
-                    local title = (t.title or ""):lower()
-                    if not contains_keyword(title, ignore_subs) and not t.forced and not t["hearing-impaired"] then
+                    if not track_is_ignored_auto_subtitle(t) then
                         selected_sid = apply_sub(t.id, "Clean Match (Language Fallback)")
                         break
                     end
                 end
+            end
+        end
+    end
+
+    -- Last resort: if there is no usable clean subtitle in any language,
+    -- prefer a complete SDH track instead of leaving MPV's native selection
+    -- on commentary. A muxer-marked default SDH track wins before track order.
+    if not selected_sid then
+        for _, t in ipairs(tracks) do
+            if t.type == "sub" and t.default == true and track_is_usable_sdh(t) then
+                selected_sid = apply_sub(t.id, "Default SDH Match (Language Fallback)")
+                break
+            end
+        end
+
+        if not selected_sid then
+            for _, t in ipairs(tracks) do
+                if t.type == "sub" and track_is_usable_sdh(t) then
+                    selected_sid = apply_sub(t.id, "SDH Match (Language Fallback)")
+                    break
+                end
+            end
+        end
+    end
+
+    -- If MPV natively activated commentary and no usable clean/SDH fallback
+    -- exists, disable subtitles instead of silently retaining commentary.
+    if not selected_sid and current_sid then
+        for _, t in ipairs(tracks) do
+            if t.type == "sub" and t.id == current_sid
+                    and track_is_commentary_subtitle(t) then
+                mark_internal_change("subtitle", "no")
+                mp.set_property("sid", "no")
+                msg.info("Smart Sub: Commentary track ignored; no usable subtitle fallback was found.")
+                break
             end
         end
     end

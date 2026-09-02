@@ -17,6 +17,11 @@ All notable changes to this project are documented here.
 ### 🌐 Stream Subtitles
 * **English-Only yt-dlp Requests:** Removed the accidental Telugu `te` and `tel` entries from `ytdl-raw-options-append`; authored and automatic stream subtitles now request only `en` and `en-orig`.
 
+### 💬 Subtitle Selection
+* **Commentary Exclusion:** Commentary subtitle tracks are excluded from every automatic selection path, including preferred-language, dialogue, muxer-default, and language-fallback matching.
+* **Complete SDH Last Resort:** When no usable clean subtitle exists, the selector now falls back to a complete SDH or hearing-impaired track even if its language metadata is missing or outside `slang`.
+* **Safe Commentary Disable:** If MPV initially activates commentary and no usable clean or SDH fallback exists, automatic selection disables subtitles instead of retaining commentary. Explicit manual selections and saved manual overrides remain respected.
+
 ### 🎨 Smart Skip & Documentation
 * **Contrast-Separated Intro/PV Colors:** Swapped the Intro and PV colors in both `skip_intro.lua` and the UOSC chapter timeline. Intro now uses magenta (`#FF00FF`) and PV uses orange (`#FF9900`), improving contrast between neighboring chapter ranges while preserving OP green and ED blue.
 * **Synchronized Color Documentation:** Updated the README, cheat sheet, website descriptions, and repository guidance to use the same current Smart Skip palette.
@@ -24,6 +29,7 @@ All notable changes to this project are documented here.
 ### ✅ Validation
 * Verified the explicit Live-Action override with the 1920×1080 `Ranma ½ Live-Action.mkv` test case inside an Anime folder with Japanese audio; Auto mode selected the Live-Action context and `FHD-Native` profile.
 * Loaded the affected controller and Thumbfast scripts through mpv's embedded Lua runtime without script errors, and validated the updated yt-dlp option syntax with mpv.
+* Tested Track Selector against purpose-built MKVs covering preferred-language SDH, SDH without language metadata, unrelated clean subtitles, and commentary-only files.
 
 ---
 
