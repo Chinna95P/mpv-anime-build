@@ -11,6 +11,10 @@ All notable changes to this project are documented here.
 * **Safe Discovery:** If multiple matching custom files are present, none are loaded and MPV reports the conflict instead of applying an ambiguous precedence order.
 * **Override Separation:** Documented that `mpv-*.conf` files control normal MPV options, while the existing `user-*.conf` layer continues to store remembered Anime Build menu settings.
 
+### 🛡️ UOSC Update Safety
+* **Upstream Self-Updater Removed:** Removed UOSC's `Update uosc` menu entry, script binding, and updater implementation. UOSC is customized for MPV Anime Build, so installing an upstream UOSC release in place could overwrite `main.lua` and remove Anime Build menus and integrations.
+* **Direct Release Access:** The separate **System → Check for Updates** entry remains available and checks MPV Anime Build releases without replacing customized UOSC files. Manually selecting it now displays the latest version and opens that exact GitHub release in the default browser; automatic startup checks never open a browser.
+
 ---
 
 ## [v5.2] – Live-Action Detection & Safer Playback Defaults

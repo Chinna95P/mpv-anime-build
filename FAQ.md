@@ -8,6 +8,14 @@
 ## 🖥️ User Interface (UOSC)
 
 <details>
+<summary><b>Why is the upstream "Update uosc" option unavailable?</b></summary>
+
+MPV Anime Build uses a heavily customized UOSC `main.lua` with its Anime modes, controls, history, HDR, shader, download, and state-synchronization integrations. Installing an upstream UOSC release directly could overwrite those customizations, so the upstream self-updater is intentionally removed.
+
+Update UOSC as part of a tested MPV Anime Build release instead. The separate **System → Check for Updates** menu entry checks for Anime Build releases and does not overwrite UOSC files. When selected manually, it displays the latest version and opens that release in your default browser; the automatic startup check never opens a browser.
+</details>
+
+<details>
 <summary><b>Where are the controls? (New in v1.7.1)</b></summary>
 
 You now have **two** easy ways to control everything:
