@@ -4,6 +4,45 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.3] – Update-Safe Integrations, Smarter Subtitles & Release Security
+
+### ⚙️ Configuration
+* **Custom MPV Override File:** Added automatic cross-platform loading for one `mpv-<custom-name>.conf` file placed beside `mpv.conf`. The file loads after the shipped configuration, allowing personal values such as `fullscreen=no` to override build defaults without modifying tracked files.
+* **Safe Discovery:** If multiple matching custom files are present, none are loaded and MPV reports the conflict instead of applying an ambiguous precedence order.
+* **Override Separation:** Documented that `mpv-*.conf` files control normal MPV options, while the existing `user-*.conf` layer continues to store remembered Anime Build menu settings.
+
+### 🔌 External Players, IPC & SVP
+* **External IPC Preservation:** Reworked `mpvSockets.lua` so an IPC endpoint supplied by MediaFlick or another external controller remains authoritative instead of being silently replaced.
+* **Shared Unix Discovery:** Linux and macOS sessions with an externally owned IPC socket expose a per-process alias under the standard `mpvSockets` directory, allowing SVP and other discovery-based integrations to attach without disconnecting the controlling application.
+* **Safe SVP Profile Isolation:** The Windows and Unix SVP profiles no longer replace externally supplied IPC endpoints. Normal standalone MPV sessions retain the existing SVP pipe/socket behavior.
+* **Native Windows Handling Preserved:** Standalone Windows sessions continue using per-process named pipes without opening command windows.
+
+### 💬 Subtitle Selection
+* **Commentary Exclusion:** Commentary subtitle tracks are excluded from every automatic selection path, including preferred-language, dialogue, muxer-default, and language-fallback matching.
+* **Complete SDH Last Resort:** When no usable clean subtitle exists, the selector falls back to a complete SDH or hearing-impaired track even when its language metadata is missing or outside `slang`.
+* **Safe Commentary Disable:** If MPV initially activates commentary and no usable clean or SDH fallback exists, automatic selection disables subtitles instead of retaining commentary. Explicit manual selections and saved manual overrides remain respected.
+
+### 🎨 Smart Skip
+* **Contrast-Separated Intro/PV Colors:** Swapped the Intro and PV colors in both `skip_intro.lua` and the UOSC chapter timeline. Intro now uses magenta (`#FF00FF`) and PV uses orange (`#FF9900`), improving contrast between neighboring chapter ranges while preserving OP green and ED blue.
+* **Synchronized Color Documentation:** Updated the README, cheat sheet, website descriptions, and repository guidance to use the same current Smart Skip palette.
+
+### 🛡️ UOSC Update Safety
+* **Upstream Self-Updater Removed:** Removed UOSC's `Update uosc` menu entry, script binding, and updater implementation. UOSC is customized for MPV Anime Build, so installing an upstream UOSC release in place could overwrite `main.lua` and remove Anime Build menus and integrations.
+* **Direct Release Access:** The separate **System → Check for Updates** entry remains available and checks MPV Anime Build releases without replacing customized UOSC files. Manually selecting it now displays the latest version and opens that exact GitHub release in the default browser; automatic startup checks never open a browser.
+
+### 🛡️ Release Verification
+* **Automated VirusTotal Reports:** Added a GitHub Actions workflow that scans every ZIP attached to a published release, reuses reports for matching SHA-256 hashes, supports VirusTotal's large-file upload endpoint, and appends a replaceable results section without modifying the handwritten release notes.
+* **Historical Backfill Support:** Release scans can also be launched manually for an existing tag, allowing older ZIP releases to receive the same transparent report.
+
+### ✅ Validation
+* Validated external IPC preservation and simultaneous SVP attachment through the MediaFlick playback pipeline on Linux.
+* Tested Track Selector against purpose-built MKVs covering preferred-language SDH, SDH without language metadata, unrelated clean subtitles, and commentary-only files.
+* Loaded the modified UOSC through MPV without script errors and verified that no upstream updater execution path remains.
+* Verified that automatic update checks never open a browser, while a manual check opens the exact current release page.
+* Validated the VirusTotal workflow syntax, result formatting, rate limiting, release-text preservation, and idempotent report replacement.
+
+---
+
 ## [v5.2] – Live-Action Detection & Safer Playback Defaults
 
 ### 🎬 Profile Detection

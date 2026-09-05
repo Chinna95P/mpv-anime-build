@@ -81,6 +81,24 @@ C:\Users\<Name>\AppData\Roaming\mpv\
 
 ```
 
+### Optional: Keep Personal MPV Options Update-Safe
+
+Create exactly one `mpv-<custom-name>.conf` file in the same folder as `mpv.conf` when you want to override the build defaults without editing the shipped file.
+
+Example: `mpv-personal.conf`
+
+```conf
+fullscreen=no
+volume=80
+```
+
+The custom file loads after `mpv.conf`, so its duplicate values take precedence. Add only the options you want to change. This works on Windows and Linux.
+
+> [!IMPORTANT]
+> Keep only one `mpv-*.conf` file in the config folder. If multiple matching files are found, the build safely loads none of them and shows a warning.
+
+This is separate from `user-<custom-name>.conf`, which stores remembered Anime Build menu choices rather than general MPV options.
+
 ---
 
 ### Step 4: Verify

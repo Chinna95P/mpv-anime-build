@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>MPV Anime Build v5.2 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
+    <title>MPV Anime Build v5.3 | 4K ArtCNN, Anime4K, NNEDI3 & FSRCNNX Automated Resolution Adaptive Upscaling (using Auto-Detection for Anime/Live-Action)</title>
 
     <meta name="description" content="Automated MPV configuration for Real-time Anime and Live-Action Upscaling.">
 
@@ -12,12 +12,12 @@
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://chinna95p.github.io/mpv-anime-build/">
-    <meta property="og:title" content="MPV Anime Build v5.2">
+    <meta property="og:title" content="MPV Anime Build v5.3">
     <meta property="og:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="og:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="MPV Anime Build v5.2">
+    <meta property="twitter:title" content="MPV Anime Build v5.3">
     <meta property="twitter:description" content="Automated MPV configuration for real-time Anime and Live-Action upscaling. Features new Glass UI (UOSC), True HDR Passthrough, and centralized Anime controls.">
     <meta property="twitter:image" content="https://chinna95p.github.io/mpv-anime-build/screenshots/anime-on.jpg">
 
@@ -309,7 +309,7 @@
         "name": "Chinna95P"
       },
       "downloadUrl": "https://github.com/Chinna95P/mpv-anime-build/releases",
-      "softwareVersion": "v5.2"
+      "softwareVersion": "v5.3"
     }
     </script>
 </head>
@@ -317,13 +317,13 @@
 
     <header>
         <div class="container hero-content">
-            <h1>MPV Anime Build v5.2</h1>
+            <h1>MPV Anime Build v5.3</h1>
             <p>Performance. Audio Profiling. Pure Immersive Media.</p>
 
             <div class="hero-actions">
                 <div class="primary-buttons">
                     <a href="https://github.com/Chinna95P/mpv-anime-build/releases" class="btn btn-download">
-                        📥 Download v5.2 Release
+                        📥 Download v5.3 Release
                     </a>
                     <a href="https://github.com/Chinna95P/mpv-anime-build/tree/android" class="btn btn-android">
                         📱 Android Build
@@ -711,8 +711,8 @@ image_types=</code></pre>
                         <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Ending (ED)</strong> • Blue Indicator</p>
                     </div>
                     <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
-                        <img src="screenshots/ui8.jpg" alt="Orange Intro Skip" style="width: 100%; border-radius: 4px; display: block;">
-                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Generic Intro</strong> • Orange Theme</p>
+                        <img src="screenshots/ui8.jpg" alt="Generic Intro Skip shown with the previous orange palette" style="width: 100%; border-radius: 4px; display: block;">
+                        <p style="text-align: center; color: #8b949e; margin-top: 10px; font-size: 0.9rem;"><strong>Generic Intro</strong> • Magenta Indicator <em>(image shows the previous palette)</em></p>
                     </div>
                     <div style="background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d;">
                         <img src="screenshots/ui10.jpg" alt="Skipped Feedback" style="width: 100%; border-radius: 4px; display: block;">
@@ -763,9 +763,27 @@ image_types=</code></pre>
 	<section class="features" style="padding-bottom: 0;">
         <div class="container">
 
-            <h2 class="slider-title reveal">What's New (v3.0 - v5.2)</h2>
+            <h2 class="slider-title reveal">What's New (v3.0 - v5.3)</h2>
 
             <div class="grid">
+
+                <div class="card reveal" style="border-top: 3px solid #2ea043;">
+                    <span class="icon">🔌</span>
+                    <h3>External Player, IPC & SVP Coexistence</h3>
+                    <p>External controllers keep their IPC endpoint while SVP and discovery-based integrations can attach through a shared per-process alias on Unix systems.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #d29922;">
+                    <span class="icon">🛡️</span>
+                    <h3>Protected Customized UOSC</h3>
+                    <p>The upstream UOSC self-updater is removed so it cannot overwrite Anime Build menus and integrations. Manual build checks now open the exact GitHub release page.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #58a6ff;">
+                    <span class="icon">🔍</span>
+                    <h3>Automated Release Verification</h3>
+                    <p>Release ZIPs receive SHA-256-specific VirusTotal reports without replacing the handwritten release description.</p>
+                </div>
 
                 <div class="card reveal" style="border-top: 3px solid #ff7b72;">
                     <span class="icon">🎬</span>
@@ -794,7 +812,7 @@ image_types=</code></pre>
                 <div class="card reveal" style="border-top: 3px solid #58a6ff;">
                     <span class="icon">💬</span>
                     <h3>Smarter Preferred Subtitles</h3>
-                    <p>Preferred-language SDH tracks now win over unrelated clean languages when needed, without changing clean, forced, or signs-only priorities.</p>
+                    <p>Automatic selection skips commentary, preserves clean-track priority, and falls back to a complete SDH track when no usable clean subtitle exists—even without preferred-language metadata.</p>
                 </div>
 
                 <div class="card reveal" style="border-top: 3px solid #58a6ff;">
@@ -807,6 +825,12 @@ image_types=</code></pre>
                     <span class="icon">💾</span>
                     <h3>Remembered User Overrides</h3>
                     <p>UOSC Controls and HDR selections persist in update-safe <code>user-&lt;custom-name&gt;.conf</code> files and are reapplied after automatic profiles.</p>
+                </div>
+
+                <div class="card reveal" style="border-top: 3px solid #2ea043;">
+                    <span class="icon">⚙️</span>
+                    <h3>Personal MPV Configuration</h3>
+                    <p>One update-safe <code>mpv-&lt;custom-name&gt;.conf</code> file can override normal options from the shipped <code>mpv.conf</code> on Windows and Linux.</p>
                 </div>
 
                 <div class="card reveal" style="border-top: 3px solid #ff7b72;">
@@ -855,7 +879,7 @@ image_types=</code></pre>
                 <div class="card reveal" style="border-top: 3px solid #00FF00;">
                     <span class="icon">🌈</span>
                     <h3>Color-Coded Chapter Timeline</h3>
-                    <p>UOSC 5.13.0 now highlights detected OP, ED, PV, and Intro chapters with the same transparent colors used by Skip Intro: <strong>OP green</strong>, <strong>ED blue</strong>, <strong>PV magenta</strong>, and <strong>Intro orange</strong>.</p>
+                    <p>UOSC 5.13.0 highlights detected OP, ED, PV, and Intro chapters with the same transparent colors used by Skip Intro: <strong>OP green</strong>, <strong>ED blue</strong>, <strong>PV orange</strong>, and <strong>Intro magenta</strong>. The Intro/PV swap improves contrast between neighboring chapter ranges.</p>
                 </div>
 
                 <div class="card reveal" style="border-top: 3px solid #2ea043;">
@@ -1109,7 +1133,7 @@ image_types=</code></pre>
 
 
     <footer>
-        <p>MPV Anime Build v5.2 • Maintained by Chinna95P</p>
+        <p>MPV Anime Build v5.3 • Maintained by Chinna95P</p>
         <p>Credits: bloc97 (Anime4K), Th-Underscore (Anime4K-Ultra), igv (FSRCNNX), bjin (KrigBilateral), tomasklaen (UOSC), po5 (Thumbfast), cvzi (mpv-youtube-download), @WaruiDevil (Up Next)</p>
     </footer>
 

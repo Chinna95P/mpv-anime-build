@@ -50,9 +50,9 @@ local categories = {
 
 -- [COLOR PALETTE]
 local label_colors = {
-    Intro = "0099FF", -- Orange
+    Intro = "FF00FF", -- Magenta
     OP    = "00FF00", -- Green
-    PV    = "FF00FF", -- Magenta
+    PV    = "0099FF", -- Orange
     ED    = "FF8000"  -- Blue
 }
 

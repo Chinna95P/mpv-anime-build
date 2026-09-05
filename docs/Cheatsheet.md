@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v5.2 – Cheat Sheet
+# ⚡ MPV Anime Build v5.3 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
@@ -44,6 +44,19 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 
 ---
 
+## 🎨 Smart Skip & Chapter Colors
+
+Skip Intro and the UOSC timeline use one synchronized palette for detected chapter categories:
+
+| Chapter Category | Current Color | Skip Action |
+| :--- | :--- | :--- |
+| **Opening / OP** | Green (`#00FF00`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Ending / ED** | Blue (`#0080FF`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Preview / PV** | Orange (`#FF9900`) | Press **`ENTER`** while the Skip Intro card is visible. |
+| **Intro / Prologue** | Magenta (`#FF00FF`) | Press **`ENTER`** while the Skip Intro card is visible. |
+
+---
+
 ## 🔊 Audio & Subtitles
 
 | Key | Function | Description |
@@ -71,6 +84,8 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **`T`** | **Force Margins** | Force subtitles to screen bottom (`ass-force-margins`). |
 | **`CTRL+t`** | **Blend Subs** | Toggle subtitle blending (Fixes rendering issues). |
 | **`y`** | **Sub Video Data** | Cycle how subs use video data (None / Aspect / All). |
+
+**Automatic subtitle priority:** Preferred clean tracks → preferred complete SDH → clean language fallbacks → any complete SDH. Commentary is never selected automatically; an explicit manual commentary selection is still respected.
 
 ---
 
@@ -160,6 +175,19 @@ A complete reference for all keyboard shortcuts and commands defined in your `in
 | **Eco Mode Disabled / AC Restored** | Restores the smart video profile and the exact hardware-decoding configuration that was active before Eco mode. |
 
 Power Guard preserves platform-appropriate decoding, including D3D11VA on Windows and NVDEC, VA-API, Vulkan, or SVP copy-back decoding on Linux.
+
+---
+
+## ⚙️ Personal MPV Config Quick Reference
+
+| Item | Behavior |
+| :--- | :--- |
+| **Filename** | Create exactly one `mpv-<custom-name>.conf` beside `mpv.conf`, such as `mpv-personal.conf`. |
+| **Precedence** | Options in the custom file load after and override matching options from the shipped `mpv.conf`. |
+| **Recommended Content** | Add only the options you want to change, such as `fullscreen=no`. |
+| **Multiple Files** | No custom file is loaded; MPV displays a warning until only one `mpv-*.conf` remains. |
+| **Platform Support** | The same convention works on Windows and Linux. |
+| **Different Purpose** | `mpv-*.conf` overrides normal MPV options; `user-*.conf` stores remembered Anime Build menu settings. |
 
 ---
 

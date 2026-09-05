@@ -3,7 +3,7 @@
 ## Project
 
 - **Project:** MPV Anime Build
-- **Current version:** v5.2
+- **Current version:** v5.3
 - **Repository:** https://github.com/Chinna95P/mpv-anime-build
 
 ## General development rules
@@ -86,11 +86,9 @@
 
 - `skip_intro.lua` detects OP, ED, PV, and Intro chapters.
 - UOSC chapter highlighting uses the same category/color mapping.
-- Current category colors are:
-  - Intro = `0099FF`
-  - OP = `00FF00`
-  - PV = `FF00FF`
-  - ED = `FF8000`
+- Current displayed category colors are Intro = `#FF00FF`, OP = `#00FF00`, PV = `#FF9900`, and ED = `#0080FF`.
+- `skip_intro.lua` stores those colors in ASS BGR order: Intro = `FF00FF`, OP = `00FF00`, PV = `0099FF`, and ED = `FF8000`.
+- UOSC stores the same displayed colors in RGB/RGBA order.
 - UOSC chapter range colors use transparency consistent with the timeline.
 - Preserve the relationship between `skip_intro.lua` category colors and UOSC chapter-range colors.
 
@@ -110,6 +108,8 @@
 
 - `input.conf` bindings are coupled to Lua scripts and UOSC script messages.
 - `script-opts/*.conf` contains important persistent configuration.
+- `scripts/custom-config-loader.lua` loads exactly one root-level `mpv-<custom-name>.conf` after the shipped `mpv.conf`; preserve its Windows/Linux behavior and its safe refusal when multiple matching files exist.
+- Keep general MPV overrides in `mpv-*.conf` conceptually separate from remembered Anime Build menu settings in `user-*.conf`.
 - Do not rename configuration keys casually.
 - When changing a configuration option, check all scripts that read it.
 

@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v5.2
-> **The Detection & Playback Defaults Update: reliable Live-Action overrides, safer thumbnail decoding, and focused English stream subtitles.**
+# 🎬 MPV Anime Build v5.3
+> **The Update-Safe Integrations & Release Security Update: external-player IPC preservation, smarter subtitle fallbacks, protected customized UOSC, personal configuration overrides, and transparent VirusTotal reports.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -21,12 +21,19 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v5.2)
+## 🚀 What's New in (v4.0 - v5.3)
+
+* **🔌 External Player, IPC & SVP Coexistence (v5.3):** MediaFlick and other controllers retain ownership of their IPC endpoint while Unix systems expose a discoverable per-process alias for SVP and related integrations. Standalone Windows and Linux MPV sessions retain their normal named-pipe/socket behavior.
+* **⚙️ Update-Safe Personal MPV Config (v5.3):** One `mpv-<custom-name>.conf` file can override normal options after the shipped `mpv.conf`, keeping personal choices separate from build updates while safely rejecting ambiguous multiple override files.
+* **💬 Commentary-Safe Subtitle Fallbacks (v5.3):** Automatic selection completely skips commentary subtitles, preserves clean-track priority, and falls back to a complete SDH or hearing-impaired track when no usable clean subtitle exists—even without preferred-language metadata.
+* **🎨 Contrast-Separated Smart Skip Colors (v5.3):** Intro and PV colors are swapped across Skip Intro and the UOSC timeline so adjacent chapters remain distinct: OP green, ED blue, PV orange, and Intro magenta.
+* **🛡️ Protected Customized UOSC (v5.3):** Removed UOSC's upstream self-updater so it cannot overwrite the Anime Build's customized `main.lua`. A manual **System → Check for Updates** opens the exact latest Anime Build release, while automatic checks never launch a browser.
+* **🔍 Automated VirusTotal Reports (v5.3):** Published ZIP assets receive SHA-256-specific VirusTotal results in their release descriptions, with support for large archives and historical release backfills.
 
 * **🎬 Restored Live-Action Path Override (v5.2):** Explicit `Live Action`, `Live-Action`, `liveaction`, `drama`, and `real person` path/title signals once again take priority over Anime folder and Japanese-audio signals while Anime Mode is set to Auto.
 * **🖼️ Safer Thumbfast Decoding (v5.2):** Thumbnail generation now explicitly uses software decoding by default, matching Thumbfast's built-in safe fallback and avoiding hardware-decoder instability in the helper process.
 * **🌐 English-Only Stream Subtitles (v5.2):** yt-dlp automatic and authored subtitle requests are limited to English and original-English tracks; unintended Telugu language requests were removed.
-* **🎨 Correct Smart Skip Documentation (v5.2):** Website image descriptions and chapter-timeline documentation now match the displayed colors: OP green, ED blue, PV magenta, and Intro orange.
+* **🎨 Correct Smart Skip Documentation (v5.2):** Website image descriptions and chapter-timeline documentation were corrected to match the palette used in that release: OP green, ED blue, PV magenta, and Intro orange.
 
 * **🔋 Durable Eco Profile Ownership (v5.1):** Power Saving now remains authoritative across file loads, metadata changes, and saved UOSC setting updates. User preferences are preserved for normal playback and restored deterministically when Eco mode ends.
 * **💬 Preferred-Language SDH Fallback (v5.1):** When no clean preferred-language subtitle exists, the selector now chooses a preferred-language SDH or hearing-impaired track before an unrelated clean language, while still rejecting forced and signs-only tracks.
@@ -52,7 +59,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 * **🪟 Windows CMD Flash Fix (v4.7):** Updated `mpvSockets.lua` to prevent command-window flashes on Windows when socket commands are issued.
 * **🌊 Expanded Audio-Only Visualizers (v4.7):** Added new visualizer styles to the Audio-Only profile for more visual variety during music playback.
 * **🎛️ UOSC 5.13.0 (v4.7):** Updated UOSC to the latest 5.13.0 release while retaining the MPV Anime Build's custom controls, menus, and integrations.
-* **🌈 Color-Coded Chapter Timeline (v4.7):** UOSC now highlights detected chapter ranges using the same colors as Skip Intro: **OP `#00FF00`**, **ED `#FF8000`**, **PV `#FF00FF`**, and **Intro `#0099FF`**, with transparent timeline colors.
+* **🌈 Color-Coded Chapter Timeline (v4.7):** UOSC highlights detected chapter ranges using the same colors as Skip Intro. The current displayed palette is **OP `#00FF00`**, **ED `#0080FF`**, **PV `#FF9900`**, and **Intro `#FF00FF`**, with transparent timeline colors. *(PV and Intro used the opposite colors in the original v4.7 palette and were swapped in v5.3 for stronger contrast between neighboring chapter ranges.)*
 * **💾 Track Selector Resume Manual Override (v4.7):** Manual audio/subtitle overrides are persisted per video. When resumed in a later MPV session, the matching override is restored and then remains active for the rest of that session/playlist, including next/previous files.
 * **📜 Native Watch History & Progress Bars (v4.5):** Tracks up to 50 recent files with visual progress blocks, 95% watched thresholds, greyed-out completed entries, and a dedicated control bar button.
 * **🗡️ Anime Line-Thinner Suite & Context Locks (v4.5):** Resolution-aware line-thinning shaders mapped into FSRCNNX with a persistent menu toggle (`Ctrl+j`) and safety lockdown checks.
@@ -232,6 +239,15 @@ Settings changed in **UOSC → Controls** are saved outside the tracked defaults
 * If no user file exists, the first remembered change creates `user-settings.conf`.
 * Multiple user files are loaded alphabetically. Later files override earlier files, and the last file is updated when a menu choice is saved.
 * Built-in script defaults and `mpv.conf` remain the fallback when a setting has no user override.
+
+### Personal MPV configuration overrides
+To override any normal MPV option without editing the build's tracked `mpv.conf`, create exactly one file named `mpv-<custom-name>.conf` beside `mpv.conf`. For example, `mpv-personal.conf` containing `fullscreen=no` overrides the build's `fullscreen=yes` default.
+
+* The custom file is loaded after the shipped `mpv.conf`, so duplicate options in it take precedence.
+* Only the settings you want to change need to be added; do not copy the complete shipped configuration.
+* The filename works the same on Windows and Linux, and the file remains separate during build updates.
+* If multiple `mpv-*.conf` files are present, none are loaded and MPV displays a warning. Keep exactly one active custom file.
+* `mpv-*.conf` controls normal MPV options. The separate `user-*.conf` files above store remembered Anime Build menu settings.
 
 ---
 
