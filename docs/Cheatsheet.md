@@ -1,4 +1,4 @@
-# ⚡ MPV Anime Build v5.2 – Cheat Sheet
+# ⚡ MPV Anime Build v5.3 – Cheat Sheet
 
 A complete reference for all keyboard shortcuts and commands defined in your `input.conf`.
 
