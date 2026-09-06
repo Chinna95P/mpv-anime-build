@@ -98,7 +98,7 @@ Edit `script-opts/auto_audio_device.conf` and add display-to-device pairs to `ma
 mappings=DP-1=>pipewire/alsa_output.example;;\\.\DISPLAY1=>wasapi/{device-id};;Color LCD=>coreaudio/device-id
 ```
 
-Display identifiers differ by operating system: Linux normally reports connector names such as `DP-1`, Windows reports names such as `\\.\DISPLAY1`, and macOS reports display product names. Run MPV with `--msg-level=auto_audio_device=v` to print the detected display, and run `mpv --audio-device=help` to list available audio-device names.
+Display identifiers differ by operating system: Linux normally reports connector names such as `DP-1`, Windows reports names such as `\\.\DISPLAY1`, and macOS reports display product names. On Linux, the script reads DRM EDID directly and adds the product name to the console—for example, `Display: DP-1 (MSI G241)`—without launching another program. The connector remains the mapping key so identical monitor models remain distinguishable. Set `log_display_name=no` to hide the normal console line, or run MPV with `--msg-level=auto_audio_device=v` to reveal it temporarily. Run `mpv --audio-device=help` to list available audio-device names.
 
 Unmapped displays leave your current audio device unchanged. Set `fallback_device=auto` only if you want unmatched displays to return to MPV's automatic device selection. Press `CTRL+a` to toggle switching; disabling it selects the configured `restore_device`, which defaults to `auto`.
 </details>

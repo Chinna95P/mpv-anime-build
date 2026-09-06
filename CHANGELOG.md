@@ -8,6 +8,7 @@ All notable changes to this project are documented here.
 
 ### 🔊 Audio Devices
 * **Quiet Startup Detection:** `auto-audio-device.lua` now treats an empty `display-names` list as MPV's normal pre-window startup state instead of printing a misleading `Unknown display return value` warning.
+* **Readable Linux Display Names:** Linux DRM EDID data is decoded directly in Lua so console output identifies displays as, for example, `DP-1 (MSI G241)`. This requires no external subprocess, retains the connector as the unambiguous mapping key, and falls back safely when EDID is unavailable.
 * **Portable User Mappings:** Replaced the bundled machine-specific macOS CoreAudio mappings with configurable display-to-device mappings in `script-opts/auto_audio_device.conf`, supporting MPV's native identifiers on Linux, Windows, and macOS without editing the Lua script.
 * **Safe Unmatched Displays:** Displays without a configured mapping now preserve the active audio device by default. An optional fallback can explicitly restore the former `audio-device=auto` behavior.
 * **Existing Controls Preserved:** The `CTRL+a` automatic-switching toggle and public `set-audio-device`/`toggle-switching` script bindings remain available.
