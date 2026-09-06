@@ -68,7 +68,7 @@ Skip Intro and the UOSC timeline use one synchronized palette for detected chapt
 | **`a`** | **Cycle Audio** | Switch audio track. |
 | **`A`** | **Bitstream Toggle** | Toggle between PCM (Upmix) and Passthrough. |
 | **`m`** | **7.1 Upmix** | Toggle 7.1 Surround Upmix with Bass Boost. |
-| **`CTRL+a`** | **Audio Device** | Toggle auto-switching audio device. |
+| **`CTRL+a`** | **Audio Device** | Toggle configured display-aware audio-device switching. |
 | **`[`** | **Sub Delay -** | Decrease subtitle delay (-0.1s). |
 | **`]`** | **Sub Delay +** | Increase subtitle delay (+0.1s). |
 | **`{`** | **Audio Delay -** | Decrease audio delay (-0.1s). |

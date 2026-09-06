@@ -90,6 +90,20 @@ This opens the **Neon Glass Overlay**, which tells you exactly which scaler (NNE
 ## 🔊 Audio
 
 <details>
+<summary><b>How do I switch audio devices automatically when MPV moves between displays?</b></summary>
+
+Edit `script-opts/auto_audio_device.conf` and add display-to-device pairs to `mappings`. Use `DISPLAY=>DEVICE` and separate multiple pairs with `;;`:
+
+```ini
+mappings=DP-1=>pipewire/alsa_output.example;;\\.\DISPLAY1=>wasapi/{device-id};;Color LCD=>coreaudio/device-id
+```
+
+Display identifiers differ by operating system: Linux normally reports connector names such as `DP-1`, Windows reports names such as `\\.\DISPLAY1`, and macOS reports display product names. Run MPV with `--msg-level=auto_audio_device=v` to print the detected display, and run `mpv --audio-device=help` to list available audio-device names.
+
+Unmapped displays leave your current audio device unchanged. Set `fallback_device=auto` only if you want unmatched displays to return to MPV's automatic device selection. Press `CTRL+a` to toggle switching; disabling it selects the configured `restore_device`, which defaults to `auto`.
+</details>
+
+<details>
 <summary><b>What is Night Mode?</b></summary>
 
 Night Mode applies **Dynamic Range Compression**. It boosts quiet dialogues (whispers) and lowers loud explosions. This is perfect for watching movies at night so you can hear what characters are saying without waking up the house during action scenes.

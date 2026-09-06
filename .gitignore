@@ -2,6 +2,7 @@ watch_later/
 user-*.conf
 script-opts/*
 !script-opts/autoload.conf
+!script-opts/auto_audio_device.conf
 !script-opts/blacklist_extensions.conf
 !script-opts/build_info.conf
 !script-opts/stats.conf
