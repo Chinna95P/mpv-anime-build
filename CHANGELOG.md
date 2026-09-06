@@ -10,8 +10,10 @@ All notable changes to this project are documented here.
 * **Quiet Startup Detection:** `auto-audio-device.lua` now treats an empty `display-names` list as MPV's normal pre-window startup state instead of printing a misleading `Unknown display return value` warning.
 * **Readable Linux and Windows Display Names:** Linux DRM EDID data is decoded directly in Lua, while Windows asynchronously correlates MPV's GDI display identifier through `EnumDisplayDevicesW` and `WmiMonitorID`. Console output can therefore identify displays as `DP-1 (MSI G241)` or `\\.\DISPLAY1 (MSI G241)` while retaining the connector/GDI identifier as the unambiguous mapping key.
 * **Safe Windows Lookup:** Windows monitor-name resolution is cached, runs through a hidden non-interactive PowerShell process without blocking playback, falls back to the native GDI identifier when unavailable, and is skipped entirely when display-name logging is disabled.
+* **Safer Windows Invocation:** The inline Windows lookup does not request an execution-policy bypass, reducing unnecessary security-tool scrutiny while preserving the same lookup behavior.
 * **Portable User Mappings:** Replaced the bundled machine-specific macOS CoreAudio mappings with configurable display-to-device mappings in `script-opts/auto_audio_device.conf`, supporting MPV's native identifiers on Linux, Windows, and macOS without editing the Lua script.
 * **Safe Unmatched Displays:** Displays without a configured mapping now preserve the active audio device by default. An optional fallback can explicitly restore the former `audio-device=auto` behavior.
+* **Decorated-Key Guidance:** A one-time warning now identifies mappings copied from a readable console label such as `DP-1 (MSI G241)` and directs the user to the required raw connector/GDI key.
 * **Existing Controls Preserved:** The `CTRL+a` automatic-switching toggle and public `set-audio-device`/`toggle-switching` script bindings remain available.
 
 ### 🙏 Community

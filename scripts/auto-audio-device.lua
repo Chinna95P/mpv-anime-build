@@ -269,7 +269,6 @@ local function resolve_windows_display_name(connector)
             "-NoLogo",
             "-NoProfile",
             "-NonInteractive",
-            "-ExecutionPolicy", "Bypass",
             "-WindowStyle", "Hidden",
             "-Command", lookup_command,
         },
@@ -339,6 +338,26 @@ end
 
 
 local device_map = parse_mappings(config.mappings)
+local warned_decorated_mappings = {}
+
+local function warn_if_decorated_mapping(connector)
+    if device_map[connector] then
+        return
+    end
+
+    local decorated_prefix = connector .. " ("
+    for configured_display in pairs(device_map) do
+        if configured_display:sub(1, #decorated_prefix) == decorated_prefix
+            and configured_display:sub(-1) == ")"
+            and not warned_decorated_mappings[configured_display] then
+            warned_decorated_mappings[configured_display] = true
+            msg.warn(
+                "Mapping key '" .. configured_display .. "' includes the readable display label; "
+                .. "use the connector/GDI key '" .. connector .. "' instead"
+            )
+        end
+    end
+end
 
 local function configured_device(value)
     if type(value) ~= "string" then
@@ -384,6 +403,7 @@ local function set_audio_device(observed_displays)
 
     local display = displays[1]
     report_display(display)
+    warn_if_decorated_mapping(display)
 
     -- Unmatched displays intentionally leave the current device untouched unless
     -- the user explicitly configures a fallback device.

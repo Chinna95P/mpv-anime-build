@@ -102,7 +102,7 @@ Display identifiers differ by operating system: Linux normally reports connector
 
 The Windows lookup is cached and runs in a hidden non-interactive PowerShell process, so it does not block playback or open a command window. Set `log_display_name=no` to hide the normal console line and skip that Windows process entirely. On Linux or macOS, the same setting hides the line at normal verbosity; `--msg-level=auto_audio_device=v` can reveal it temporarily. Run `mpv --audio-device=help` to list available audio-device names.
 
-Unmapped displays leave your current audio device unchanged. Set `fallback_device=auto` only if you want unmatched displays to return to MPV's automatic device selection. Press `CTRL+a` to toggle switching; disabling it selects the configured `restore_device`, which defaults to `auto`.
+Use only the raw connector/GDI identifier in `mappings`, not the decorated console text: enter `DP-1=>...`, not `DP-1 (MSI G241)=>...`. If a decorated label is accidentally used, the script prints a one-time correction warning. Unmapped displays leave your current audio device unchanged. Set `fallback_device=auto` only if you want unmatched displays to return to MPV's automatic device selection. Press `CTRL+a` to toggle switching; disabling it selects the configured `restore_device`, which defaults to `auto`.
 </details>
 
 <details>
