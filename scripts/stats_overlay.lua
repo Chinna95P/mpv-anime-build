@@ -22,6 +22,10 @@ local anime_state = {
     mode_auto = true,
     mode_on = false,
     mode_off = false,
+    shaders_enabled = true,
+    anime_fidelity = false,
+    is_anime_context = false,
+    current_res_label = "",
     vsr_active = false,   -- Track VSR State
     power_active = false,  -- [NEW] Track Power State
     hdr_display_mode = "auto" -- [NEW v4.0] Track 3-Way HDR Switch
@@ -47,46 +51,80 @@ local function get_anime_mode_string()
     else return GN .. "AUTO (Detection)" end
 end
 
--- [v2.2] ADVANCED SHADER DETECTION (Updated for v4.0 ArtCNN)
+local function shader_has(shaders, name)
+    return string.find(shaders, name, 1, true) ~= nil
+end
+
+local function get_processing_context()
+    if not anime_state.shaders_enabled then return "Shaders Disabled" end
+    if anime_state.is_anime_context then
+        return anime_state.anime_fidelity and "Anime Fidelity" or "Anime Performance"
+    end
+    return "Live Action"
+end
+
+-- [v2.2] ADVANCED SHADER DETECTION (Updated for Fidelity restoration chains)
 local function get_active_shader()
     local shaders = mp.get_property("glsl-shaders") or ""
     if shaders == "" then return "Native (Lanczos/Spline)" end
-    
-    -- 1. Anime4K / ArtCNN Detection
-    if string.find(shaders, "Ani4Kv2") then return "Anime4K (ArtCNN Ani4Kv2)" end
-    if string.find(shaders, "AniSD") then return "Anime4K (ArtCNN AniSD)" end
-    if string.find(shaders, "Anime4K") then return "Anime4K (Active)" end
-    
-    -- 2. FSRCNNX Detection (Specific Variants First)
-    if string.find(shaders, "FSRCNNX") then
+
+    local fidelity_active = anime_state.is_anime_context and anime_state.anime_fidelity
+
+    -- Fidelity uses Anime4K_Restore as a supporting anti-aliasing pass. Detect
+    -- the primary FSRCNNX scaler before looking for complete Anime4K chains.
+    if shader_has(shaders, "FSRCNNX") then
         -- Anime Specific
-        if string.find(shaders, "LineArt") then return "FSRCNNX 8 (Anime LineArt)" end
-        if string.find(shaders, "enhance_anime") then return "FSRCNNX 16 (Anime Mild)" end
-        if string.find(shaders, "anime_enhance") then return "FSRCNNX 16 (Anime Aggro)" end
-        if string.find(shaders, "anime_distort") then return "FSRCNNX 16 (Anime Distort)" end
-        
+        if shader_has(shaders, "LineArt") then return "FSRCNNX 8 (LineArt)" end
+        if shader_has(shaders, "anime_mild") or shader_has(shaders, "enhance_anime") then
+            return "FSRCNNX 16 (Anime Mild)"
+        end
+        if shader_has(shaders, "anime_aggressive") or shader_has(shaders, "anime_enhance") then
+            return "FSRCNNX 16 (Anime Aggressive)"
+        end
+        if shader_has(shaders, "anime_distort") then return "FSRCNNX 16 (Anime Distort)" end
+
         -- Live/General Specific
-        if string.find(shaders, "distort") then return "FSRCNNX 16 (Live Distort)" end
-        if string.find(shaders, "enhance") then return "FSRCNNX 16 (Live Enhance)" end
-        
+        if shader_has(shaders, "distort") then return "FSRCNNX 16 (General Distort)" end
+        if shader_has(shaders, "enhance") then return "FSRCNNX 16 (General Enhance)" end
+
         -- Standard / Live Default
-        if string.find(shaders, "16%-0%-4%-1") then return "FSRCNNX 16 (Live/Std)" end
-        if string.find(shaders, "8%-0%-4%-1") then return "FSRCNNX 8 (Live/Std)" end
-        
+        if shader_has(shaders, "16-0-4-1") then return "FSRCNNX 16 (Standard)" end
+        if shader_has(shaders, "8-0-4-1") then return "FSRCNNX 8 (Standard)" end
+
         return "FSRCNNX (Generic)"
     end
 
-    -- 3. NNEDI3 Detection (Neuron Count)
-    if string.find(shaders, "nnedi3") then 
-        if string.find(shaders, "nns256%-win8x6") then return "NNEDI3 256 (Win8x6)" end
-        if string.find(shaders, "nns256") then return "NNEDI3 256 (Ultra)" end
-        if string.find(shaders, "nns128") then return "NNEDI3 128 (High)" end
-        if string.find(shaders, "nns64") then return "NNEDI3 64 (Mid)" end
-        if string.find(shaders, "nns32") then return "NNEDI3 32 (Low)" end
+    -- Native 4K Fidelity intentionally has no upscaler. Its Anime4K Restore
+    -- shader is still only one supporting stage, not Anime4K Performance mode.
+    local restoration_only = shader_has(shaders, "Anime4K_Restore")
+        and not shader_has(shaders, "Anime4K_Upscale")
+        and not shader_has(shaders, "Anime4K-Ultra")
+    if fidelity_active and restoration_only then
+        if anime_state.current_res_label == "4K" then
+            return "Native 4K (Fidelity Restore)"
+        end
+        return "Fidelity Restoration Chain"
+    end
+
+    -- Anime4K Performance / ArtCNN detection.
+    if shader_has(shaders, "Ani4Kv2") then return "Anime4K (ArtCNN Ani4Kv2)" end
+    if shader_has(shaders, "AniSD") then return "Anime4K (ArtCNN AniSD)" end
+    if shader_has(shaders, "Anime4K-Ultra") then return "Anime4K (Ultra)" end
+    if shader_has(shaders, "Anime4K") then
+        return restoration_only and "Anime4K (Restoration Only)" or "Anime4K (Performance)"
+    end
+
+    -- NNEDI3 Detection (Neuron Count)
+    if shader_has(shaders, "nnedi3") then
+        if shader_has(shaders, "nns256-win8x6") then return "NNEDI3 256 (Win8x6)" end
+        if shader_has(shaders, "nns256") then return "NNEDI3 256 (Ultra)" end
+        if shader_has(shaders, "nns128") then return "NNEDI3 128 (High)" end
+        if shader_has(shaders, "nns64") then return "NNEDI3 64 (Mid)" end
+        if shader_has(shaders, "nns32") then return "NNEDI3 32 (Low)" end
         return "NNEDI3 (Standard)"
     end
 
-    if string.find(shaders, "adaptive%-sharpen") then return "Adaptive Sharpen (Only)" end
+    if shader_has(shaders, "adaptive-sharpen") then return "Adaptive Sharpen (Only)" end
     return "Custom Shaders"
 end
 
@@ -158,6 +196,7 @@ function update_osd()
     local fps = mp.get_property("estimated-vf-fps") or 0
     
     local scaler = get_active_shader()
+    local processing_context = get_processing_context()
     local scaler_color = WH
     
     -- Scaler Display Logic (Priority: Power > VSR > Standard)
@@ -178,8 +217,8 @@ function update_osd()
     -- =========================================================================
     
     -- BOX DIMENSIONS
-    local BOX_W = 500  
-    local BOX_H = 320  
+    local BOX_W = 560
+    local BOX_H = 350
     
     local POS_X = 40   -- Left margin
     local POS_Y = 110  -- Shifted Y-axis
@@ -202,15 +241,16 @@ function update_osd()
     
     -- Monolithic Text Block
     local text_style = "{\\playresy720}{\\r}{\\an7}{\\pos("..text_x..","..text_y..")}" ..
-                       "{\\fnSegoe UI Semibold}{\\fs25}{\\bord0}{\\shad1}{\\1c&HFFFFFF&}{\\3c&H000000&}"
+                       "{\\fnMicrosoft Sans Serif}{\\fs22}{\\bord0}{\\shad1}{\\1c&HFFFFFF&}{\\3c&H000000&}"
 
     local content = ""
     -- HEADER
-    content = content .. "{\\fs32}" .. CY .. "ANIME BUILD " .. BUILD_VERSION .. " STATS\\N"
-    content = content .. "{\\fs25}" .. GR .. "--------------------------------------------------------\\N"
+    content = content .. "{\\fs28}" .. CY .. "ANIME BUILD " .. BUILD_VERSION .. " STATS\\N"
+    content = content .. "{\\fs22}" .. GR .. "--------------------------------------------------------\\N"
     
     -- DATA
     content = content .. GR .. "Mode:      " .. WH .. mode_str .. "\\N"
+    content = content .. GR .. "Context:   " .. WH .. processing_context .. "\\N"
     content = content .. GR .. "Scaler:    " .. scaler_color .. scaler .. "\\N"
     
     -- RESOLUTION LINE
@@ -220,8 +260,8 @@ function update_osd()
     content = content .. "\\N"
     
     -- SECTION 2 HEADER
-    content = content .. "{\\fs32}" .. CY .. "AUDIO & HDR\\N"
-    content = content .. "{\\fs25}" .. GR .. "--------------------------------------------------------\\N"
+    content = content .. "{\\fs28}" .. CY .. "AUDIO & HDR\\N"
+    content = content .. "{\\fs22}" .. GR .. "--------------------------------------------------------\\N"
     content = content .. GR .. "Audio:     " .. WH .. audio .. "\\N"
     content = content .. GR .. "Video:     " .. WH .. hdr .. "\\N"
 

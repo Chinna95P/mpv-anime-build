@@ -46,8 +46,16 @@ for i = 1, #text do
                             -- 3. Helper to fetch Shaders as a clean list
                             local function get_shaders()
                             local shaders = mp.get_property_native("glsl-shaders")
-                            if not shaders or #shaders == 0 then return {"None"} end
-                                return shaders
+                            if type(shaders) == "string" then shaders = {shaders} end
+                            if type(shaders) ~= "table" then return {"None"} end
+
+                                local list = {}
+                                for _, shader in ipairs(shaders) do
+                                    if type(shader) == "string" and shader ~= "" then
+                                        table.insert(list, shader)
+                                        end
+                                    end
+                                return #list > 0 and list or {"None"}
                                 end
 
                                 -- 4. Main Display Function
@@ -70,7 +78,7 @@ for i = 1, #text do
                                     end
 
                                     -- Construct the final overlay text using distinct ASS colors (Format: &HBBGGRR&)
-                                    local msg = "{\\fscx85\\fscy85}" -- Scale text down slightly for neatness
+                                    local msg = "{\\fnMicrosoft Sans Serif\\fs8\\fscx100\\fscy100}"
                                     .. build_section("Audio Filters", "&H88FF88&", af_list)   -- Soft Green
                                     .. build_section("Video Filters", "&HFFFF55&", vf_list)   -- Soft Cyan
                                     .. build_section("Shaders", "&H55AAFF&", glsl_list)       -- Neon Orange

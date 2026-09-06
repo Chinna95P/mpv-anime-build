@@ -133,23 +133,23 @@ end
 local function draw_ui(seconds, show_name, show_ep, is_hovering)
     local cx, cy = 1650, 850
     local ass = "{\\an5}{\\pos(" .. cx .. "," .. cy .. ")}"
-    ass = ass .. "{\\fnSource Sans Pro}{\\fs35}{\\b1}" 
+    ass = ass .. "{\\fnSource Sans Pro}{\\fs32}{\\b1}"
     ass = ass .. "{\\bord8}{\\shad8}{\\blur8}{\\3c&H" .. opts.bg_color .. "&}{\\3a&H" .. opts.bg_opacity .. "&}"
     
     local main_c = is_hovering and opts.hover_color or opts.text_color
     local acc_c  = is_hovering and opts.hover_color or opts.accent_color
     
-    ass = ass .. "{\\1c&H" .. acc_c .. "&}▶ {\\1c&HAAAAAA&}{\\fs25}UP NEXT {\\1c&H" .. acc_c .. "&}(" .. seconds .. "s)"
+    ass = ass .. "{\\1c&H" .. acc_c .. "&}▶ {\\1c&HAAAAAA&}{\\fs23}UP NEXT {\\1c&H" .. acc_c .. "&}(" .. seconds .. "s)"
     
     -- Wrap the main title
     local wrapped_title = smart_wrap(show_name, opts.wrap_limit)
-    ass = ass .. "\\N{\\1c&H" .. main_c .. "&}{\\fs40}" .. wrapped_title
+    ass = ass .. "\\N{\\1c&H" .. main_c .. "&}{\\fs36}" .. wrapped_title
     
     -- Wrap the episode title (using a slightly larger limit since the font is smaller)
     if show_ep ~= "" then 
         local ep_limit = math.floor(opts.wrap_limit * 1.4)
         local wrapped_ep = smart_wrap(show_ep, ep_limit)
-        ass = ass .. "\\N{\\1c&HBBBBBB&}{\\fs28}" .. wrapped_ep 
+        ass = ass .. "\\N{\\1c&HBBBBBB&}{\\fs25}" .. wrapped_ep
     end
     
     paint(ass)

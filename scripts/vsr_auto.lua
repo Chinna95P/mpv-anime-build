@@ -18,7 +18,7 @@ local timer = nil
 
 function show_osd(text)
     -- \an9 = Top Right
-    overlay.data = "{\\an9}{\\fs26}" .. text
+    overlay.data = "{\\an9}{\\fs23}" .. text
     
     overlay:update()
     if timer then timer:kill() end
@@ -92,7 +92,7 @@ local function set_vsr_state(enable, is_power_event)
              
              -- Construct message
              local header = "{\\c&H00FF00&}Nvidia VSR: Active {\\c&HFFFFFF&}(" .. msg .. " - Scale: x" .. scale_factor .. ")"
-             local footer = "\\N\\N{\\fs16}{\\c&HAAAAAA&}Filters: " .. filters
+             local footer = "\\N\\N{\\fs14}{\\c&HAAAAAA&}Filters: " .. filters
              
              show_osd(header .. footer)
         end

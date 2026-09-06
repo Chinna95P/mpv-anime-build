@@ -88,7 +88,7 @@ local function hide_osd()
 end
 
 local function show_power_osd(text)
-    osd_overlay.data = "{\\an7}{\\fs32}{\\q1}\\N\\N" .. text
+    osd_overlay.data = "{\\an7}{\\fs29}{\\q1}\\N\\N" .. text
     osd_overlay:update()
     
     if osd_timer then osd_timer:kill() end

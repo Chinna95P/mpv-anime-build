@@ -16,6 +16,15 @@ All notable changes to this project are documented here.
 * **Decorated-Key Guidance:** A one-time warning now identifies mappings copied from a readable console label such as `DP-1 (MSI G241)` and directs the user to the required raw connector/GDI key.
 * **Existing Controls Preserved:** The `CTRL+a` automatic-switching toggle and public `set-audio-device`/`toggle-switching` script bindings remain available.
 
+### 📊 Status Overlay
+* **Accurate Context-Aware Shader Reporting:** The `CTRL+i` statistics overlay now combines the controller's authoritative Anime/Live/Fidelity context with the actual primary shader variant. FSRCNNX remains correctly identified when Anime Fidelity includes an Anime4K restoration pass, while native 4K Fidelity, Anime4K Performance, Anime4K Ultra, ArtCNN, and every selectable FSRCNNX/NNEDI3 counterpart are reported separately.
+* **Current Shader Variant Names:** Updated FSRCNNX detection for the current Anime Mild and Anime Aggressive filenames while retaining compatibility with their legacy names and all selectable custom variants.
+* **Clear Context and Scaler Rows:** Anime Fidelity, Anime Performance, and Live Action are shown separately from the actual scaler variant, avoiding ambiguous counterpart labels. The glass panel is wider and taller so the longest shader, resolution, audio, and HDR values remain inside its bounds with readable spacing.
+* **Consistent OSD Text:** MPV's global OSD, UOSC text, built-in media information, and the Anime Build statistics overlay now use the build's bundled Microsoft Sans Serif font on every platform, preventing Linux font fallback from rendering numbers smaller than the surrounding text.
+* **Balanced Interface Font Sizing:** Applied a consistent size correction across native MPV messages, Ctrl+i and built-in statistics, the `K` A/V filter display, UOSC text, Smart Skip and Up Next cards, audio metadata, and the Anime Profile, HDR, Power, and VSR overlays. UOSC uses its independent `font_scale=0.9`, so control geometry remains unchanged; subtitle sizing is unaffected.
+* **Runtime Shader List Formatting:** Fixed the `K` A/V filter and shader overlay collapsing the complete shader chain into one entry after toggling Adaptive Sharpen during playback. Runtime shader changes now preserve MPV's native list representation across Linux and Windows, and blank list entries are ignored.
+* **Content-Aware Debanding Balance:** Rebalanced the Anime profile to `40/20/6` threshold/range/grain, retaining strong gradient cleanup with less risk to intentional texture and fine shading. Inactive per-tier values now scale from texture-preserving SD through cleaner HD/FHD sources, while Low-End and 8K modes explicitly keep debanding disabled for performance.
+
 ### 🙏 Community
 * Thanks to **francomeisterm** for identifying the harmless startup-state warning and the platform-specific limitations of the original mappings in issue [#40](https://github.com/Chinna95P/mpv-anime-build/issues/40).
 

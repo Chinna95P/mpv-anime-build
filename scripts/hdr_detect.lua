@@ -60,7 +60,7 @@ local C = {
 }
 
 function show_hdr_osd(text)
-    overlay.data = "{\\an9}{\\fs26}" .. text
+    overlay.data = "{\\an9}{\\fs23}" .. text
     overlay:update()
     if timer then timer:kill() end
     timer = mp.add_timeout(4, function() overlay:remove() end)

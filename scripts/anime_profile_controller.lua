@@ -170,7 +170,7 @@ end
 
 local function show_temp_osd(text, duration)
     duration = duration or 2
-    osd_overlay.data = "{\\an7}{\\fs26}{\\q1}" .. text
+    osd_overlay.data = "{\\an7}{\\fs23}{\\q1}" .. text
     osd_overlay:update()
     if osd_timer then osd_timer:kill() end
     osd_timer = mp.add_timeout(duration, hide_osd)
@@ -520,11 +520,17 @@ end
 -------------------------------------------------
 
 local function apply_shader_chain(chain)
-    -- 1. Universally clear the shader list (Bulletproof across all OS)
-    mp.set_property("glsl-shaders", "")
-    
+    if type(chain) == "table" then
+        mp.set_property_native("glsl-shaders", chain)
+        return
+    end
+
+    -- Clear list options with their native empty-array representation. Setting
+    -- an empty string can leave a blank shader entry on some MPV versions.
+    mp.set_property_native("glsl-shaders", {})
+
     if not chain or chain == "" then return end
-    
+
     -- 2. Split by semicolon OR comma
     for shader_path in string.gmatch(chain, "([^;,]+)") do
         -- Trim any accidental whitespace
@@ -568,6 +574,24 @@ local function apply_profile(p)
 end
 
 local function finalize_shader_chain(chain)
+    -- Runtime shader properties are native arrays. Keep them as arrays so
+    -- platform-specific path-list separators (":" on Unix, ";" on Windows)
+    -- can never collapse the complete chain into one shader entry.
+    if type(chain) == "table" then
+        local filtered = {}
+        for _, shader_path in ipairs(chain) do
+            local keep = true
+            if not sharpen_enabled and shader_path:find("adaptive%-sharpen") then
+                keep = false
+            end
+            if not line_thinner_enabled and shader_path:find("Anime%-Line%-Thinner") then
+                keep = false
+            end
+            if keep then table.insert(filtered, shader_path) end
+        end
+        return filtered
+    end
+
     if not sharpen_enabled then
         -- Remove sharpener, supporting both ; (tables) and , (mp.get_property)
         chain = chain:gsub("[;,]~~/shaders/adaptive%-sharpen.-%.glsl", "")
@@ -872,8 +896,8 @@ local function evaluate()
     -- 7. [POST-PROCESS TOGGLE]
     -- If sharpening is disabled, strip it from the chain we just built
     if not sharpen_enabled then
-        local current_shaders = mp.get_property("glsl-shaders", "")
-        if current_shaders ~= "" then
+        local current_shaders = mp.get_property_native("glsl-shaders") or {}
+        if #current_shaders > 0 then
             apply_shader_chain(finalize_shader_chain(current_shaders))
         end
     end
@@ -1303,7 +1327,7 @@ mp.register_script_message("toggle-global-shaders", function()
     save_anime_mode() 
     
     if not shaders_master_switch then
-        mp.set_property("glsl-shaders", "") 
+        mp.set_property_native("glsl-shaders", {})
         current_profile = ""
         show_temp_osd(C.RED .. "Shaders: " .. C.WHITE .. "Disabled", 2)
     else
@@ -1726,8 +1750,8 @@ local function display_audio_metadata()
     if album ~= "" then album_string = "\\N" .. C.CYAN .. "{\\i1}" .. album .. date .. "{\\i0}" end
 
     -- Assemble the final overlay using your custom color table (C)
-    local text = C.YELLOW .. "{\\fs34}{\\b1}" .. title .. "{\\b0}\\N" ..
-                 C.WHITE .. "{\\fs26}" .. artist .. album_string
+    local text = C.YELLOW .. "{\\fs31}{\\b1}" .. title .. "{\\b0}\\N" ..
+                 C.WHITE .. "{\\fs23}" .. artist .. album_string
                  
     -- Display for 5 seconds
     show_temp_osd(text, 5) 
