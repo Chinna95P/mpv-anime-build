@@ -98,7 +98,9 @@ Edit `script-opts/auto_audio_device.conf` and add display-to-device pairs to `ma
 mappings=DP-1=>pipewire/alsa_output.example;;\\.\DISPLAY1=>wasapi/{device-id};;Color LCD=>coreaudio/device-id
 ```
 
-Display identifiers differ by operating system: Linux normally reports connector names such as `DP-1`, Windows reports names such as `\\.\DISPLAY1`, and macOS reports display product names. On Linux, the script reads DRM EDID directly and adds the product name to the console—for example, `Display: DP-1 (MSI G241)`—without launching another program. The connector remains the mapping key so identical monitor models remain distinguishable. Set `log_display_name=no` to hide the normal console line, or run MPV with `--msg-level=auto_audio_device=v` to reveal it temporarily. Run `mpv --audio-device=help` to list available audio-device names.
+Display identifiers differ by operating system: Linux normally reports connector names such as `DP-1`, Windows reports names such as `\\.\DISPLAY1`, and macOS reports display product names. Linux reads DRM EDID directly, while Windows asynchronously correlates the GDI identifier with `EnumDisplayDevicesW` and `WmiMonitorID`. The resulting console lines look like `Display: DP-1 (MSI G241)` or `Display: \\.\DISPLAY1 (MSI G241)`. The connector/GDI identifier remains the mapping key so identical monitor models remain distinguishable.
+
+The Windows lookup is cached and runs in a hidden non-interactive PowerShell process, so it does not block playback or open a command window. Set `log_display_name=no` to hide the normal console line and skip that Windows process entirely. On Linux or macOS, the same setting hides the line at normal verbosity; `--msg-level=auto_audio_device=v` can reveal it temporarily. Run `mpv --audio-device=help` to list available audio-device names.
 
 Unmapped displays leave your current audio device unchanged. Set `fallback_device=auto` only if you want unmatched displays to return to MPV's automatic device selection. Press `CTRL+a` to toggle switching; disabling it selects the configured `restore_device`, which defaults to `auto`.
 </details>

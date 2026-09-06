@@ -149,7 +149,7 @@ If you disable shaders (`CTRL+g`), MPV falls back to its high-quality native sca
 ### Professional Audio
 * **Audio-Only Mode [v3.0]:** Instantly drops GPU load to 0% for music playback, showing embedded album art and dynamic visualizers.
 * **Spatial Audio:** Uses HRTF-based virtual surround to simulate a 7.1 cinema experience on standard stereo headphones.
-* **Display-Aware Audio Devices:** Configure Linux, Windows, or macOS display-to-device mappings in `script-opts/auto_audio_device.conf`. Linux console output includes the monitor's EDID product name alongside its connector, unmapped displays preserve the current device by default, and `CTRL+a` toggles automatic switching.
+* **Display-Aware Audio Devices:** Configure Linux, Windows, or macOS display-to-device mappings in `script-opts/auto_audio_device.conf`. Linux and Windows console output includes the monitor product name alongside its connector/GDI identifier, unmapped displays preserve the current device by default, and `CTRL+a` toggles automatic switching.
 * **Night Mode:** Applies Dynamic Range Compression (DRC) to lower explosions and boost whispers for late-night viewing.
 * **Passthrough/Bitstream:** Send raw TrueHD/DTS-X to your AVR with a single click (`A`).
 

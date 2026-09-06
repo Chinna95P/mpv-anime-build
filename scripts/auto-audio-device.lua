@@ -14,6 +14,8 @@ local config = {
 options.read_options(config, "auto_audio_device")
 
 local auto_change = config.enabled
+local platform = mp.get_property_native("platform")
+    or (package.config:sub(1, 1) == "\\" and "windows" or "unix")
 
 local function trim(value)
     return value:match("^%s*(.-)%s*$")
@@ -103,14 +105,209 @@ local function linux_display_name(connector)
     return nil
 end
 
-local function readable_display_name(connector)
-    -- Linux exposes monitor EDID through DRM sysfs. MPV already reports product
-    -- names on macOS; Windows safely retains its native GDI display identifier.
-    if package.config:sub(1, 1) == "/" then
-        return linux_display_name(connector)
+local function log_display(connector, product_name)
+    local description = connector
+    if product_name and product_name ~= connector then
+        description = connector .. " (" .. product_name .. ")"
     end
 
-    return nil
+    if config.log_display_name then
+        msg.info("Display: " .. description)
+    else
+        msg.verbose("Display: " .. description)
+    end
+
+    return description
+end
+
+local windows_display_lookup_command = [=[
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
+$source = @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class MpvDisplayNameLookup
+{
+    private const int DISPLAY_DEVICE_ACTIVE = 0x00000001;
+    private const uint EDD_GET_DEVICE_INTERFACE_NAME = 0x00000001;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct DISPLAY_DEVICE
+    {
+        public int cb;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string DeviceName;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceString;
+
+        public int StateFlags;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceID;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string DeviceKey;
+    }
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern bool EnumDisplayDevicesW(
+        string lpDevice,
+        uint iDevNum,
+        ref DISPLAY_DEVICE lpDisplayDevice,
+        uint dwFlags
+    );
+
+    private static DISPLAY_DEVICE NewDisplayDevice()
+    {
+        DISPLAY_DEVICE device = new DISPLAY_DEVICE();
+        device.cb = Marshal.SizeOf(typeof(DISPLAY_DEVICE));
+        return device;
+    }
+
+    public static string FindMonitor(string targetDisplay)
+    {
+        for (uint adapterIndex = 0; ; adapterIndex++)
+        {
+            DISPLAY_DEVICE adapter = NewDisplayDevice();
+            if (!EnumDisplayDevicesW(null, adapterIndex, ref adapter, 0))
+                break;
+
+            if (!String.Equals(adapter.DeviceName, targetDisplay, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string fallback = null;
+            for (uint monitorIndex = 0; ; monitorIndex++)
+            {
+                DISPLAY_DEVICE monitor = NewDisplayDevice();
+                if (!EnumDisplayDevicesW(
+                    adapter.DeviceName,
+                    monitorIndex,
+                    ref monitor,
+                    EDD_GET_DEVICE_INTERFACE_NAME
+                ))
+                    break;
+
+                if (String.IsNullOrWhiteSpace(monitor.DeviceString))
+                    continue;
+
+                string result = monitor.DeviceString + "\t" + (monitor.DeviceID ?? "");
+                if (fallback == null)
+                    fallback = result;
+
+                if ((monitor.StateFlags & DISPLAY_DEVICE_ACTIVE) != 0)
+                    return result;
+            }
+
+            return fallback ?? "";
+        }
+
+        return "";
+    }
+}
+'@
+
+Add-Type -TypeDefinition $source -ErrorAction Stop
+$record = [MpvDisplayNameLookup]::FindMonitor($targetDisplay)
+if ([String]::IsNullOrWhiteSpace($record)) { exit 0 }
+
+$parts = $record -split "`t", 2
+$deviceString = $parts[0].Trim()
+$deviceId = if ($parts.Count -gt 1) { $parts[1] } else { '' }
+$friendlyName = ''
+
+$idMatch = [regex]::Match($deviceId, '(?i)(?:DISPLAY|MONITOR)[#\\]([^#\\]+)')
+if ($idMatch.Success) {
+    $instancePattern = 'DISPLAY\' + $idMatch.Groups[1].Value + '\*'
+    $monitor = Get-CimInstance -Namespace root\wmi -ClassName WmiMonitorID -ErrorAction SilentlyContinue |
+        Where-Object { $_.Active -and $_.InstanceName -like $instancePattern } |
+        Select-Object -First 1
+
+    if ($null -ne $monitor -and $null -ne $monitor.UserFriendlyName) {
+        $friendlyName = -join ($monitor.UserFriendlyName |
+            Where-Object { $_ -ne 0 } |
+            ForEach-Object { [char]$_ })
+    }
+}
+
+if ([String]::IsNullOrWhiteSpace($friendlyName)) {
+    $friendlyName = $deviceString
+}
+
+[Console]::Out.Write($friendlyName.Trim())
+]=]
+
+local windows_display_name_cache = {}
+local windows_display_name_pending = {}
+
+local function powershell_string_literal(value)
+    -- PowerShell single-quoted strings escape a literal quote by doubling it.
+    return "'" .. value:gsub("'", "''") .. "'"
+end
+
+local function resolve_windows_display_name(connector)
+    local cached = windows_display_name_cache[connector]
+    if cached ~= nil then
+        log_display(connector, cached or nil)
+        return
+    end
+
+    if windows_display_name_pending[connector] then
+        return
+    end
+    windows_display_name_pending[connector] = true
+
+    local lookup_command = "$targetDisplay = " .. powershell_string_literal(connector)
+        .. "\n" .. windows_display_lookup_command
+
+    mp.command_native_async({
+        name = "subprocess",
+        args = {
+            "powershell.exe",
+            "-NoLogo",
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy", "Bypass",
+            "-WindowStyle", "Hidden",
+            "-Command", lookup_command,
+        },
+        playback_only = false,
+        capture_stdout = true,
+        capture_stderr = true,
+    }, function(success, result, error)
+        windows_display_name_pending[connector] = nil
+
+        local product_name = nil
+        if success and result and result.status == 0 then
+            product_name = trim((result.stdout or ""):gsub("[\r\n]+", " "))
+            if product_name == "" then
+                product_name = nil
+            end
+        else
+            local detail = error
+            if result and result.stderr and trim(result.stderr) ~= "" then
+                detail = trim(result.stderr)
+            end
+            msg.verbose("Windows display-name lookup failed: " .. tostring(detail or "unknown error"))
+        end
+
+        windows_display_name_cache[connector] = product_name or false
+        log_display(connector, product_name)
+    end)
+end
+
+local function report_display(connector)
+    if platform == "linux" or platform == "unix" then
+        log_display(connector, linux_display_name(connector))
+    elseif platform == "windows" and config.log_display_name then
+        resolve_windows_display_name(connector)
+    else
+        -- MPV already reports product names on macOS. If display-name logging is
+        -- disabled, Windows also avoids launching the optional lookup process.
+        log_display(connector, nil)
+    end
 end
 
 local function parse_mappings(value)
@@ -186,17 +383,7 @@ local function set_audio_device(observed_displays)
     end
 
     local display = displays[1]
-    local product_name = readable_display_name(display)
-    local display_description = display
-    if product_name and product_name ~= display then
-        display_description = display .. " (" .. product_name .. ")"
-    end
-
-    if config.log_display_name then
-        msg.info("Display: " .. display_description)
-    else
-        msg.verbose("Display: " .. display_description)
-    end
+    report_display(display)
 
     -- Unmatched displays intentionally leave the current device untouched unless
     -- the user explicitly configures a fallback device.
