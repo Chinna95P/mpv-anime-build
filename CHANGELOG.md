@@ -6,6 +6,11 @@ All notable changes to this project are documented here.
 
 ## [Unreleased] – Cross-Platform Audio Device Switching
 
+### 💬 Subtitle Navigation
+* **Searchable Subtitle Lines:** Added `mpv-subtitle-lines` for browsing and seeking to dialogue in the selected primary or secondary subtitle track.
+* **Contextual UOSC Control:** Added a **Subtitle Lines** button immediately to the right of UOSC's normal subtitle button. It opens the primary subtitle-line browser and remains hidden when no subtitle track is available.
+* **Keyboard Access:** Added `CTRL+f` for primary subtitle lines and `CTRL+F` for secondary subtitle lines.
+
 ### 🔊 Audio Devices
 * **Quiet Startup Detection:** `auto-audio-device.lua` now treats an empty `display-names` list as MPV's normal pre-window startup state instead of printing a misleading `Unknown display return value` warning.
 * **Readable Linux and Windows Display Names:** Linux DRM EDID data is decoded directly in Lua, while Windows asynchronously correlates MPV's GDI display identifier through `EnumDisplayDevicesW` and `WmiMonitorID`. Console output can therefore identify displays as `DP-1 (MSI G241)` or `\\.\DISPLAY1 (MSI G241)` while retaining the connector/GDI identifier as the unambiguous mapping key.

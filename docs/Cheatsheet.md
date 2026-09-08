@@ -84,6 +84,8 @@ Skip Intro and the UOSC timeline use one synchronized palette for detected chapt
 | **`T`** | **Force Margins** | Force subtitles to screen bottom (`ass-force-margins`). |
 | **`CTRL+t`** | **Blend Subs** | Toggle subtitle blending (Fixes rendering issues). |
 | **`y`** | **Sub Video Data** | Cycle how subs use video data (None / Aspect / All). |
+| **`CTRL+f`** | **Primary Sub Lines** | Browse and seek to lines in the selected primary subtitle track. |
+| **`CTRL+F`** | **Secondary Sub Lines** | Browse and seek to lines in the selected secondary subtitle track. |
 
 **Automatic subtitle priority:** Preferred clean tracks → preferred complete SDH → clean language fallbacks → any complete SDH. Commentary is never selected automatically; an explicit manual commentary selection is still respected.
 

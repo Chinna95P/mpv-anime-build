@@ -23,6 +23,7 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ## 🚀 What's New in (v4.0 - v5.3)
 
+* **🔎 Searchable Subtitle Lines:** Added `mpv-subtitle-lines` for browsing and seeking to dialogue in the active primary or secondary subtitle track. The conditional **Subtitle Lines** UOSC button appears immediately to the right of the normal subtitle button when subtitles are available; `CTRL+f` and `CTRL+F` provide keyboard access.
 * **🔌 External Player, IPC & SVP Coexistence (v5.3):** MediaFlick and other controllers retain ownership of their IPC endpoint while Unix systems expose a discoverable per-process alias for SVP and related integrations. Standalone Windows and Linux MPV sessions retain their normal named-pipe/socket behavior.
 * **⚙️ Update-Safe Personal MPV Config (v5.3):** One `mpv-<custom-name>.conf` file can override normal options after the shipped `mpv.conf`, keeping personal choices separate from build updates while safely rejecting ambiguous multiple override files.
 * **💬 Commentary-Safe Subtitle Fallbacks (v5.3):** Automatic selection completely skips commentary subtitles, preserves clean-track priority, and falls back to a complete SDH or hearing-impaired track when no usable clean subtitle exists—even without preferred-language metadata.
@@ -203,6 +204,7 @@ This build is designed to be the "Engine" for high-quality streaming apps.
 | `CTRL + p` | **Toggle Power Saving Mode** manually. |
 | `F5` / `F6` | **Window Screenshot / Clean Video-Frame Screenshot** |
 | `y` | **Cycle Sub Video Data** (None / Aspect / All) - Fixes subtitle scaling issues. |
+| `CTRL + f` / `CTRL + F` | **Browse Primary / Secondary Subtitle Lines** and seek to a selected line. |
 
 ### Anime Pipeline Overrides
 | Shortcut | Mode | Description |
@@ -328,4 +330,5 @@ To override any normal MPV option without editing the build's tracked `mpv.conf`
 * **Shaders:** bloc97 (Anime4K), igv (FSRCNNX), bjin (KrigBilateral)
 * **Equalizer:** DonCanjas
 * **mpv-youtube-download:** cvzi
+* **mpv-subtitle-lines:** christoph-heinrich
 * **Config & Logic:** Customized and built by Chinna95P
