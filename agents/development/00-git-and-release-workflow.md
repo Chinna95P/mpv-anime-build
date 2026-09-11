@@ -89,17 +89,22 @@ When performing a version update or release, keep these files synchronized:
 # 4. Update index.html version display
 # 5. Test locally
 # 6. Show git diff to user
-# 7. Wait for explicit commit instruction
-# 8. After commit, wait for explicit push instruction
-# 9. Create GitHub release (if instructed)
+# 7. Commit and push to feature/test branch
+# 8. Create a GitHub Pull Request (PR) to main for documentation and tracking
+# 9. Merge the PR into main via GitHub
+# 10. Pull latest main, create git tag (e.g., v5.4), and push tag
+# 11. Build release ZIP and create GitHub release with release notes and assets
 ```
 
 ---
 
-## 🌿 Branch Strategy
+## 🌿 Branch & Pull Request Strategy
 
-### Current Branch
-The user is currently on: `test/live-action-thumbfast-ytdl-fixes`
+### Pull Request (PR) Policy for Releases
+**Always create and merge a Pull Request (PR) on GitHub from the test/feature branch into `main` before creating a release.**
+- Never merge directly on the CLI without opening a GitHub PR first.
+- A GitHub PR ensures a permanent record of all release changes is preserved in the repository's Pull Requests tab for future reference, changelog tracing, and collaboration.
+- Merge the PR on GitHub first, then tag `main` and publish the release.
 
 ### Default Branch
 Check the default branch before assuming:
