@@ -1,5 +1,5 @@
-# 🎬 MPV Anime Build v5.3
-> **The Update-Safe Integrations & Release Security Update: external-player IPC preservation, smarter subtitle fallbacks, protected customized UOSC, personal configuration overrides, and transparent VirusTotal reports.**
+# 🎬 MPV Anime Build v5.4
+> **The Cross-Platform Audio Switching & Dialogue Search Update: cross-platform display-to-device audio mapping, human-readable display identification, searchable subtitle dialogue browser, refined status overlays, and balanced interface fonts.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Chinna95P/mpv-anime-build)
@@ -21,9 +21,14 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v5.3)
+## 🚀 What's New in (v4.0 - v5.4)
 
-* **🔎 Searchable Subtitle Lines:** Added `mpv-subtitle-lines` for browsing and seeking to dialogue in the active primary or secondary subtitle track. The conditional **Subtitle Lines** UOSC button appears immediately to the right of the normal subtitle button when subtitles are available; `CTRL+f` and `CTRL+F` provide keyboard access.
+* **🔊 Cross-Platform Audio Device Switching (v5.4):** Configurable display-to-device audio mappings in `script-opts/auto_audio_device.conf` supporting Linux, Windows, and macOS. Displays without a mapping safely preserve the active audio device by default.
+* **🖥️ Human-Readable Display Names (v5.4):** Decodes Linux DRM EDID directly in Lua and resolves Windows display identifiers asynchronously to show readable monitor models (e.g., `DP-1 (MSI G241)`) in logs and console diagnostics.
+* **🔎 Searchable Subtitle Lines (v5.4):** Added `mpv-subtitle-lines` for browsing and seeking to dialogue in the active primary or secondary subtitle track. The contextual **Subtitle Lines** UOSC button appears immediately next to the subtitle button; `CTRL+f` and `CTRL+F` provide keyboard access.
+* **📊 Refined Status Overlays & Unified OSD Fonts (v5.4):** Context-aware shader reporting in `CTRL+i`, expanded glass overlay dimensions, unified bundled Microsoft Sans Serif OSD font across all platforms, and balanced font sizing across all overlays.
+* **🎨 Content-Aware Debanding Rebalance (v5.4):** Anime profile debanding tuned to `40/20/6` for gradient cleanup while preserving fine art textures. Low-End and 8K profiles explicitly keep debanding disabled for performance.
+
 * **🔌 External Player, IPC & SVP Coexistence (v5.3):** MediaFlick and other controllers retain ownership of their IPC endpoint while Unix systems expose a discoverable per-process alias for SVP and related integrations. Standalone Windows and Linux MPV sessions retain their normal named-pipe/socket behavior.
 * **⚙️ Update-Safe Personal MPV Config (v5.3):** One `mpv-<custom-name>.conf` file can override normal options after the shipped `mpv.conf`, keeping personal choices separate from build updates while safely rejecting ambiguous multiple override files.
 * **💬 Commentary-Safe Subtitle Fallbacks (v5.3):** Automatic selection completely skips commentary subtitles, preserves clean-track priority, and falls back to a complete SDH or hearing-impaired track when no usable clean subtitle exists—even without preferred-language metadata.

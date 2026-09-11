@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 
 ---
 
-## [Unreleased] – Cross-Platform Audio Device Switching
+## [v5.4] – Cross-Platform Audio Switching, Subtitle Lines & Refined Overlays
 
 ### 💬 Subtitle Navigation
 * **Searchable Subtitle Lines:** Added `mpv-subtitle-lines` for browsing and seeking to dialogue in the selected primary or secondary subtitle track.
@@ -21,7 +21,7 @@ All notable changes to this project are documented here.
 * **Decorated-Key Guidance:** A one-time warning now identifies mappings copied from a readable console label such as `DP-1 (MSI G241)` and directs the user to the required raw connector/GDI key.
 * **Existing Controls Preserved:** The `CTRL+a` automatic-switching toggle and public `set-audio-device`/`toggle-switching` script bindings remain available.
 
-### 📊 Status Overlay
+### 📊 Status Overlay & OSD Fonts
 * **Accurate Context-Aware Shader Reporting:** The `CTRL+i` statistics overlay now combines the controller's authoritative Anime/Live/Fidelity context with the actual primary shader variant. FSRCNNX remains correctly identified when Anime Fidelity includes an Anime4K restoration pass, while native 4K Fidelity, Anime4K Performance, Anime4K Ultra, ArtCNN, and every selectable FSRCNNX/NNEDI3 counterpart are reported separately.
 * **Current Shader Variant Names:** Updated FSRCNNX detection for the current Anime Mild and Anime Aggressive filenames while retaining compatibility with their legacy names and all selectable custom variants.
 * **Clear Context and Scaler Rows:** Anime Fidelity, Anime Performance, and Live Action are shown separately from the actual scaler variant, avoiding ambiguous counterpart labels. The glass panel is wider and taller so the longest shader, resolution, audio, and HDR values remain inside its bounds with readable spacing.
@@ -30,8 +30,12 @@ All notable changes to this project are documented here.
 * **Runtime Shader List Formatting:** Fixed the `K` A/V filter and shader overlay collapsing the complete shader chain into one entry after toggling Adaptive Sharpen during playback. Runtime shader changes now preserve MPV's native list representation across Linux and Windows, and blank list entries are ignored.
 * **Content-Aware Debanding Balance:** Rebalanced the Anime profile to `40/20/6` threshold/range/grain, retaining strong gradient cleanup with less risk to intentional texture and fine shading. Inactive per-tier values now scale from texture-preserving SD through cleaner HD/FHD sources, while Low-End and 8K modes explicitly keep debanding disabled for performance.
 
+### 📚 Documentation & Agent Architecture
+* **Modular Development Guides:** Added a comprehensive modular documentation suite under `agents/development/` covering all 14 subsystems, Git/release workflows, and development guidelines.
+* **Skill Router & Tool Integration:** Added `agents/SKILL.md` and updated `CLAUDE.md` for structured agent development workflows.
+
 ### 🙏 Community
-* Thanks to **francomeisterm** for identifying the harmless startup-state warning and the platform-specific limitations of the original mappings in issue [#40](https://github.com/Chinna95P/mpv-anime-build/issues/40).
+* Thanks to **francomeisterm** for reporting the issue in [#40](https://github.com/Chinna95P/mpv-anime-build/issues/40), and for comprehensive testing, feedback, and improvement suggestions across audio device switching and display identification.
 
 ---
 

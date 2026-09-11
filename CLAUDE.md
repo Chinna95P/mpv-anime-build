@@ -5,7 +5,7 @@
 **MPV Anime Build** is an advanced, context-aware MPV media player configuration featuring AI upscaling, dynamic power management, universal HDR support, intelligent audio processing, and a heavily customized UOSC interface.
 
 - **Author**: Chinna95P
-- **Current Version**: v5.3 (source of truth: `script-opts/build_info.conf`)
+- **Current Version**: v5.4 (source of truth: `script-opts/build_info.conf`)
 - **Repository**: https://github.com/Chinna95P/mpv-anime-build
 - **Local Path**: `/var/mnt/Games/MPV/mpv-anime-build/`
 
