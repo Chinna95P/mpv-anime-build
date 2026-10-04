@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.5] – HDR Toys and Adaptive Sharpen 2-pass Overhaul
+
+### 🌈 HDR & Tone-Mapping
+* **HDR Toys UI:** Integrated interactive HDR Toys sub-menu within the Audio & HDR UOSC control section. Enables advanced real-time gamut (Bottosson) and tone-mapping (Astra) adjustments with persistent configuration state.
+* **Unified 2-Pass Sharpening:** Upgraded all resolution-specific and generic Adaptive Sharpen shaders to the purist 2-pass DX11 framework. Provides significant edge anti-ringing improvements relying on explicitly calibrated `L_overshoot` and `D_overshoot` structures.
+* **Calibrated Strength Curves:** Responsibly lowered all `curve_height` sharpening coefficients globally by 25% for a much more balanced refinement over native/anime imagery without aggressive haloing.
+
 ## [v5.4] – Cross-Platform Audio Switching, Subtitle Lines & Refined Overlays
 
 ### 💬 Subtitle Navigation

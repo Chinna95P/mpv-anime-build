@@ -82,3 +82,9 @@ Configured in `mpv.conf` under `[default]` and platform profiles:
 - `correct-downscaling=yes`
 - `fbo-format=rgba16hf` (16-bit half-float framebuffers for high precision)
 - `scale=spline64` (default native scaler for smooth, ringing-free edges)
+
+## 🧩 HDR Toys
+Integrated via `scripts/hdr_toys.lua`, this system overrides standard tone mapping and gamut settings. 
+- It allows dynamically switching between advanced tonemappers (like Astra, BT.2390) and gamut mapping (like Bottosson).
+- Settings are persisted in `script-opts/hdr_toys.conf`.
+- When engaged, HDR Toys completely unloads SDR configurations arrayed in `video-params`.

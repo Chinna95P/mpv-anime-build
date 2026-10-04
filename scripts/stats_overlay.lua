@@ -162,6 +162,31 @@ local function get_hdr_status()
     return GR .. "SDR (Standard)"
 end
 
+local function get_hdr_toys_status()
+    local shaders = mp.get_property("glsl-shaders") or ""
+    if not shader_has(shaders, "hdr-toys") then return nil end
+    
+    local conf_path = mp.command_native({"expand-path", "~~/script-opts/hdr_toys.conf"})
+    local f = io.open(conf_path, "r")
+    if not f then return nil end
+    
+    local enabled, tone_mapping, gamut_mapping, filmic = "yes", "unknown", "unknown", "OFF"
+    
+    for line in f:lines() do
+        local key, val = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
+        if key and val and not key:match("^#") then
+            if key == "enabled" then enabled = val end
+            if key == "tone_mapping" then tone_mapping = val end
+            if key == "gamut_mapping" then gamut_mapping = val end
+            if key == "filmic" then filmic = (val == "yes") and "ON" or "OFF" end
+        end
+    end
+    f:close()
+    
+    if enabled == "no" then return nil end
+    return string.format("HDR Toys:  %sTone: %s%s %s| Gamut: %s%s %s| Filmic: %s%s", WH, CY, tone_mapping, WH, CY, gamut_mapping, WH, (filmic == "ON" and GN or GR), filmic)
+end
+
 function update_osd()
     if not active then return end
     
@@ -211,6 +236,7 @@ function update_osd()
     local audio = get_audio_status()
     local hdr = get_hdr_status()
     local mode_str = get_anime_mode_string()
+    local hdr_toys_str = get_hdr_toys_status()
     
     -- =========================================================================
     -- LAYOUT CONFIGURATION (720p Virtual Canvas)
@@ -218,7 +244,7 @@ function update_osd()
     
     -- BOX DIMENSIONS
     local BOX_W = 560
-    local BOX_H = 350
+    local BOX_H = hdr_toys_str and 375 or 350
     
     local POS_X = 40   -- Left margin
     local POS_Y = 110  -- Shifted Y-axis
@@ -264,6 +290,9 @@ function update_osd()
     content = content .. "{\\fs22}" .. GR .. "--------------------------------------------------------\\N"
     content = content .. GR .. "Audio:     " .. WH .. audio .. "\\N"
     content = content .. GR .. "Video:     " .. WH .. hdr .. "\\N"
+    if hdr_toys_str then
+        content = content .. GR .. hdr_toys_str .. "\\N"
+    end
 
     -- COMBINE LAYERS
     osd.data = box .. "\n" .. text_style .. content

@@ -1159,6 +1159,7 @@ local function get_anime_menu_json()
                     }
                 },
                 tm_menu,
+                { title = "HDR Toys Menu", icon = "hdr_plus", value = "script-binding open-hdr-toys-menu" },
                 {
                     title = "Target Peak (Brightness)",
                     icon = "wb_sunny",

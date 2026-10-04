@@ -26,6 +26,7 @@ This router indexes all subsystem documentation for **MPV Anime Build**. When wo
 | **UOSC Custom UI Fork** | [HIGH RISK] UOSC 5.13.0 fork, custom buttons, history, denoise, styling controls | [`04-uosc-custom-ui.md`](development/04-uosc-custom-ui.md) |
 | **Power Guard & Battery** | Cross-platform battery detection (Linux sysfs / Windows CIM), Eco `[Low-End]` mode | [`05-power-guard-eco.md`](development/05-power-guard-eco.md) |
 | **Display, HDR & Scalers** | 3-Way HDR matrix (Auto/Passthrough/SDR), RTX VSR, native `spline64` scalers | [`06-display-hdr-scaling.md`](development/06-display-hdr-scaling.md) |
+| **HDR Toys Menu** | Sub-Menu for toggling tonemapping parameters like Gamut modes (Astra, Bottosson). | [`06-display-hdr-scaling.md`](development/06-display-hdr-scaling.md) |
 | **Track Selector Intelligence** | [HIGH RISK] Audio/sub matching, SDH preferred fallback, manual override persistence | [`07-track-selector.md`](development/07-track-selector.md) |
 | **Audio Visualizer & DSP** | Audio-only 0% GPU profile, 15-band EQ, Spatial Audio (HRTF 7.1), Night Mode DRC | [`08-audio-visualizer-dsp.md`](development/08-audio-visualizer-dsp.md) |
 | **Smart Chapters & Skip Intro** | OP/ED/PV/Intro detection, unified color palette, timeline chapter highlighting | [`09-chapter-and-skip-system.md`](development/09-chapter-and-skip-system.md) |
