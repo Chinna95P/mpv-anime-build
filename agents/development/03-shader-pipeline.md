@@ -55,6 +55,8 @@ Non-anime content uses a dedicated "Modern TV" adaptive pipeline:
 - **Safety Rule**: Locked out during Anime4K execution to prevent severe edge distortion; active in FSRCNNX / Native modes.
 
 ### Adaptive Sharpening Suite (`CTRL+k`)
+
+<br>   - HDR Toys sets the `curve_height` to 75% of the base values (see `hdr_toys.conf`) and introduces a 2‑pass DX11 shader pipeline.
 - Shaders:
   - `adaptive-sharpen-anime-SD.glsl` / `adaptive-sharpen-modern-SD.glsl`
   - `adaptive-sharpen-anime-720p.glsl` / `adaptive-sharpen-modern-HD.glsl`

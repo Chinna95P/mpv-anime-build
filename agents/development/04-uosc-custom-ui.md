@@ -49,6 +49,8 @@ When upgrading UOSC in the future:
 ### 7. Full-Screen Volume Scroll
 - Allows scrolling the mouse wheel anywhere across the video area to adjust volume smoothly with custom smoked-glass volume popups.
 
+### 9. HDR Toys Menu 
+- Interactively adjusts advanced 3-way HDR mappings and loads specialized shader chains directly from UOSC.
 ### 8. Real-Time Anime State Synchronization
 - Receives JSON state broadcasts from `anime_profile_controller.lua` via `anime-state-broadcast`.
 - Dynamic menu descriptions reflect the current resolution tier, active shader quality (Fast/HQ/Ultra), and fidelity state.

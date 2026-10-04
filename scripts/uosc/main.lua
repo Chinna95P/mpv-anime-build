@@ -1173,6 +1173,7 @@ function create_default_menu_items()
                             }
                         },
 						tm_menu,
+                { title = "HDR Toys Menu", icon = "hdr_plus", value = "script-binding open-hdr-toys-menu" },
 						
 						-- [NEW] Target Peak Sub-Menu
             {
