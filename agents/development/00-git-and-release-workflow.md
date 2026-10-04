@@ -215,3 +215,33 @@ The user prefers to:
 | git reset/rebase | ❌ YES - Explicit instruction required |
 
 **Remember: When in doubt, show the diff and ask.**
+
+### Release Structure Constraints
+When generating the release `mpv-anime-build-vX.X.zip`, ensure *only* the canonical directories and setup files are packaged. Exclude all transient, development, or Git-related metadata to prevent polluting users' configurations.
+
+**Include Only:**
+- `CHANGELOG.md`
+- `LICENSE`
+- `Readme.md`
+- `docs/`
+- `fonts/`
+- `input.conf`
+- `mpv.conf`
+- `script-modules/`
+- `script-opts/`
+- `scripts/`
+- `shaders/`
+
+**Explicitly Exclude:**
+- `*.git*` (including `.gitignore`, `.gitmodules`)
+- `*.github*`
+- `*.codex*`
+- `*cache*` (including `icc-cache/`)
+- `*agents*`
+- `ytdl/`
+- `screenshots/`
+- `watch_later/`
+- `vs-plugins/`
+- `CLAUDE.md`
+
+Use explicit inclusion algorithms rather than wildcard directory exclusions when scripting ZIP generation.
