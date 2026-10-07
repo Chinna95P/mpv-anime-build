@@ -1019,14 +1019,21 @@ function open_subtitle_downloader()
 		args[#args + 1] = '--page'
 		args[#args + 1] = tostring(page)
 
-		if file_path then
+		local search_query = query
+		if (not search_query or #search_query == 0) and search_suggestion and #search_suggestion > 0 then
+			search_query = search_suggestion
+		end
+		local has_query = search_query and #search_query > 0
+
+		-- Prefer text search whenever possible. Some OpenSubtitles/Cloudflare
+		-- edges reset moviehash requests for specific files, including edited searches
+		-- that briefly submit an empty query.
+		if has_query then
+			args[#args + 1] = '--query'
+			args[#args + 1] = search_query
+		elseif file_path then
 			args[#args + 1] = '--hash'
 			args[#args + 1] = file_path
-		end
-
-		if query and #query > 0 then
-			args[#args + 1] = '--query'
-			args[#args + 1] = query
 		end
 
 		call_ziggy_async(args, function(error, data)
