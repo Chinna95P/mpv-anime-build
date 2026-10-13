@@ -155,8 +155,13 @@ end
 -- APPLY / RESTORE
 -------------------------------------------------
 local SAVED = {}
+local reassert_timer = nil
 
 local function apply_hdr_toys()
+    if reassert_timer then
+        reassert_timer:kill()
+        reassert_timer = nil
+    end
     if not o.enabled then return end
     state.hdr_type = determine_hdr_type()
 
@@ -202,6 +207,10 @@ local function apply_hdr_toys()
 end
 
 local function restore_hdr_toys()
+    if reassert_timer then
+        reassert_timer:kill()
+        reassert_timer = nil
+    end
     if not state.applied then return end
     for prop, val in pairs(SAVED) do
         if val and val ~= "" then
@@ -234,17 +243,36 @@ end
 -------------------------------------------------
 -- RE-ASSERT after profile changes wipe glsl-shaders
 -------------------------------------------------
-mp.observe_property("glsl-shaders", "native", function(_, shaders)
+local function execute_reassert()
+    reassert_timer = nil
     if state.inhibit_obs or not state.applied then return end
-    for _, s in ipairs(shaders or {}) do
+
+    local shaders = mp.get_property_native("glsl-shaders") or {}
+    for _, s in ipairs(shaders) do
         if is_hdr_shader(s) then return end
     end
     msg.info("hdr_toys: re-asserting shaders after profile change")
     state.inhibit_obs = true
-    local merged = strip_hdr(shaders or {})
+    local merged = strip_hdr(shaders)
     for _, s in ipairs(hdr_toys_shaders(state.hdr_type)) do merged[#merged+1] = s end
     mp.set_property_native("glsl-shaders", merged)
     state.inhibit_obs = false
+end
+
+mp.observe_property("glsl-shaders", "native", function(_, shaders)
+    if state.inhibit_obs or not state.applied then return end
+    for _, s in ipairs(shaders or {}) do
+        if is_hdr_shader(s) then
+            if reassert_timer then
+                reassert_timer:kill()
+                reassert_timer = nil
+            end
+            return
+        end
+    end
+
+    if reassert_timer then reassert_timer:kill() end
+    reassert_timer = mp.add_timeout(0.2, execute_reassert)
 end)
 
 -------------------------------------------------

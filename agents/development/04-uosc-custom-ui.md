@@ -7,13 +7,14 @@
 
 ## 🚨 CRITICAL RULE: Never Replace with Upstream Directly
 
-**`scripts/uosc/main.lua` must NEVER be overwritten with upstream UOSC code without deliberate 3-way porting.**
+**`scripts/uosc/main.lua` and `scripts/uosc/lib/menus.lua` must NEVER be overwritten with upstream UOSC code without deliberate 3-way porting.**
 
 ### UOSC Upgrade Procedure
 When upgrading UOSC in the future:
 1. Obtain the clean previous upstream version (v5.13.0).
 2. Diff against the current customized `mpv-anime-build` version to identify all customizations.
-3. Apply customizations deliberately onto the new upstream release.
+3. Preserve both `main.lua` integration logic and `lib/menus.lua` menu/search behavior before applying upstream changes.
+4. Apply customizations deliberately onto the new upstream release.
 
 ---
 
@@ -49,12 +50,18 @@ When upgrading UOSC in the future:
 ### 7. Full-Screen Volume Scroll
 - Allows scrolling the mouse wheel anywhere across the video area to adjust volume smoothly with custom smoked-glass volume popups.
 
-### 9. HDR Toys Menu 
-- Interactively adjusts advanced 3-way HDR mappings and loads specialized shader chains directly from UOSC.
 ### 8. Real-Time Anime State Synchronization
 - Receives JSON state broadcasts from `anime_profile_controller.lua` via `anime-state-broadcast`.
 - Dynamic menu descriptions reflect the current resolution tier, active shader quality (Fast/HQ/Ultra), and fidelity state.
 - Automatically locks/disables incompatible options (e.g., locks Anime4K menus when Fidelity Mode is active).
+
+### 9. HDR Toys Menu
+- Interactively adjusts advanced 3-way HDR mappings and loads specialized shader chains directly from UOSC.
+
+### 10. Subtitle Downloader Search Behavior
+- `scripts/uosc/lib/menus.lua` carries Anime Build-specific subtitle downloader behavior.
+- When a text query or search suggestion exists, subtitle search intentionally avoids combining OpenSubtitles moviehash lookup with query text because some OpenSubtitles/Cloudflare edges reset those requests for specific files.
+- Preserve the query-first fallback behavior when porting upstream UOSC menu changes.
 
 ---
 
@@ -62,7 +69,7 @@ When upgrading UOSC in the future:
 
 ```
 scripts/uosc/
-├── main.lua                # [HIGH RISK] Main UI logic, menus, event dispatching
+├── main.lua                # [HIGH RISK] Main UI logic, controls, event dispatching
 ├── elements/
 │   ├── BufferingIndicator.lua
 │   ├── Button.lua
@@ -87,7 +94,7 @@ scripts/uosc/
     ├── cursor.lua
     ├── fzy.lua
     ├── intl.lua
-    ├── menus.lua
+    ├── menus.lua           # [HIGH RISK] Menu builders, subtitle downloader/search flow
     ├── std.lua
     ├── text.lua
     └── utils.lua

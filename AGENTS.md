@@ -38,14 +38,14 @@
 ## UOSC rules
 
 - UOSC is currently version 5.13.0.
-- `scripts/uosc/main.lua` is heavily customized.
-- Never replace `scripts/uosc/main.lua` with an upstream version without first identifying and preserving MPV Anime Build customizations.
+- `scripts/uosc/main.lua` and `scripts/uosc/lib/menus.lua` are heavily customized.
+- Never replace `scripts/uosc/main.lua` or `scripts/uosc/lib/menus.lua` with upstream versions without first identifying and preserving MPV Anime Build customizations.
 - When upgrading UOSC, compare:
   1. clean previous upstream UOSC;
   2. current customized UOSC;
   3. new upstream UOSC;
   and perform a deliberate three-way port.
-- Preserve Anime Build UOSC menus, history, denoise controls, shader/profile controls, HDR controls, audio-only controls, download integration, chapter highlighting, state synchronization, and other custom functionality.
+- Preserve Anime Build UOSC menus, history, denoise controls, shader/profile controls, HDR controls, audio-only controls, subtitle downloader/search behavior, download integration, chapter highlighting, state synchronization, and other custom functionality.
 - Treat `scripts/uosc/elements/`, `scripts/uosc/lib/`, `scripts/uosc/intl/`, and `script-opts/uosc.conf` as part of the UOSC integration and check compatibility when changing UOSC.
 - Do not introduce duplicate UOSC functionality when the upstream version already provides an appropriate mechanism.
 

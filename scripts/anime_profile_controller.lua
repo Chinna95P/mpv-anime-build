@@ -520,25 +520,36 @@ end
 -------------------------------------------------
 
 local function apply_shader_chain(chain)
-    if type(chain) == "table" then
-        mp.set_property_native("glsl-shaders", chain)
-        return
-    end
-
-    -- Clear list options with their native empty-array representation. Setting
-    -- an empty string can leave a blank shader entry on some MPV versions.
-    mp.set_property_native("glsl-shaders", {})
-
-    if not chain or chain == "" then return end
-
-    -- 2. Split by semicolon OR comma
-    for shader_path in string.gmatch(chain, "([^;,]+)") do
-        -- Trim any accidental whitespace
-        shader_path = shader_path:match("^%s*(.-)%s*$")
-        if shader_path and shader_path ~= "" then
-            mp.commandv("change-list", "glsl-shaders", "append", shader_path)
+    -- Preserve HDR Toys shaders if they are currently active
+    local current_shaders = mp.get_property_native("glsl-shaders") or {}
+    local hdr_shaders = {}
+    for _, s in ipairs(current_shaders) do
+        if s:find("hdr%-toys", 1, false) or s:find("hdr-toys", 1, false) then
+            table.insert(hdr_shaders, s)
         end
     end
+
+    local new_chain = {}
+    if type(chain) == "table" then
+        for _, s in ipairs(chain) do
+            table.insert(new_chain, s)
+        end
+    elseif chain and chain ~= "" then
+        for shader_path in string.gmatch(chain, "([^;,]+)") do
+            shader_path = shader_path:match("^%s*(.-)%s*$")
+            if shader_path and shader_path ~= "" then
+                table.insert(new_chain, shader_path)
+            end
+        end
+    end
+
+    -- Append HDR Toys shaders to the end if they were present
+    for _, s in ipairs(hdr_shaders) do
+        table.insert(new_chain, s)
+    end
+
+    -- Apply all in one atomic call to prevent flickering, observer loops, and race conditions
+    mp.set_property_native("glsl-shaders", new_chain)
 end
 
 local function is_anime_folder(p)
@@ -1102,6 +1113,9 @@ local function get_anime_menu_json()
                         { title = "FSRCNNX (General Distort)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_distort.glsl" },        
                         { title = "FSRCNNX (General Distort 1x Filter)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x1_16-0-4-1_distort.glsl" },
 						{ title = "FSRCNNX (Enhance General)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSRCNNX_x2_16-0-4-1_enhance.glsl" },
+                        -- FSR Options
+                        { title = "FSR (General)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSR.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSR.glsl" },
+                        { title = "FSR (Anime)", active = (user_fsrcnnx[ctx][res] == "~~/shaders/FSR-Ani.glsl"), value = "script-message set-resolution-shader fsrcnnx " .. ctx .. " " .. res .. " ~~/shaders/FSR-Ani.glsl" },
                         { title = "RESET TO DEFAULT",        value = "script-message reset-resolution-shader fsrcnnx " .. ctx .. " " .. res, bold = true }
                     }
                 },
@@ -1328,7 +1342,7 @@ mp.register_script_message("toggle-global-shaders", function()
     save_anime_mode() 
     
     if not shaders_master_switch then
-        mp.set_property_native("glsl-shaders", {})
+        apply_shader_chain("")
         current_profile = ""
         show_temp_osd(C.RED .. "Shaders: " .. C.WHITE .. "Disabled", 2)
     else

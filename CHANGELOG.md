@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 
 ---
 
+## [v5.6] – FSR Shader Options, HDR Toys Stability & Subtitle Search Fixes
+
+### 🎛️ Shader Controls
+* **FSR Shader Swapper Options:** Added FSR/FSRCNNX variant choices to the Anime Build shader swapper so alternate reconstruction and scaling profiles are available from the customized UOSC menus.
+* **HDR Toys Pipeline Race Fix:** Stabilized HDR Toys shader pipeline handling so the HDR Toys shader chain remains reliable alongside Anime Build profile changes.
+
+### 💬 Subtitle Downloader
+* **Query-First OpenSubtitles Search:** Updated UOSC subtitle search to use query text or the current search suggestion before falling back to moviehash lookup, avoiding OpenSubtitles/Cloudflare connection resets seen with combined `moviehash` + `query` requests.
+
+### 📚 Agent Documentation
+* **Customized UOSC Scope:** Documented `scripts/uosc/lib/menus.lua` as a high-risk customized UOSC file alongside `scripts/uosc/main.lua`, including the subtitle downloader/search behavior that must be preserved during future UOSC ports.
+
 ## [v5.5] – HDR Toys and Adaptive Sharpen 2-pass Overhaul
 
 ### 🌈 HDR & Tone-Mapping
