@@ -8,7 +8,7 @@ This router indexes all subsystem documentation for **MPV Anime Build**. When wo
 
 1. **NEVER commit or push automatically**: Always show `git diff` and wait for explicit user confirmation. (See [00-git-and-release-workflow.md](development/00-git-and-release-workflow.md))
 2. **Version Source of Truth**: `script-opts/build_info.conf` is authoritative (never infer from `git describe`).
-3. **NEVER overwrite `scripts/uosc/main.lua` with upstream UOSC**: It contains extensive custom controls and event hooks. (See [04-uosc-custom-ui.md](development/04-uosc-custom-ui.md))
+3. **NEVER overwrite `scripts/uosc/main.lua` or `scripts/uosc/lib/menus.lua` with upstream UOSC**: They contain extensive custom controls, menu logic, subtitle downloader behavior, and event hooks. (See [04-uosc-custom-ui.md](development/04-uosc-custom-ui.md))
 4. **NEVER reset `manual_override` on `file-loaded`**: Track selections persist across playlist files. (See [07-track-selector.md](development/07-track-selector.md))
 5. **Eco Mode Priority**: The `[Low-End]` profile owns rendering properties on battery; user settings must not overwrite it. (See [05-power-guard-eco.md](development/05-power-guard-eco.md))
 6. **Live-Action Detection Override**: Explicit live-action titles/paths override anime folders/Japanese audio in Auto mode. (See [02-anime-profile-controller.md](development/02-anime-profile-controller.md))
@@ -23,7 +23,7 @@ This router indexes all subsystem documentation for **MPV Anime Build**. When wo
 | **Architecture & Event Flow** | MPV event lifecycle, script load order, script-message communication bus | [`01-architecture-overview.md`](development/01-architecture-overview.md) |
 | **Anime Profile Controller** | [HIGH RISK] Detection matrix, resolution tiers, profile switching, state broadcast | [`02-anime-profile-controller.md`](development/02-anime-profile-controller.md) |
 | **Shader Pipeline & Engines** | Shaders library, FSRCNNX Fidelity vs Anime4K, ArtCNN (Ani4Kv2/SD), Line-Thinner | [`03-shader-pipeline.md`](development/03-shader-pipeline.md) |
-| **UOSC Custom UI Fork** | [HIGH RISK] UOSC 5.13.0 fork, custom buttons, history, denoise, styling controls | [`04-uosc-custom-ui.md`](development/04-uosc-custom-ui.md) |
+| **UOSC Custom UI Fork** | [HIGH RISK] UOSC 5.13.0 fork, `main.lua` controls/event hooks, `lib/menus.lua` menu builders/subtitle downloader, custom buttons, history, denoise, styling controls | [`04-uosc-custom-ui.md`](development/04-uosc-custom-ui.md) |
 | **Power Guard & Battery** | Cross-platform battery detection (Linux sysfs / Windows CIM), Eco `[Low-End]` mode | [`05-power-guard-eco.md`](development/05-power-guard-eco.md) |
 | **Display, HDR & Scalers** | 3-Way HDR matrix (Auto/Passthrough/SDR), RTX VSR, native `spline64` scalers | [`06-display-hdr-scaling.md`](development/06-display-hdr-scaling.md) |
 | **HDR Toys Menu** | Sub-Menu for toggling tonemapping parameters like Gamut modes (Astra, Bottosson). | [`06-display-hdr-scaling.md`](development/06-display-hdr-scaling.md) |

@@ -1,4 +1,4 @@
-# 🎬 MPV Anime Build v5.5
+# 🎬 MPV Anime Build v5.6
 > **The Cross-Platform Audio Switching & Dialogue Search Update: cross-platform display-to-device audio mapping, human-readable display identification, searchable subtitle dialogue browser, refined status overlays, and balanced interface fonts.**
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Pvf3huxFvU)
@@ -21,7 +21,12 @@ The MPV Anime Build is also available for **Android (mpvEX / Aniyomi)**!
 
 ---
 
-## 🚀 What's New in (v4.0 - v5.5)
+## 🚀 What's New in (v4.0 - v5.6)
+
+* **🧩 FSR Shader Swapper Options (v5.6):** Added FSR/FSRCNNX variant choices to the Anime Build shader swapper so alternate reconstruction and scaling profiles can be selected from the customized UOSC menus.
+* **🌈 HDR Toys Pipeline Stability (v5.6):** Fixed HDR Toys shader-pipeline race behavior and documented the HDR Toys button, menu flow, and release packaging requirements for future agent work.
+* **💬 Reliable UOSC Subtitle Search (v5.6):** Updated the UOSC subtitle downloader to prefer text-query searches when a query or suggestion exists, avoiding OpenSubtitles moviehash request resets while preserving hash lookup when no query is available.
+* **📚 UOSC Agent Documentation (v5.6):** Marked `scripts/uosc/lib/menus.lua` as a customized/high-risk UOSC file alongside `scripts/uosc/main.lua` so future upstream ports preserve Anime Build menu and subtitle-search behavior.
 
 * **HDR Toys UI (v5.5):** Integrated interactive HDR Toys sub-menu within the Audio & HDR UOSC control section. Enables advanced real-time gamut (Bottosson) and tone-mapping (Astra) adjustments with persistent configuration state.
 * **Unified 2-Pass Sharpening (v5.5):** Upgraded all resolution-specific and generic Adaptive Sharpen shaders to the purist 2-pass DX11 framework. Provides significant edge anti-ringing improvements relying on explicitly calibrated `L_overshoot` and `D_overshoot` structures.

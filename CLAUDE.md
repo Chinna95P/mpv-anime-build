@@ -26,10 +26,12 @@
    - Understand state flow and all callers before modifying
    - Preserve public script-message interfaces and state keys
 
-2. **`scripts/uosc/main.lua`** (High Risk)
+2. **`scripts/uosc/main.lua` and `scripts/uosc/lib/menus.lua`** (High Risk)
    - Heavily customized UOSC v5.13.0 implementation
    - **Never replace with upstream blindly**
-   - Contains custom menus, history, denoise, shader controls, HDR controls, audio-only, download integration, and chapter highlighting
+   - `main.lua` contains custom controls, state sync, event hooks, and command bindings
+   - `lib/menus.lua` contains customized menu builders, subtitle downloader/search behavior, and OpenSubtitles query handling
+   - Preserve history, denoise, shader controls, HDR controls, audio-only, download integration, chapter highlighting, subtitle downloader behavior, and state synchronization
    - Upgrades require a careful three-way merge
 
 3. **`track-selector.lua`**
