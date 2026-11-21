@@ -9,6 +9,10 @@ script-opts/*
 !script-opts/thumbfast.conf
 !script-opts/uosc.conf
 !script-opts/youtube-download.conf
+!script-opts/gotorrent.conf
+!script-opts/sponsorblock_minimal.conf
+!script-opts/webm.conf
+!script-opts/autosubsync.conf
 vs-plugins/
 icc-cache/
 mpv-livetweet.lua
