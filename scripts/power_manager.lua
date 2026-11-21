@@ -7,7 +7,7 @@ local msg = require 'mp.msg'
 
 -- CONFIGURATION
 local opts = {
-    check_interval = 5,
+    check_interval = 60,
     low_power_profile = "Low-End", 
     forced_hotkey = "toggle-power", 
 }
@@ -299,6 +299,7 @@ mp.register_event("file-loaded", function()
             msg.info((platform == "windows" and "Windows" or "Linux") .. " laptop detected. Power Monitor Active.")
             state.is_laptop = true
             state.timer = mp.add_periodic_timer(opts.check_interval, on_tick)
+            on_tick()
         else
             msg.info((platform == "windows" and "Windows" or "Linux") .. " desktop detected. Manual Toggle Only.")
         end

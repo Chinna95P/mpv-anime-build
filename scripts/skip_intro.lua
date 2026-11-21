@@ -241,3 +241,9 @@ mp.add_periodic_timer(0.1, on_tick)
 
 -- [FIX] Trigger cache update on load
 mp.register_event("file-loaded", update_chapter_cache)
+
+-- Chapters can also arrive after loading (aniskip-chapters.lua adds OP/ED
+-- chapters from AniSkip a moment later), so keep the cache in step.
+mp.observe_property("chapter-list", "native", function(_, list)
+    state.cached_chapters = list
+end)
